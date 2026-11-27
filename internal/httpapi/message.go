@@ -179,7 +179,8 @@ func (a *authAPI) messageBody(w http.ResponseWriter, r *http.Request, s auth.Ses
 	h.Set("Content-Security-Policy", fmt.Sprintf("default-src 'none'; img-src data: %s/proxy; style-src 'unsafe-inline'; "+
 		"base-uri 'none'; form-action 'none'; frame-ancestors 'self'", origin))
 	h.Set("X-Frame-Options", "SAMEORIGIN")
-	_, _ = w.Write([]byte(sanitize.Document(res.HTML, r.URL.Query().Get("dark") == "1")))
+	dark := r.URL.Query().Get("dark") == "1"
+	_, _ = w.Write([]byte(sanitize.Document(res.HTML, dark))) //nolint:gosec // sanitized HTML; the query only flips a bool
 }
 
 func (a *authAPI) messagePart(w http.ResponseWriter, r *http.Request, s auth.Session) {

@@ -411,5 +411,6 @@
   "errors.import.partial": "Uvoz je zaustavljen na pola.",
   "settings.darkMessages": "Prikaži HTML poruke tamno u tamnoj temi",
   "message.view_dark": "Tamni prikaz",
-  "message.view_light": "Svetli prikaz"
+  "message.view_light": "Svetli prikaz",
+  "language.ar": "العربية"
 }

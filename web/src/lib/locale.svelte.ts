@@ -2,10 +2,11 @@
 
 import en from '../locales/en.json';
 import srLatn from '../locales/sr-Latn.json';
+import ar from '../locales/ar.json';
 import { createTranslator, resolveLocale, textDirection, type Catalog } from './i18n';
 import { LANG_COOKIE, readCookie, writePref } from './prefs';
 
-const catalogs: Record<string, Catalog> = { en, 'sr-Latn': srLatn };
+const catalogs: Record<string, Catalog> = { en, 'sr-Latn': srLatn, ar };
 export const LOCALES = Object.keys(catalogs);
 
 const initial = resolveLocale(

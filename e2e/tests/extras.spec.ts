@@ -145,3 +145,11 @@ test('message text picks its own direction, so Arabic or Hebrew mail reads right
   await expect(page.frameLocator('iframe').locator('body')).toHaveAttribute('dir', 'auto');
   await expect(page.locator('html')).toHaveAttribute('dir', 'ltr');
 });
+
+test('Arabic turns the whole interface right to left', async ({ page, context, baseURL }) => {
+  await context.addCookies([{ name: 'golub_lang', value: 'ar', url: baseURL! }]);
+  await page.goto('/');
+  await expect(page.locator('html')).toHaveAttribute('dir', 'rtl');
+  await expect(page.locator('html')).toHaveAttribute('lang', 'ar');
+  await expect(page.getByRole('heading', { name: 'سجّل الدخول إلى بريدك' })).toBeVisible();
+});

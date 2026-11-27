@@ -71,7 +71,7 @@ func (c *Config) HTTPS() bool { return c.TLSCert != "" }
 func (c *Config) SSOEnabled() bool { return c.SSOSecret != "" }
 
 // Locales lists the supported UI locales.
-var Locales = []string{"en", "sr-Latn"}
+var Locales = []string{"en", "sr-Latn", "ar"}
 
 // Themes lists the supported theme settings.
 var Themes = []string{"system", "light", "dark"}

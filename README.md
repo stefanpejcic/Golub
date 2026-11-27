@@ -96,27 +96,32 @@ Webmail sees everything a person writes and reads, so Golub is built to keep as 
 
 **For hosting**
 - One IMAP connection per user, kept open and reused, instead of a new login on every click
+- Settings, contacts and signatures live on the IMAP server in the user's own mailbox, so they move with the account when it is migrated to another server
 - Single sign-on from a control panel with a signed, single-use token
 - Branding with your own name, logo and accent colour
-- English and Serbian (Latin), with more languages easy to add
+- English, Serbian (Latin) and Arabic, with right-to-left support and more languages easy to add
 
-## Golub and Roundcube
+## Benchmarks
+
+### Golub and Roundcube
+
+**42× smaller image, 9× less memory, 9× faster message list and 200× fewer IMAP connections than Roundcube.**
 
 Both clients read the same mailbox on the same server: an INBOX of 21 messages and a folder of 50,000.
 
-| | Golub 0.1.0 | Roundcube 1.7.7 |
-|---|---|---|
-| Image download (amd64) | **6.6 MB** | 281 MB |
-| Image unpacked | **16.9 MB** | 795 MB |
-| RAM at idle | **4.6 MB** | 35.5 MB |
-| Peak RAM, 10 users | **15.8 MB** | 149.7 MB |
-| Message list, INBOX, 10 users | **484 req/s**, 20 ms | 51 req/s, 195 ms |
-| Message list, 50,000 messages, 10 users | **64 req/s**, 148 ms | 23 req/s, 432 ms |
-| IMAP connections for 2,000 requests | **10** | 2,000 |
-| Login page download | **39 KB**, 6 requests | 331 KB, 12 requests |
-| Sign in to inbox shown | **0.94 s** | 1.37 s |
-| Open a message | **0.33 s** | 0.94 s |
-| Whole session download | **245 KB**, 29 requests | 382 KB, 51 requests |
+| | Golub 0.1.0 | Roundcube 1.7.7 | Difference |
+|---|---|---|---|
+| Image download (amd64) | **6.6 MB** | 281 MB | **42× smaller** |
+| Image unpacked | **16.9 MB** | 795 MB | **47× smaller** |
+| RAM at idle | **4.6 MB** | 35.5 MB | **8× less** |
+| Peak RAM, 10 users | **15.8 MB** | 149.7 MB | **9× less** |
+| Message list, INBOX, 10 users | **484 req/s**, 20 ms | 51 req/s, 195 ms | **9× faster** |
+| Message list, 50,000 messages, 10 users | **64 req/s**, 148 ms | 23 req/s, 432 ms | **3× faster** |
+| IMAP connections for 2,000 requests | **10** | 2,000 | **200× fewer** |
+| Login page download | **39 KB**, 6 requests | 331 KB, 12 requests | **8× smaller** |
+| Sign in to inbox shown | **0.94 s** | 1.37 s | **1.5× faster** |
+| Open a message | **0.33 s** | 0.94 s | **3× faster** |
+| Whole session download | **245 KB**, 29 requests | 382 KB, 51 requests | **1.6× less** |
 
 Golub **keeps one IMAP connection per user open and reuses it**, where Roundcube connects and logs in to IMAP again on every request. That is less work and fewer connections for the mail server, and no "maximum number of connections" errors when one user has several tabs open.
 
@@ -170,7 +175,7 @@ All settings come from environment variables and are checked at startup; a wrong
 | `GOLUB_TRUST_PROXY` | | Comma-separated CIDRs allowed to set `X-Forwarded-*`. |
 | `GOLUB_SSO_SECRET` | | Enables single sign-on. At least 32 characters. |
 | `GOLUB_MASTER_USER`, `GOLUB_MASTER_PASSWORD` | | Dovecot master user, required with SSO. |
-| `GOLUB_DEFAULT_LOCALE` | `en` | `en` or `sr-Latn`. |
+| `GOLUB_DEFAULT_LOCALE` | `en` | `en`, `sr-Latn` or `ar`. |
 | `GOLUB_DEFAULT_THEME` | `system` | `system`, `light` or `dark`. |
 | `GOLUB_BRAND_NAME` | `Golub` | Shown in the tab title and on the login page. |
 | `GOLUB_BRAND_LOGO` | | Path to a `.png`, `.jpg`, `.svg` or `.webp` logo, up to 512 KB. |
@@ -215,6 +220,31 @@ go run ./cmd/golub
 The frontend is Svelte and builds into `internal/ui/dist`, which the Go binary embeds. End-to-end tests run Playwright against docker-mailserver; see [`e2e/`](e2e). The README screenshots are made by `e2e/screenshots/shots.mjs` from invented demo mail.
 
 Golub follows [semantic versioning](https://semver.org). `VERSION` holds the next release; builds in between report `X.Y.Z-dev.N`.
+
+## Translations
+
+Golub ships in English, Serbian (Latin) and Arabic. Arabic switches the whole interface to right to left; message text picks its own direction in every language.
+
+Each language is one JSON file in [`web/src/locales`](web/src/locales), keyed by message id, with English (`en.json`) as the source:
+
+```json
+"compose.send": "Send",
+"folders.unread": { "one": "{count} unread message", "other": "{count} unread messages" }
+```
+
+- Words in braces such as `{count}` or `{folder}` are filled in by Golub: keep them, but move them wherever the sentence needs them.
+- Messages that depend on a number list every plural form your language has, the ones `Intl.PluralRules` reports: English has `one` and `other`, Serbian adds `few`, Arabic uses `zero`, `one`, `two`, `few`, `many` and `other`.
+- A missing key falls back to English, so a partial translation still works.
+
+**To fix or finish a translation**, edit its file and run the check, which reports missing or unknown keys and missing plural forms:
+
+```
+cd web && npm ci && node scripts/check-locales.mjs
+```
+
+**To add a language**, copy `en.json` to the new language code (for example `de.json`), translate it, add it to `catalogs` in [`web/src/lib/locale.svelte.ts`](web/src/lib/locale.svelte.ts) and to `Locales` in [`internal/config/config.go`](internal/config/config.go), and add a `language.<code>` entry with the language's own name to every file. Right-to-left languages are recognised by code in `textDirection` in [`web/src/lib/i18n.ts`](web/src/lib/i18n.ts).
+
+Send the change as a pull request. The Arabic translation was made without a native speaker, so corrections there are especially welcome.
 
 ## Roadmap
 

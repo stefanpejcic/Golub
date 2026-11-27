@@ -94,6 +94,8 @@ func supportedLocale(tag string) string {
 	switch parts[0] {
 	case "en":
 		return "en"
+	case "ar":
+		return "ar"
 	case "sr":
 		if slices.Contains(parts[1:], "cyrl") {
 			return ""

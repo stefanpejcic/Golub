@@ -398,5 +398,6 @@
   "errors.import.partial": "The import stopped part way.",
   "settings.darkMessages": "Show HTML messages dark in the dark theme",
   "message.view_dark": "Dark view",
-  "message.view_light": "Light view"
+  "message.view_light": "Light view",
+  "language.ar": "العربية"
 }
