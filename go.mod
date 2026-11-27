@@ -7,10 +7,13 @@ toolchain go1.27.4
 require (
 	github.com/emersion/go-imap/v2 v2.0.0-beta.9
 	github.com/jhillyerd/enmime/v2 v2.5.0
+	github.com/microcosm-cc/bluemonday v1.0.27
+	golang.org/x/net v0.63.0
 	golang.org/x/text v0.44.0
 )
 
 require (
+	github.com/aymerick/douceur v0.2.0 // indirect
 	github.com/cention-sany/utf7 v0.0.0-20170124080048-26cad61bd60a // indirect
 	github.com/cespare/xxhash/v2 v2.3.0 // indirect
 	github.com/clipperhouse/displaywidth v0.11.0 // indirect
@@ -20,6 +23,7 @@ require (
 	github.com/fatih/color v1.19.0 // indirect
 	github.com/goccy/go-json v0.10.6 // indirect
 	github.com/gogs/chardet v0.0.0-20211120154057-b7413eaefb8f // indirect
+	github.com/gorilla/css v1.0.1 // indirect
 	github.com/inbucket/html2text v1.0.0 // indirect
 	github.com/mattn/go-colorable v0.1.14 // indirect
 	github.com/mattn/go-isatty v0.0.22 // indirect
@@ -30,6 +34,5 @@ require (
 	github.com/olekukonko/tablewriter v1.1.4 // indirect
 	github.com/pkg/errors v0.9.1 // indirect
 	github.com/ssor/bom v0.0.0-20170718123548-6386211fdfcf // indirect
-	golang.org/x/net v0.55.0 // indirect
-	golang.org/x/sys v0.45.0 // indirect
+	golang.org/x/sys v0.50.0 // indirect
 )
