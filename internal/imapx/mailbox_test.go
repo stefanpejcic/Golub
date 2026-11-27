@@ -19,8 +19,8 @@ func TestClassify(t *testing.T) {
 		l    imap.ListData
 		want Folder
 	}{
-		{imap.ListData{Mailbox: "inbox", Delim: '/'}, Folder{Name: "INBOX", Delim: "/", Special: "inbox", Selectable: true}},
-		{imap.ListData{Mailbox: "Sent Items", Attrs: []imap.MailboxAttr{imap.MailboxAttrSent}}, Folder{Name: "Sent Items", Special: "sent", Selectable: true}},
+		{imap.ListData{Mailbox: "inbox", Delim: '/'}, Folder{Name: "INBOX", Delim: "/", Special: "inbox", Selectable: true, Subscribed: true}},
+		{imap.ListData{Mailbox: "Sent Items", Attrs: []imap.MailboxAttr{imap.MailboxAttrSent, imap.MailboxAttrSubscribed}}, Folder{Name: "Sent Items", Special: "sent", Selectable: true, Subscribed: true}},
 		{imap.ListData{Mailbox: "Junk", Attrs: []imap.MailboxAttr{imap.MailboxAttrHasNoChildren, imap.MailboxAttrJunk}}, Folder{Name: "Junk", Special: "junk", Selectable: true}},
 		{imap.ListData{Mailbox: "Archive/2025", Delim: '/', Attrs: []imap.MailboxAttr{imap.MailboxAttrNoSelect}}, Folder{Name: "Archive/2025", Delim: "/", Selectable: false}},
 	}

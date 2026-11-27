@@ -24,6 +24,7 @@ type Folder struct {
 	Unread     uint32 `json:"unread"`
 	Total      uint32 `json:"total"`
 	Selectable bool   `json:"selectable"`
+	Subscribed bool   `json:"subscribed"`
 }
 
 // Address is a display name and email.
@@ -77,7 +78,7 @@ func wordDecoder() *mime.WordDecoder {
 func ListFolders(c *imapclient.Client) ([]Folder, error) {
 	caps := c.Caps()
 	status := &imap.StatusOptions{NumMessages: true, NumUnseen: true}
-	opts := &imap.ListOptions{ReturnSpecialUse: caps.Has(imap.CapSpecialUse)}
+	opts := &imap.ListOptions{ReturnSpecialUse: caps.Has(imap.CapSpecialUse), ReturnSubscribed: true}
 	listStatus := caps.Has(imap.CapListStatus) || caps.Has(imap.CapIMAP4rev2)
 	if listStatus {
 		opts.ReturnStatus = status
@@ -89,6 +90,9 @@ func ListFolders(c *imapclient.Client) ([]Folder, error) {
 
 	folders := make([]Folder, 0, len(list))
 	for _, l := range list {
+		if l.Mailbox == SettingsFolder {
+			continue
+		}
 		f := classify(l)
 		st := l.Status
 		if st == nil && f.Selectable {
@@ -126,9 +130,12 @@ func classify(l *imap.ListData) Folder {
 		f.Delim = string(l.Delim)
 	}
 	if strings.EqualFold(l.Mailbox, "INBOX") {
-		f.Name, f.Special = "INBOX", "inbox"
+		f.Name, f.Special, f.Subscribed = "INBOX", "inbox", true
 	}
 	for _, a := range l.Attrs {
+		if a == imap.MailboxAttrSubscribed {
+			f.Subscribed = true
+		}
 		if s, ok := specialAttrs[a]; ok && f.Special == "" {
 			f.Special = s
 		}
