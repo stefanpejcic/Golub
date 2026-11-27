@@ -48,6 +48,15 @@ for i in $(seq 1 "$PAGING_COUNT"); do
   imap -u "$ALICE:$E2E_PASSWORD" "$IMAP/Paging" -T "$tmp"
 done
 
+echo "appending action test messages"
+imap -u "$ALICE:$E2E_PASSWORD" "$IMAP/" -X 'CREATE Actions' >/dev/null
+for i in 1 2 3 4 5; do
+  printf 'From: Carol <carol@%s>\r\nTo: Alice <%s>\r\nSubject: Action %d\r\nDate: %s\r\nContent-Type: text/plain; charset=utf-8\r\n\r\nAction body %d.\r\n' \
+    "$E2E_DOMAIN" "$ALICE" "$i" "$(date -u -R -d "2026-02-01 +$i hours")" "$i" >"$tmp"
+  imap -u "$ALICE:$E2E_PASSWORD" "$IMAP/Actions" -T "$tmp"
+done
+imap -u "$ALICE:$E2E_PASSWORD" "$IMAP/Actions" -X 'STORE 1:* -FLAGS (\Seen)' >/dev/null
+
 # curl APPENDs with \Seen; reset so the mailbox looks like freshly delivered mail.
 imap -u "$ALICE:$E2E_PASSWORD" "$IMAP/INBOX" -X 'STORE 1:* -FLAGS (\Seen)' >/dev/null
 imap -u "$ALICE:$E2E_PASSWORD" "$IMAP/Paging" -X 'STORE 1:* -FLAGS (\Seen)' >/dev/null
