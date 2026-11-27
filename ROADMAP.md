@@ -43,10 +43,8 @@
 
 ### 9. Hardening
 - [x] Perf budgets in CI (Server-Timing, 50k folder: first page, deep page, open)
-- [ ] Benchmark against Roundcube and other webmail clients on the test server (latency, memory, page weight), publish results
-- [ ] README rewrite for release: drop "early development", position as a Roundcube alternative, clear feature list and quick start
 - [x] Logo: carrier pigeon mascot in Go cyan with speed lines, plus a head mark for small sizes
-- [ ] Tag `v0.1.0`
+- [ ] Tag `v0.1.0` (see Release below)
 
 ## Next: Settings
 Stored per user in an unsubscribed IMAP folder `golub-settings` (one JSON message), since the reference server has no IMAP METADATA. Nothing is written by Golub itself.
@@ -61,29 +59,35 @@ Stored per user in an unsubscribed IMAP folder `golub-settings` (one JSON messag
 - [x] Message toolbar: Reply, Reply all, Forward, Delete, More (print, download .eml, edit as new, show source, move to, copy to, open in new window)
 - [x] Resizable folder / list / preview columns, widths remembered in the browser
 
-## Notifications and avatars (requested)
+## 1.0 release, in this order
+- [x] Drag and drop messages onto folders
+- [x] IDNA and SMTPUTF8 addresses
+- [x] Mobile layout with a folder select and full-screen message
+- [x] Branding through env vars: name, logo, accent colour
+- [x] In-app confirm and prompt dialogs
+- [ ] Attachment previews (images, PDF, text)
+- [ ] Spell checking via the browser
+- [ ] Cache sorted UIDs per connection so paging and search on very large folders skip the full SORT
+- [ ] Address book with groups, autocomplete, addresses collected from Sent, vCard import/export (stored in a hidden IMAP folder)
+- [ ] Threaded view (IMAP THREAD)
+- [ ] Advanced search: body text, all folders, date range, has attachments, unread, flagged
+- [ ] Import/export: .eml/.mbox upload into a folder, folder export
+
+## Release
+- [ ] Benchmark against Roundcube on the test server: image and download size in MB, RAM usage, latency
+- [ ] README rewrite: privacy first, a Roundcube alternative, feature list, quick start, benchmark results
+- [ ] Tag `v0.1.0`, publish the Docker image and test it on the server
+
+## Future versions
+
+### Notifications and avatars
 - [ ] Tab title with unread count ("(3) Inbox – Golub"), keep refreshing while the tab is in the background
 - [ ] Favicon dot for new mail, optional desktop notifications (setting, browser permission)
 - [ ] Avatars: initials in a stable colour by default, no network requests
 - [ ] BIMI logos for senders whose mail passed DMARC (checked from the server's Authentication-Results), loaded through the proxy as images only
 - [ ] Optional Gravatar (off by default, through the proxy), in-memory cache
 
-## Performance follow-ups
-- [ ] Cache sorted UIDs per connection so paging and search on very large folders skip the full SORT
-
-## Proposed for 1.0 (awaiting review)
-- [ ] Address book with groups, autocomplete, addresses collected from Sent, vCard import/export (stored in a hidden IMAP folder)
-- [ ] Threaded view (IMAP THREAD)
-- [x] Drag and drop messages onto folders
-- [ ] Advanced search: body text, all folders, date range, has attachments, unread, flagged
-- [ ] Attachment previews (images, PDF, text)
-- [ ] Spell checking via the browser
-- [ ] Import/export: .eml/.mbox upload into a folder, folder export
-- [x] IDNA and SMTPUTF8 addresses
-- [x] Mobile layout with a folder select and full-screen message
-- [x] Branding through env vars: name, logo, accent colour
-
-## AI assistant (optional, privacy first)
+### AI assistant (optional, privacy first)
 Off unless the admin configures an endpoint (`GOLUB_AI_URL`, `GOLUB_AI_MODEL`, `GOLUB_AI_KEY`; OpenAI-compatible API, so a local Ollama or vLLM works). Nothing leaves the server unless the user clicks an AI action; no background analysis, no storage, users can turn it off in settings.
 - [ ] Summarize a message or a long thread
 - [ ] Reply suggestions: two or three short drafts in the user's language, inserted into compose for editing
@@ -94,10 +98,10 @@ Off unless the admin configures an endpoint (`GOLUB_AI_URL`, `GOLUB_AI_MODEL`, `
 - [ ] Explain why a message looks like phishing or spam
 - [ ] Admin limits: per-user rate limit, max input size, strip attachments and quoted history before sending
 
-## Later
+### Later
 PGP, dark message view for HTML mail, RTL locales.
 
-## Project
+### Docs, website and demo
 
 - [ ] Documentation: install, configuration reference, SSO integration, reverse proxy examples
 - [ ] Project website
