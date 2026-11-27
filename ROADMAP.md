@@ -75,7 +75,8 @@ Stored per user in an unsubscribed IMAP folder `golub-settings` (one JSON messag
 
 ## Release
 - [ ] Benchmark against Roundcube on the test server: image and download size in MB, RAM usage, latency
-- [ ] README rewrite: privacy first, a Roundcube alternative, feature list, quick start, benchmark results
+- [ ] README: benchmark results and the Roundcube comparison
+- [x] README rewrite: privacy first, feature list, quick start, SSO
 - [ ] Tag `v0.1.0`, publish the Docker image and test it on the server
 
 ## Future versions
