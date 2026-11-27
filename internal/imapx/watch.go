@@ -17,8 +17,8 @@ var ErrNoIdle = errors.New("imap: server does not support IDLE")
 // RFC 2177 asks clients to re-issue IDLE at least every 29 minutes.
 const idleRestart = 25 * time.Minute
 
-// Watch idles on folder until ctx ends, calling notify on changes and ready once; neither may block.
-func (d *Dialer) Watch(ctx context.Context, user, pass, folder string, notify, ready func()) error {
+// Watch idles on folder until ctx ends, calling notify on changes and ready once with the folder's state; neither may block.
+func (d *Dialer) Watch(ctx context.Context, user, pass, folder string, notify func(), ready func(total, uidNext uint32)) error {
 	handler := &imapclient.UnilateralDataHandler{
 		Expunge: func(uint32) { notify() },
 		Mailbox: func(m *imapclient.UnilateralDataMailbox) {
@@ -39,7 +39,8 @@ func (d *Dialer) Watch(ctx context.Context, user, pass, folder string, notify, r
 	if !c.Caps().Has(imap.CapIdle) && !c.Caps().Has(imap.CapIMAP4rev2) {
 		return ErrNoIdle
 	}
-	if _, err := c.Select(folder, &imap.SelectOptions{ReadOnly: true}).Wait(); err != nil {
+	sel, err := c.Select(folder, &imap.SelectOptions{ReadOnly: true}).Wait()
+	if err != nil {
 		return err
 	}
 	first := true
@@ -50,7 +51,7 @@ func (d *Dialer) Watch(ctx context.Context, user, pass, folder string, notify, r
 		}
 		if first && ready != nil {
 			first = false
-			ready()
+			ready(sel.NumMessages, uint32(sel.UIDNext))
 		}
 		timer := time.NewTimer(idleRestart)
 		ended := make(chan error, 1)

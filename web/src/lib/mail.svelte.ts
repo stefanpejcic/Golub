@@ -12,6 +12,7 @@ export interface Folder {
   special?: string;
   unread: number;
   total: number;
+  uidNext: number;
   selectable: boolean;
   subscribed: boolean;
   size?: number;
@@ -134,6 +135,7 @@ function fail(e: unknown): string {
 let messageSeq = 0;
 // Bumped by every local change so a refresh started earlier cannot undo it with stale data.
 let mutations = 0;
+let foldersLoad: Promise<unknown> | null = null;
 
 // Search filters live only in memory; the URL keeps just the text so links stay short.
 function searchParams(): string {
@@ -302,14 +304,23 @@ export const mail = {
   },
 
   async loadFolders() {
+    const load = api<{ folders: Folder[] }>('GET', '/api/folders');
+    foldersLoad = load;
     try {
-      state.folders = (await api<{ folders: Folder[] }>('GET', '/api/folders')).folders;
+      state.folders = (await load).folders;
     } catch (e) {
       state.error = fail(e);
     }
     api<{ supported: boolean; used?: number; limit?: number }>('GET', '/api/quota')
       .then((q) => (state.quota = q.supported ? { used: q.used!, limit: q.limit! } : null))
       .catch(() => undefined);
+  },
+
+  // inSync tells whether a folder still matches what was loaded, waiting for a folder list that is still on its way
+  async inSync(folder: string, total: number, uidNext: number) {
+    await foldersLoad?.catch(() => undefined);
+    const f = state.folders.find((x) => x.name === folder);
+    return !!f && f.total === total && f.uidNext === uidNext;
   },
 
   async open(folder: string, page = 1, opts: { replace?: boolean; history?: boolean } = {}) {

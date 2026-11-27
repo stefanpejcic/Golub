@@ -24,13 +24,16 @@ func TestWatchReportsNewMail(t *testing.T) {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 	changes := make(chan struct{}, 8)
-	ready := make(chan struct{})
+	ready := make(chan [2]uint32, 1)
 	done := make(chan error, 1)
 	go func() {
-		done <- d.Watch(ctx, "alice@golub.test", "secret", "INBOX", func() { changes <- struct{}{} }, func() { close(ready) })
+		done <- d.Watch(ctx, "alice@golub.test", "secret", "INBOX", func() { changes <- struct{}{} }, func(total, uidNext uint32) { ready <- [2]uint32{total, uidNext} })
 	}()
 	select {
-	case <-ready:
+	case got := <-ready:
+		if got != [2]uint32{0, 1} {
+			t.Fatalf("ready reported total and uidnext %v, want an empty INBOX", got)
+		}
 	case <-time.After(5 * time.Second):
 		t.Fatal("watcher never became ready")
 	}

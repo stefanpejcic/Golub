@@ -48,6 +48,12 @@
       busy = false;
     }
   }
+
+  // the mailbox code loads while the login page sits idle, so signing in only waits for the inbox data
+  $effect(() => {
+    const idle = window.requestIdleCallback ?? ((cb: () => void) => setTimeout(cb, 200));
+    idle(() => void loadMailbox());
+  });
 </script>
 
 <div class="screen">

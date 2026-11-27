@@ -89,9 +89,9 @@ func TestListFolders(t *testing.T) {
 	}
 	var got []string
 	for _, f := range folders {
-		got = append(got, fmt.Sprintf("%s:%s:%d/%d", f.Name, f.Special, f.Unread, f.Total))
+		got = append(got, fmt.Sprintf("%s:%s:%d/%d:%d", f.Name, f.Special, f.Unread, f.Total, f.UIDNext))
 	}
-	want := "INBOX:inbox:3/5 Sent::0/0 Trash::0/0 Work::0/0"
+	want := "INBOX:inbox:3/5:6 Sent::0/0:1 Trash::0/0:1 Work::0/0:1"
 	if strings.Join(got, " ") != want {
 		t.Errorf("got  %s\nwant %s", strings.Join(got, " "), want)
 	}

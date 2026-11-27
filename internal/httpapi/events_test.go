@@ -54,7 +54,7 @@ func TestEventsStreamReportsNewMail(t *testing.T) {
 		}
 		close(lines)
 	}()
-	waitFor := func(want string) {
+	waitFor := func(want string) string {
 		t.Helper()
 		deadline := time.After(5 * time.Second)
 		for {
@@ -64,7 +64,7 @@ func TestEventsStreamReportsNewMail(t *testing.T) {
 					t.Fatalf("stream closed before %q", want)
 				}
 				if strings.HasPrefix(l, want) {
-					return
+					return l
 				}
 			case <-deadline:
 				t.Fatalf("timed out waiting for %q", want)
@@ -72,6 +72,10 @@ func TestEventsStreamReportsNewMail(t *testing.T) {
 		}
 	}
 	waitFor("event: ready")
+	// the browser skips its catch-up reload when these match what it already has
+	if data := waitFor("data:"); !strings.Contains(data, `"total":`) || !strings.Contains(data, `"uidNext":`) {
+		t.Fatalf("ready carries no folder state: %s", data)
+	}
 	if _, err := u.Append("INBOX", literal("Subject: hi\r\n\r\nx\r\n"), &imap.AppendOptions{}); err != nil {
 		t.Fatal(err)
 	}

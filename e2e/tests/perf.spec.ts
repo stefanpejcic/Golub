@@ -2,6 +2,7 @@
 
 import { expect, test, type APIRequestContext } from '@playwright/test';
 import { ALICE, PASSWORD } from './env';
+import { signIn } from './helpers';
 
 // Budgets are server-side times from Server-Timing, so the network does not count against them.
 // Change them only on purpose, never to make a slow build pass.
@@ -49,4 +50,22 @@ test.describe('performance budgets on a 50k folder', () => {
     expect(open).toBeLessThan(OPEN_MS);
     await api.dispose();
   });
+});
+
+test('signing in loads folders, quota and the inbox once each', async ({ page }) => {
+  const seen: Record<string, number> = {};
+  page.on('request', (r) => {
+    const path = new URL(r.url()).pathname;
+    if (['/api/folders', '/api/quota', '/api/messages'].includes(path)) seen[path] = (seen[path] ?? 0) + 1;
+  });
+  let live = false;
+  page.on('response', async (r) => {
+    if (new URL(r.url()).pathname === '/api/events') live = true;
+  });
+  await signIn(page);
+  await expect(page.getByTestId('message').first()).toBeVisible();
+  // the live stream's ready event is what used to trigger the second round
+  await expect.poll(() => live).toBe(true);
+  await page.waitForTimeout(2000);
+  expect(seen).toEqual({ '/api/folders': 1, '/api/quota': 1, '/api/messages': 1 });
 });

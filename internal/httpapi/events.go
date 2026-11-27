@@ -18,7 +18,7 @@ import (
 
 // Watcher pushes mailbox changes over a dedicated IMAP connection.
 type Watcher interface {
-	Watch(ctx context.Context, user, pass, folder string, notify, ready func()) error
+	Watch(ctx context.Context, user, pass, folder string, notify func(), ready func(total, uidNext uint32)) error
 }
 
 // Each stream holds an IMAP connection, so a user gets a few, not one per stray tab.
@@ -95,10 +95,15 @@ func (a *authAPI) events(w http.ResponseWriter, r *http.Request, s auth.Session)
 		default:
 		}
 	}
-	ready := make(chan struct{})
+	// buffered, so the watcher never blocks on it
+	ready := make(chan map[string]any, 1)
 	user, pass := a.imapCreds(s)
 	done := make(chan error, 1)
-	go func() { done <- a.o.Watcher.Watch(ctx, user, pass, folder, notify, func() { close(ready) }) }()
+	go func() {
+		done <- a.o.Watcher.Watch(ctx, user, pass, folder, notify, func(total, uidNext uint32) {
+			ready <- map[string]any{"folder": folder, "total": total, "uidNext": uidNext}
+		})
+	}()
 
 	ping := time.NewTicker(pingEvery)
 	defer ping.Stop()
@@ -117,18 +122,18 @@ func (a *authAPI) events(w http.ResponseWriter, r *http.Request, s auth.Session)
 				_ = send("error", map[string]string{"error": code})
 			}
 			return
-		case <-ready:
+		case state := <-ready:
 			ready = nil
-			if send("ready", map[string]string{"folder": folder}) != nil {
+			if send("ready", state) != nil {
 				return
 			}
 		case <-changed:
 			// Coalesce bursts, e.g. a bulk move, into one refresh.
 			time.Sleep(300 * time.Millisecond)
 			select {
-			case <-ready:
+			case state := <-ready:
 				ready = nil
-				if send("ready", map[string]string{"folder": folder}) != nil {
+				if send("ready", state) != nil {
 					return
 				}
 			case <-changed:

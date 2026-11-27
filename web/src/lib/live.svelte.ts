@@ -22,9 +22,11 @@ export const live = {
     const refresh = () => {
       if (folder === mail.folder) mail.refresh();
     };
-    es.addEventListener('ready', () => {
+    // ready catches up on mail that came in before IDLE started, but only when the folder really changed
+    es.addEventListener('ready', async (e) => {
       state.connected = true;
-      refresh();
+      const { total, uidNext } = JSON.parse((e as MessageEvent).data) as { total?: number; uidNext?: number };
+      if (total === undefined || uidNext === undefined || !(await mail.inSync(folder, total, uidNext))) refresh();
     });
     es.addEventListener('change', refresh);
     // A server-side "error" event means IDLE is unavailable; stay on polling and try again later.
