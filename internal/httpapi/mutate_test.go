@@ -124,3 +124,20 @@ func TestMutationValidation(t *testing.T) {
 }
 
 func itoa(u uint32) string { return strconv.FormatUint(uint64(u), 10) }
+
+func TestArchiveEndpoint(t *testing.T) {
+	h, c := newMutateServer(t)
+	rec := post(t, h, c, "/api/messages/archive", `{"folder":"INBOX","uids":[1,2]}`)
+	if rec.Code != 200 || !strings.Contains(rec.Body.String(), `"folder":"Archive"`) {
+		t.Fatalf("%d %s", rec.Code, rec.Body)
+	}
+	if n := len(list(t, h, c, "Archive")); n != 2 {
+		t.Fatalf("archive = %d", n)
+	}
+	if rec := post(t, h, c, "/api/messages/archive", `{"folder":"INBOX","uids":[3]}`); rec.Code != 200 {
+		t.Fatalf("second archive into existing folder: %d %s", rec.Code, rec.Body)
+	}
+	if rec := post(t, h, c, "/api/messages/archive", `{"folder":"Archive","uids":[1]}`); rec.Code != 400 {
+		t.Fatalf("archiving inside Archive: %d", rec.Code)
+	}
+}

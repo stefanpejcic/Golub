@@ -68,3 +68,17 @@ func TestSpecialFolder(t *testing.T) {
 		t.Errorf("none = %q", name)
 	}
 }
+
+func TestEnsureFolder(t *testing.T) {
+	c := seededClient(t, 0)
+	if err := EnsureFolder(c, "Archive", "archive"); err != nil {
+		t.Fatal(err)
+	}
+	if err := EnsureFolder(c, "Archive", "archive"); err != nil {
+		t.Fatalf("second call must be a no-op: %v", err)
+	}
+	folders, _ := ListFolders(c)
+	if SpecialFolder(folders, "archive", "Archive") != "Archive" {
+		t.Fatalf("%+v", folders)
+	}
+}

@@ -3,6 +3,7 @@
 package httpapi
 
 import (
+	"errors"
 	"net/http"
 
 	"github.com/emersion/go-imap/v2"
@@ -108,3 +109,43 @@ func (a *authAPI) remove(w http.ResponseWriter, r *http.Request, s auth.Session)
 	}
 	writeJSON(w, http.StatusOK, map[string]bool{"trashed": trashed})
 }
+
+// archive moves mail to the Archive folder, creating it on first use.
+func (a *authAPI) archive(w http.ResponseWriter, r *http.Request, s auth.Session) {
+	var req batch
+	if !decodeJSON(w, r, &req) {
+		return
+	}
+	if !req.valid() {
+		writeError(w, http.StatusBadRequest, "request.invalid")
+		return
+	}
+	var dest string
+	err := a.do(r, s, func(c *imapclient.Client) error {
+		folders, err := imapx.ListFolders(c)
+		if err != nil {
+			return err
+		}
+		if dest = imapx.SpecialFolder(folders, "archive", "Archive"); dest == "" {
+			dest = "Archive"
+			if err := imapx.EnsureFolder(c, dest, "archive"); err != nil {
+				return err
+			}
+		}
+		if dest == req.Folder {
+			return errSameFolder
+		}
+		return imapx.Move(c, req.Folder, req.UIDs, dest)
+	})
+	if errors.Is(err, errSameFolder) {
+		writeError(w, http.StatusBadRequest, "request.invalid")
+		return
+	}
+	if err != nil {
+		a.mailError(w, r, err)
+		return
+	}
+	writeJSON(w, http.StatusOK, map[string]string{"folder": dest})
+}
+
+var errSameFolder = errors.New("source and destination are the same folder")

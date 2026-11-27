@@ -66,6 +66,7 @@ func New(o Options) http.Handler {
 			mux.HandleFunc("POST /api/messages/flag", a.withSession(a.setFlag))
 			mux.HandleFunc("POST /api/messages/move", a.withSession(a.move))
 			mux.HandleFunc("POST /api/messages/delete", a.withSession(a.remove))
+			mux.HandleFunc("POST /api/messages/archive", a.withSession(a.archive))
 		}
 		if o.SSO != nil {
 			mux.HandleFunc("GET /sso", a.sso)

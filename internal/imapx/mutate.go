@@ -3,6 +3,7 @@
 package imapx
 
 import (
+	"errors"
 	"strings"
 
 	"github.com/emersion/go-imap/v2"
@@ -78,4 +79,27 @@ func SpecialFolder(folders []Folder, special, fallback string) string {
 		}
 	}
 	return ""
+}
+
+var specialToAttr = map[string]imap.MailboxAttr{
+	"archive": imap.MailboxAttrArchive, "drafts": imap.MailboxAttrDrafts, "sent": imap.MailboxAttrSent,
+	"junk": imap.MailboxAttrJunk, "trash": imap.MailboxAttrTrash,
+}
+
+// EnsureFolder creates a folder if it does not exist yet, tagging its special use when the server allows it.
+func EnsureFolder(c *imapclient.Client, name, special string) error {
+	var opts *imap.CreateOptions
+	if attr, ok := specialToAttr[special]; ok && c.Caps().Has(imap.CapCreateSpecialUse) {
+		opts = &imap.CreateOptions{SpecialUse: []imap.MailboxAttr{attr}}
+	}
+	err := c.Create(name, opts).Wait()
+	var imapErr *imap.Error
+	if errors.As(err, &imapErr) && imapErr.Code == imap.ResponseCodeAlreadyExists {
+		return nil
+	}
+	if err != nil {
+		return err
+	}
+	_ = c.Subscribe(name).Wait()
+	return nil
 }
