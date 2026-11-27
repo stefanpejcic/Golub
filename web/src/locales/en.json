@@ -310,5 +310,9 @@
   "errors.compose.utf8_unsupported": "The mail server cannot deliver to addresses with non-Latin characters before the @.",
   "layout.menu": "Folders and menu",
   "layout.close_menu": "Close menu",
-  "layout.folders": "Folder"
+  "layout.folders": "Folder",
+  "dialog.cancel": "Cancel",
+  "dialog.delete": "Delete",
+  "compose.link_insert": "Insert link",
+  "compose.send_anyway": "Send anyway"
 }

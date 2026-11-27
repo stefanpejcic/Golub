@@ -1,6 +1,7 @@
 <!-- SPDX-License-Identifier: GPL-3.0-or-later -->
 <script lang="ts">
   import { i18n } from '../lib/locale.svelte';
+  import { dialog } from '../lib/dialog.svelte';
   import { mail, type Folder } from '../lib/mail.svelte';
   import { toast } from '../lib/toast.svelte';
   import { errorMessage } from '../lib/errors';
@@ -129,8 +130,8 @@
             <button
               class="btn"
               type="button"
-              onclick={() =>
-                confirm(t('folders.empty_confirm', { folder: folderLabel(f.name) })) &&
+              onclick={async () =>
+                (await dialog.confirm({ title: t('folders.empty_confirm', { folder: folderLabel(f.name) }), confirm: t('folders.empty'), danger: true })) &&
                 run(() => mail.folderOp('empty', f.name), t('folders.emptied'))}
               data-testid="folder-empty">{t('folders.empty')}</button
             >
@@ -139,8 +140,8 @@
             <button
               class="btn danger"
               type="button"
-              onclick={() =>
-                confirm(t('folders.delete_confirm', { folder: folderLabel(f.name) })) &&
+              onclick={async () =>
+                (await dialog.confirm({ title: t('folders.delete_confirm', { folder: folderLabel(f.name) }), confirm: t('folders.delete'), danger: true })) &&
                 run(() => mail.folderOp('delete', f.name), t('folders.deleted'))}
               data-testid="folder-delete">{t('folders.delete')}</button
             >

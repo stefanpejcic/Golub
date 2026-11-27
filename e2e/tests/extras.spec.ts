@@ -23,8 +23,15 @@ test('priority, read receipt and unsubscribe show on the right messages', async 
   }
 
   await openBySubject(page, 'Weekly newsletter');
-  await expect(page.getByTestId('unsubscribe')).toBeVisible();
   await expect(page.getByTestId('receipt-request')).toBeHidden();
+  page.on('dialog', () => {
+    throw new Error('native browser dialogs are not used');
+  });
+  await page.getByTestId('unsubscribe').click();
+  await expect(page.getByTestId('dialog')).toBeVisible();
+  await expect(page.getByTestId('dialog-confirm')).toHaveText('Unsubscribe');
+  await page.keyboard.press('Escape');
+  await expect(page.getByTestId('dialog')).toBeHidden();
 });
 
 test('empty button only in Trash and Spam', async ({ page }) => {
@@ -34,15 +41,29 @@ test('empty button only in Trash and Spam', async ({ page }) => {
 
 test('drag a message onto a folder moves it', async ({ page }) => {
   await signIn(page);
-  await page.locator('[data-testid=folder][data-folder=Drag]').click();
-  await expect(page.getByTestId('folder-title')).toHaveText('Drag');
-  const rows = page.getByTestId('message');
-  await expect(rows).toHaveCount(2);
-  await rows.filter({ hasText: 'Drag 1' }).getByRole('link').dragTo(page.locator('[data-testid=folder][data-folder=Dropped]'));
-  await expect(rows).toHaveCount(1);
-  await page.locator('[data-testid=folder][data-folder=Dropped]').click();
-  await expect(page.getByTestId('folder-title')).toHaveText('Dropped');
-  await expect(rows.filter({ hasText: 'Drag 1' })).toHaveCount(1);
+  const rows = page.getByTestId('message').filter({ hasText: /Drag \d/ });
+  const folder = (name: string) => page.locator(`[data-testid=folder][data-folder=${name}]`);
+  const show = async (name: string) => {
+    await folder(name).click();
+    await expect(page.getByTestId('folder-title')).toHaveText(name);
+    await expect(page.getByTestId('message').filter({ hasNotText: /Drag \d/ })).toHaveCount(0);
+  };
+
+  // the two seeded messages may sit in either folder after earlier runs
+  await show('Drag');
+  let [from, to] = ['Drag', 'Dropped'];
+  if ((await rows.count()) === 0) {
+    [from, to] = [to, from];
+    await show(from);
+  }
+  await expect(rows.first()).toBeVisible();
+  const count = await rows.count();
+  const subject = (await rows.first().locator('.subject .text').textContent())!.trim();
+  await rows.first().getByRole('link').dragTo(folder(to));
+  await expect(rows).toHaveCount(count - 1);
+
+  await show(to);
+  await expect(rows.filter({ hasText: subject })).toHaveCount(1);
 });
 
 test.describe('mobile', () => {
@@ -60,4 +81,16 @@ test.describe('mobile', () => {
     await expect(page.getByTestId('compose-open')).toBeVisible();
     await expect(page.locator('[data-testid=folder][data-folder=INBOX]')).toBeHidden();
   });
+});
+
+test('sending without a subject asks first, and Cancel keeps the draft open', async ({ page }) => {
+  await signIn(page);
+  await page.getByTestId('compose-open').click();
+  await page.getByTestId('compose-to-input').fill('bob@golub.test');
+  await page.getByTestId('compose-to-input').press('Enter');
+  await page.getByTestId('compose-send').click();
+  await expect(page.getByTestId('dialog-confirm')).toHaveText('Send anyway');
+  await page.getByTestId('dialog-cancel').click();
+  await expect(page.getByTestId('dialog')).toBeHidden();
+  await expect(page).toHaveURL(/\/compose$/);
 });

@@ -20,6 +20,7 @@
   --color-focus: #9b9b9b;
   --color-focus-ring: rgb(0 0 0 / 0.08);
   --color-danger: #dc2626;
+  --color-danger-text: #ffffff;
   --color-notice: #f9f9f9;
   --color-notice-border: #ececec;
   --color-unread: #0d0d0d;
@@ -64,6 +65,7 @@
   --color-focus: #6b6b6b;
   --color-focus-ring: rgb(255 255 255 / 0.08);
   --color-danger: #f87171;
+  --color-danger-text: #0d0d0d;
   --color-notice: #212121;
   --color-notice-border: #303030;
   --color-unread: #ffffff;
@@ -98,6 +100,7 @@
     --color-focus: #6b6b6b;
     --color-focus-ring: rgb(255 255 255 / 0.08);
     --color-danger: #f87171;
+  --color-danger-text: #0d0d0d;
     --color-notice: #212121;
     --color-notice-border: #303030;
     --color-unread: #ffffff;

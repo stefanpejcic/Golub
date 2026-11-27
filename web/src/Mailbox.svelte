@@ -8,6 +8,7 @@
   import MessageView from './MessageView.svelte';
   import Prefs from './Prefs.svelte';
   import Toast from './Toast.svelte';
+  import Dialog from './Dialog.svelte';
   import Logo from './Logo.svelte';
   import { session } from './lib/session.svelte';
   import { settings } from './lib/settings.svelte';
@@ -213,6 +214,7 @@
 </div>
 
 <Toast />
+<Dialog />
 
 <style>
   .mailbox {

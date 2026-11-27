@@ -6,6 +6,7 @@
   import { session } from './lib/session.svelte';
   import { mail, type Attachment } from './lib/mail.svelte';
   import { route } from './lib/route.svelte';
+  import { dialog } from './lib/dialog.svelte';
   import { toast } from './lib/toast.svelte';
   import { api, ApiError } from './lib/api';
   import { errorMessage } from './lib/errors';
@@ -212,8 +213,14 @@
     dirty = true;
   }
 
-  function addLink() {
-    const url = prompt(t('compose.link_prompt'), 'https://');
+  async function addLink() {
+    const sel = window.getSelection();
+    const range = sel && sel.rangeCount ? sel.getRangeAt(0) : null;
+    const url = await dialog.prompt({ title: t('compose.link_prompt'), confirm: t('compose.link_insert'), input: 'https://' });
+    if (sel && range) {
+      sel.removeAllRanges();
+      sel.addRange(range);
+    }
     if (url && /^(https?:|mailto:)/i.test(url)) exec('createLink', url);
   }
 
@@ -293,7 +300,7 @@
       toast.show(t('errors.compose.invalid_recipient', { address: bad }), true);
       return;
     }
-    if (!subject.trim() && !confirm(t('compose.no_subject_confirm'))) return;
+    if (!subject.trim() && !(await dialog.confirm({ title: t('compose.no_subject_confirm'), confirm: t('compose.send_anyway') }))) return;
     busy = 'send';
     try {
       const res = await post<{ savedToSent: boolean }>('/api/compose/send');
@@ -529,10 +536,10 @@
       ></textarea>
     {/if}
   </div>
-  <dialog bind:this={leaveDialog} class="leave" aria-labelledby="leave-title" oncancel={(e) => (e.preventDefault(), choose('cancel'))} data-testid="leave-dialog">
+  <dialog bind:this={leaveDialog} class="modal" aria-labelledby="leave-title" oncancel={(e) => (e.preventDefault(), choose('cancel'))} data-testid="leave-dialog">
     <h2 id="leave-title">{t('compose.leave_title')}</h2>
     <p>{t('compose.leave_text')}</p>
-    <div class="leave-buttons">
+    <div class="modal-buttons">
       <button class="btn" type="button" onclick={() => choose('cancel')} data-testid="leave-cancel">{t('compose.leave_cancel')}</button>
       <button class="btn danger" type="button" onclick={() => choose('discard')} data-testid="leave-discard">{t('compose.discard')}</button>
       <button class="btn btn-primary" type="button" onclick={() => choose('save')} data-testid="leave-save">{t('compose.leave_save')}</button>
@@ -725,38 +732,6 @@
     font: inherit;
     border: none;
     resize: none;
-  }
-  .leave {
-    inline-size: min(100% - 2rem, 34rem);
-    padding: var(--space-5, 1.5rem);
-    color: var(--color-text);
-    background: var(--color-surface-raised);
-    border: 1px solid var(--color-border);
-    border-radius: var(--radius-lg);
-    box-shadow: var(--shadow);
-  }
-  .leave::backdrop {
-    background: rgb(0 0 0 / 0.4);
-  }
-  .leave h2 {
-    margin: 0 0 var(--space-2);
-    font-size: 1.1rem;
-  }
-  .leave p {
-    margin: 0 0 var(--space-4);
-    color: var(--color-text-muted);
-  }
-  .leave-buttons {
-    display: flex;
-    flex-wrap: wrap;
-    justify-content: flex-end;
-    gap: var(--space-2);
-  }
-  .leave-buttons .btn {
-    white-space: nowrap;
-  }
-  .leave-buttons .btn:first-child {
-    margin-inline-end: auto;
   }
   .danger {
     color: var(--color-danger);

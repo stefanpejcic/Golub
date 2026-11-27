@@ -102,7 +102,6 @@ test('drafts are saved, reopened and discarded', async ({ page }) => {
   await expect(page.getByTestId('toast')).toHaveText('Draft saved.');
   await expect(page.getByTestId('compose-saved')).toBeVisible();
 
-  page.on('dialog', (d) => d.accept());
   await page.getByTestId('compose-discard').click();
   await page.locator('[data-testid=folder][data-folder=Drafts]').click();
   await page.getByTestId('message').filter({ hasText: subject }).getByRole('link').click();

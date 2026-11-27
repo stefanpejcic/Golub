@@ -1,6 +1,7 @@
 <!-- SPDX-License-Identifier: GPL-3.0-or-later -->
 <script lang="ts">
   import { i18n } from '../lib/locale.svelte';
+  import { dialog } from '../lib/dialog.svelte';
   import { settings, type Identity, type Response } from '../lib/settings.svelte';
   import { session } from '../lib/session.svelte';
   import { toast } from '../lib/toast.svelte';
@@ -58,8 +59,8 @@
     persist(next, t('settings.saved'));
   }
 
-  function remove() {
-    if (!draft || !confirm(t('settings.delete_confirm'))) return;
+  async function remove() {
+    if (!draft || !(await dialog.confirm({ title: t('settings.delete_confirm'), confirm: t('dialog.delete'), danger: true }))) return;
     const id = draft.id;
     let next = items.filter((i) => i.id !== id);
     if (kind === 'identities' && next.length && !(next as Identity[]).some((i) => i.default)) {

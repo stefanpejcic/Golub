@@ -125,3 +125,45 @@ body {
     block-size: 2.5rem;
   }
 }
+
+.modal {
+  inline-size: min(100% - 2rem, 34rem);
+  padding: 1.5rem;
+  color: var(--color-text);
+  background: var(--color-surface-raised);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow);
+}
+.modal::backdrop {
+  background: rgb(0 0 0 / 0.4);
+}
+.modal h2 {
+  margin: 0 0 var(--space-2);
+  font-size: 1.1rem;
+}
+.modal p {
+  margin: 0 0 var(--space-4);
+  color: var(--color-text-muted);
+}
+.modal-buttons {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: var(--space-2);
+  margin-block-start: var(--space-2);
+}
+.modal-buttons .btn {
+  white-space: nowrap;
+}
+.modal-buttons .btn:first-child {
+  margin-inline-end: auto;
+}
+.btn-danger {
+  color: var(--color-danger-text);
+  background: var(--color-danger);
+  border-color: var(--color-danger);
+}
+.btn-danger:hover {
+  filter: brightness(0.92);
+}

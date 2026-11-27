@@ -8,6 +8,7 @@
   import { route } from './lib/route.svelte';
   import { api, ApiError } from './lib/api';
   import { toast } from './lib/toast.svelte';
+  import { dialog } from './lib/dialog.svelte';
   import { archiveMessages, copyMessages, flagMessages, folderLabel, moveMessages, removeMessages } from './lib/actions';
   import Menu from './Menu.svelte';
 
@@ -32,7 +33,7 @@
     if (!m) return;
     const u = m.unsubscribe;
     if (u.oneClick) {
-      if (!confirm(t('message.unsubscribe_confirm'))) return;
+      if (!(await dialog.confirm({ title: t('message.unsubscribe_confirm'), confirm: t('message.unsubscribe') }))) return;
       try {
         await api('POST', '/api/message/unsubscribe', { folder: m.folder, uid: m.uid });
         toast.show(t('message.unsubscribed'));

@@ -62,7 +62,6 @@ test('prefer plain text shows the text part of HTML mail', async ({ page }) => {
 
 test('folders can be created, renamed and deleted', async ({ page }) => {
   await openSettings(page, 'folders');
-  page.on('dialog', (d) => d.accept());
   await page.getByTestId('folder-new').fill('Projekti');
   await page.getByTestId('folder-create').click();
   await expect(page.getByTestId('toast')).toHaveText('Folder created.');
@@ -75,6 +74,8 @@ test('folders can be created, renamed and deleted', async ({ page }) => {
   await expect(page.locator('[data-testid=folder-row][data-folder=Klijenti]')).toBeVisible();
 
   await page.locator('[data-testid=folder-row][data-folder=Klijenti]').getByTestId('folder-delete').click();
+  await expect(page.getByTestId('dialog')).toContainText('Klijenti');
+  await page.getByTestId('dialog-confirm').click();
   await expect(page.getByTestId('toast')).toHaveText('Folder deleted.');
   await expect(page.locator('[data-testid=folder-row][data-folder=Klijenti]')).toHaveCount(0);
 });

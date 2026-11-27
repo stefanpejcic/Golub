@@ -319,5 +319,9 @@
   "errors.compose.utf8_unsupported": "Server za poštu ne može da isporuči poruku na adresu sa nelatiničnim znakovima pre @.",
   "layout.menu": "Fascikle i meni",
   "layout.close_menu": "Zatvori meni",
-  "layout.folders": "Fascikla"
+  "layout.folders": "Fascikla",
+  "dialog.cancel": "Otkaži",
+  "dialog.delete": "Obriši",
+  "compose.link_insert": "Ubaci link",
+  "compose.send_anyway": "Pošalji svejedno"
 }

@@ -1,6 +1,7 @@
 <!-- SPDX-License-Identifier: GPL-3.0-or-later -->
 <script lang="ts">
   import { i18n } from './lib/locale.svelte';
+  import { dialog } from './lib/dialog.svelte';
   import { mail } from './lib/mail.svelte';
   import { displayName, formatListDate, formatFullDate, formatSize, messagePath } from './lib/format';
   import { errorMessage } from './lib/errors';
@@ -279,8 +280,8 @@
       <button
         type="button"
         class="btn empty-folder"
-        onclick={() =>
-          confirm(t('folders.empty_confirm', { folder: title })) &&
+        onclick={async () =>
+          (await dialog.confirm({ title: t('folders.empty_confirm', { folder: title }), confirm: t('folders.empty'), danger: true })) &&
           mail.folderOp('empty', mail.folder).catch(() => undefined)}
         data-testid="empty-folder">{t('folders.empty')}</button
       >

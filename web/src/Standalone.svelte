@@ -5,6 +5,7 @@
   import { settings } from './lib/settings.svelte';
   import MessageView from './MessageView.svelte';
   import Toast from './Toast.svelte';
+  import Dialog from './Dialog.svelte';
 
   const params = new URLSearchParams(location.search);
   const folder = params.get('folder') ?? 'INBOX';
@@ -32,6 +33,7 @@
   <MessageView standalone onloaded={loaded} />
 </div>
 <Toast />
+<Dialog />
 
 <style>
   .standalone {
