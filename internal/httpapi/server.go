@@ -96,6 +96,8 @@ func New(o Options) http.Handler {
 			mux.HandleFunc("POST /api/messages/archive", a.withSession(a.toSpecial("archive", "Archive")))
 			mux.HandleFunc("POST /api/messages/spam", a.withSession(a.toSpecial("junk", "Junk")))
 			mux.HandleFunc("GET /api/settings", a.withSession(a.getSettings))
+			mux.HandleFunc("POST /api/folders/import", a.withSession(a.importFolder))
+			mux.HandleFunc("GET /api/folders/export", a.withSession(a.exportFolder))
 			mux.HandleFunc("GET /api/contacts", a.withSession(a.getContacts))
 			mux.HandleFunc("PUT /api/contacts", a.withSession(a.putContacts))
 			mux.HandleFunc("POST /api/contacts/import", a.withSession(a.importContacts))
