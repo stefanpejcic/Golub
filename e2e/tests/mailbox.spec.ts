@@ -25,14 +25,14 @@ test('inbox lists seeded mail with decoded legacy charsets', async ({ page }) =>
   await expect(inbox).toContainText('Inbox');
 
   const rows = page.getByTestId('message');
-  await expect(rows).toHaveCount(19);
+  await expect(rows).toHaveCount(21);
   // Other tests open messages, so compare the badge with the list instead of a fixed number.
   const unread = await page.locator('[data-testid=message].unread').count();
   await expect(inbox.locator('.badge')).toHaveText(String(unread));
   for (const subject of ['Pozdrav šefče', 'Čestitka', 'Привет', 'Plain text']) {
     await expect(rows.filter({ hasText: subject })).toHaveCount(1);
   }
-  await expect(page.getByTestId('range')).toHaveText('1–19 of 19');
+  await expect(page.getByTestId('range')).toHaveText('1–21 of 21');
   await expect(rows.filter({ hasText: 'With attachments' }).getByRole('img', { name: 'Has attachments' })).toBeVisible();
   await expect(rows.filter({ hasText: 'Plain text' })).not.toHaveClass(/unread/);
   await expect(rows.filter({ hasText: 'Simple HTML' }).getByRole('img', { name: 'Flagged' })).toBeVisible();

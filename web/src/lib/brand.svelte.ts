@@ -36,7 +36,7 @@ export const brand = {
       const b = (await res.json()) as { name: string; accent: string; logo: boolean };
       state.name = b.name || 'Golub';
       state.logo = b.logo;
-      document.title = state.name;
+      if (state.name !== 'Golub') document.title = state.name;
       if (b.accent) apply(b.accent);
     } catch {
       // the default brand is fine when the request fails

@@ -26,7 +26,7 @@ test('search filters server-side and survives reload', async ({ page }) => {
   await page.getByTestId('search').fill('no such message anywhere');
   await expect(page.getByTestId('empty')).toHaveText('No messages match your search.');
   await page.getByTestId('search').press('Escape');
-  await expect(page.getByTestId('message')).toHaveCount(19);
+  await expect(page.getByTestId('message')).toHaveCount(21);
 });
 
 test('hover shows size, flag and delete', async ({ page }) => {

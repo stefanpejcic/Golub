@@ -297,10 +297,8 @@
           <svg class="icon" viewBox="0 0 16 16" aria-hidden="true"><rect x="2.5" y="2.5" width="11" height="11" rx="1.5" /><path d="M5 6h6M5 8.5h6M5 11h3" /></svg>
         </button>
       </div>
-      <h1 data-testid="message-subject">
-        {#if m.priority === 1}<span class="prio-badge" data-testid="priority-high">{t('message.priority_high')}</span>{/if}
-        {m.subject || t('list.no_subject')}
-      </h1>
+      {#if m.priority === 1}<span class="prio-badge" data-testid="priority-high">{t('message.priority_high')}</span>{/if}
+      <h1 data-testid="message-subject">{m.subject || t('list.no_subject')}</h1>
       <dl>
         <dt>{t('message.from')}</dt>
         <dd data-testid="message-from">{people(m.from)}</dd>
@@ -445,7 +443,8 @@
     padding-inline-end: 5rem;
   }
   .prio-badge {
-    margin-inline-end: var(--space-2);
+    display: inline-block;
+    margin-block-end: var(--space-1);
     padding: 0.1rem 0.5rem;
     font-size: 0.75rem;
     font-weight: 600;

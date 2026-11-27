@@ -113,8 +113,9 @@
 
     if (!src) {
       const prefillTo = initial.get('to');
+      const prefillSubject = initial.get('subject');
       if (prefillTo) to = [prefillTo];
-      subject = initial.get('subject') ?? '';
+      if (prefillSubject) subject = prefillSubject;
     }
     if (src) {
       subject = src.subject;

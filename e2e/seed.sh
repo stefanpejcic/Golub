@@ -69,6 +69,17 @@ for i in 1 2 3 4 5 6 7 8; do
 done
 imap -u "$ALICE:$E2E_PASSWORD" "$IMAP/Bulk" -X 'STORE 1:* -FLAGS (\Seen)' >/dev/null
 
+# Drag owns its two folders so the drag test never races the bulk tests.
+for f in Drag Dropped; do
+  imap -u "$ALICE:$E2E_PASSWORD" "$IMAP/" -X "CREATE $f" >/dev/null
+  imap -u "$ALICE:$E2E_PASSWORD" "$IMAP/" -X "SUBSCRIBE $f" >/dev/null
+done
+for i in 1 2; do
+  printf 'From: Erin <erin@%s>\r\nTo: Alice <%s>\r\nSubject: Drag %d\r\nDate: %s\r\nContent-Type: text/plain; charset=utf-8\r\n\r\nDrag body %d.\r\n' \
+    "$E2E_DOMAIN" "$ALICE" "$i" "$(date -u -R)" "$i" >"$tmp"
+  imap -u "$ALICE:$E2E_PASSWORD" "$IMAP/Drag" -T "$tmp"
+done
+
 # curl APPENDs with \Seen; reset so the mailbox looks like freshly delivered mail.
 imap -u "$ALICE:$E2E_PASSWORD" "$IMAP/INBOX" -X 'STORE 1:* -FLAGS (\Seen)' >/dev/null
 imap -u "$ALICE:$E2E_PASSWORD" "$IMAP/Paging" -X 'STORE 1:* -FLAGS (\Seen)' >/dev/null
