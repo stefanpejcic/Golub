@@ -48,5 +48,11 @@
 - [ ] Final logo (current hexagon envelope is a placeholder)
 - [ ] Tag `v0.1.0`
 
+## UI backlog (requested)
+- [ ] Settings page linked bottom-left (sections to be picked from the Roundcube list); About and language move there
+- [ ] Message header: icons on the right for all headers and plain text / HTML view
+- [ ] Message toolbar: Reply, Reply all, Forward, Delete, More (print, download .eml, edit as new, show source, move to, copy to, open in new window)
+- [ ] Resizable folder / list / preview columns, widths remembered in the browser
+
 ## Later
 Search, threading, Sieve filters, contacts, multiple identities, drag and drop, PGP, dark message view for HTML mail, RTL locales.
