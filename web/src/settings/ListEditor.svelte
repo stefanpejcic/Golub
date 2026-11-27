@@ -120,7 +120,7 @@
 <style>
   .editor {
     display: grid;
-    grid-template-columns: minmax(12rem, 16rem) minmax(0, 36rem);
+    grid-template-columns: minmax(0, 16rem) minmax(0, 36rem);
     gap: var(--space-4);
     align-items: start;
   }
@@ -128,6 +128,7 @@
     display: flex;
     flex-direction: column;
     gap: var(--space-2);
+    min-inline-size: 0;
   }
   ul {
     list-style: none;
@@ -155,6 +156,11 @@
   li button[aria-current='true'] {
     color: var(--color-accent);
     background: var(--color-hover);
+  }
+  li button span,
+  small {
+    max-inline-size: 100%;
+    overflow-wrap: anywhere;
   }
   small {
     color: var(--color-text-muted);
