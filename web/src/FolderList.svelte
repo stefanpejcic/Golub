@@ -4,6 +4,7 @@
   import { mail, type Folder } from './lib/mail.svelte';
   import { folderPath } from './lib/format';
   import { route } from './lib/route.svelte';
+  import { moveMessages } from './lib/actions';
 
   const t = $derived(i18n.t);
 
@@ -14,6 +15,32 @@
 
   function depth(f: Folder): number {
     return f.special || !f.delim ? 0 : f.name.split(f.delim).length - 1;
+  }
+
+  const DRAG_TYPE = 'application/x-golub-messages';
+  let dropTarget = $state('');
+
+  function canDrop(e: DragEvent, f: Folder) {
+    return f.selectable && f.name !== mail.folder && !!e.dataTransfer?.types.includes(DRAG_TYPE);
+  }
+
+  function over(e: DragEvent, f: Folder) {
+    if (!canDrop(e, f)) return;
+    e.preventDefault();
+    e.dataTransfer!.dropEffect = 'move';
+    dropTarget = f.name;
+  }
+
+  function drop(e: DragEvent, f: Folder) {
+    dropTarget = '';
+    if (!canDrop(e, f)) return;
+    e.preventDefault();
+    try {
+      const data = JSON.parse(e.dataTransfer!.getData(DRAG_TYPE)) as { folder: string; uids: number[] };
+      if (data.folder === mail.folder && data.uids.length) moveMessages(data.uids, f.name);
+    } catch {
+      // a drop from another app or tab carries no usable data
+    }
   }
 
   async function go(e: MouseEvent, f: Folder) {
@@ -34,6 +61,10 @@
         {#if f.selectable}
           <a
             href={folderPath(f.name)}
+            class:drop={dropTarget === f.name}
+            ondragover={(e) => over(e, f)}
+            ondragleave={() => dropTarget === f.name && (dropTarget = '')}
+            ondrop={(e) => drop(e, f)}
             aria-current={f.name === mail.folder ? 'page' : undefined}
             onclick={(e) => go(e, f)}
             data-testid="folder"
@@ -115,6 +146,10 @@
   }
   a:hover {
     background: var(--color-hover);
+  }
+  a.drop {
+    background: var(--color-selected);
+    box-shadow: inset 0 0 0 2px var(--color-accent);
   }
   a[aria-current='page'] {
     font-weight: 600;

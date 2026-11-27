@@ -302,5 +302,9 @@
   "compose.request_receipt": "Request read receipt",
   "errors.unsubscribe.failed": "The list did not accept the unsubscribe request.",
   "errors.unsubscribe.not_one_click": "This list does not support one-click unsubscribe.",
-  "errors.receipt.not_requested": "This message did not ask for a receipt."
+  "errors.receipt.not_requested": "This message did not ask for a receipt.",
+  "list.dragging": {
+    "one": "Move {count} message",
+    "other": "Move {count} messages"
+  }
 }

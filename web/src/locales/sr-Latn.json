@@ -310,5 +310,10 @@
   "compose.request_receipt": "Zatraži potvrdu o čitanju",
   "errors.unsubscribe.failed": "Lista nije prihvatila zahtev za odjavu.",
   "errors.unsubscribe.not_one_click": "Ova lista ne podržava odjavu jednim klikom.",
-  "errors.receipt.not_requested": "Ova poruka nije tražila potvrdu."
+  "errors.receipt.not_requested": "Ova poruka nije tražila potvrdu.",
+  "list.dragging": {
+    "one": "Premesti {count} poruku",
+    "few": "Premesti {count} poruke",
+    "other": "Premesti {count} poruka"
+  }
 }

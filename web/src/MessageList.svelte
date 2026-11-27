@@ -34,6 +34,21 @@
     else searchTimer = setTimeout(() => mail.search(value), 350);
   }
 
+  const DRAG_TYPE = 'application/x-golub-messages';
+
+  function dragStart(e: DragEvent, uid: number) {
+    if (!e.dataTransfer) return;
+    const uids = mail.isSelected(uid) && mail.selected.length > 1 ? [...mail.selected] : [uid];
+    e.dataTransfer.effectAllowed = 'move';
+    e.dataTransfer.setData(DRAG_TYPE, JSON.stringify({ folder: mail.folder, uids }));
+    const ghost = document.createElement('div');
+    ghost.className = 'drag-ghost';
+    ghost.textContent = t('list.dragging', { count: uids.length });
+    document.body.append(ghost);
+    e.dataTransfer.setDragImage(ghost, 12, 12);
+    setTimeout(() => ghost.remove(), 0);
+  }
+
   function open(e: MouseEvent, uid: number) {
     if (e.button !== 0) return;
     if (swiped) {
@@ -335,6 +350,8 @@
             </button>
             <a
               class="row"
+              draggable="true"
+              ondragstart={(e) => dragStart(e, m.uid)}
               href={messagePath(mail.folder, m.uid)}
               aria-current={mail.uid === m.uid ? 'true' : undefined}
               onclick={(e) => open(e, m.uid)}

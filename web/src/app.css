@@ -108,3 +108,13 @@ body {
   font-size: 1.125rem;
   font-weight: 600;
 }
+
+.drag-ghost {
+  position: fixed;
+  inset-block-start: -100px;
+  padding: 0.35rem 0.75rem;
+  font: 600 0.85rem var(--font-sans);
+  color: var(--color-primary-text);
+  background: var(--color-primary);
+  border-radius: 999px;
+}
