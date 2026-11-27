@@ -141,6 +141,32 @@
 <svelte:window onkeydown={onKey} />
 
 <section class="list" aria-busy={mail.loading}>
+  <form
+    class="search"
+    role="search"
+    onsubmit={(e) => {
+      e.preventDefault();
+      onSearch(searchInput.value, true);
+    }}
+  >
+    <svg class="icon" viewBox="0 0 16 16" aria-hidden="true"><circle cx="7" cy="7" r="4.5" /><path d="m10.5 10.5 3 3" /></svg>
+    <input
+      bind:this={searchInput}
+      class="input"
+      type="search"
+      value={mail.query}
+      placeholder={t('search.placeholder')}
+      aria-label={t('search.label')}
+      oninput={(e) => onSearch(e.currentTarget.value)}
+      onkeydown={(e) => {
+        if (e.key === 'Escape') {
+          e.currentTarget.value = '';
+          onSearch('', true);
+        }
+      }}
+      data-testid="search"
+    />
+  </form>
   {#if bulk}
     <div class="page-header bulk" role="toolbar" aria-label={t('actions.label')} data-testid="bulk-bar">
       <span class="count" data-testid="bulk-count">{t('list.selected', { count: mail.selected.length })}</span>
@@ -208,32 +234,6 @@
       </div>
     </div>
   {/if}
-  <form
-    class="search"
-    role="search"
-    onsubmit={(e) => {
-      e.preventDefault();
-      onSearch(searchInput.value, true);
-    }}
-  >
-    <svg class="icon" viewBox="0 0 16 16" aria-hidden="true"><circle cx="7" cy="7" r="4.5" /><path d="m10.5 10.5 3 3" /></svg>
-    <input
-      bind:this={searchInput}
-      class="input"
-      type="search"
-      value={mail.query}
-      placeholder={t('search.placeholder')}
-      aria-label={t('search.label')}
-      oninput={(e) => onSearch(e.currentTarget.value)}
-      onkeydown={(e) => {
-        if (e.key === 'Escape') {
-          e.currentTarget.value = '';
-          onSearch('', true);
-        }
-      }}
-      data-testid="search"
-    />
-  </form>
   <header class="page-header" class:hidden={bulk}>
     <h1 class="page-title" data-testid="folder-title">{title}</h1>
     <div class="pager">
