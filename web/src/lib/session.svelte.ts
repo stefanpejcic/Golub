@@ -3,7 +3,7 @@
 import { api, ApiError } from './api';
 import { i18n } from './locale.svelte';
 import { theme } from './theme.svelte';
-import { parseTheme } from './prefs';
+import { LANG_COOKIE, THEME_COOKIE, parseTheme, readCookie } from './prefs';
 
 export interface SessionInfo {
   email: string;
@@ -16,11 +16,13 @@ type Status = 'loading' | 'anonymous' | 'authenticated';
 
 const state = $state<{ status: Status; info: SessionInfo | null }>({ status: 'loading', info: null });
 
+// The preference cookies are written the moment the user changes something, so they win over a
+// session that may not have caught up yet (for example after an immediate reload).
 function adopt(info: SessionInfo) {
   state.info = info;
   state.status = 'authenticated';
-  i18n.set(info.locale);
-  theme.set(parseTheme(info.theme));
+  i18n.set(readCookie(document.cookie, LANG_COOKIE) || info.locale);
+  theme.set(parseTheme(readCookie(document.cookie, THEME_COOKIE) || info.theme));
 }
 
 export const session = {
