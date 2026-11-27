@@ -29,6 +29,7 @@ export interface Summary {
   attachments: boolean;
   size: number;
   priority: number;
+  folder?: string;
   depth?: number;
   root?: number;
   threadSize?: number;
@@ -76,8 +77,21 @@ interface MessagePage {
   size: number;
   messages: Summary[];
   threaded?: boolean;
+  all?: boolean;
 }
 
+
+export interface Filters {
+  body: boolean;
+  all: boolean;
+  unread: boolean;
+  flagged: boolean;
+  attachments: boolean;
+  since: string;
+  before: string;
+}
+
+const noFilters: Filters = { body: false, all: false, unread: false, flagged: false, attachments: false, since: '', before: '' };
 
 const state = $state({
   folders: [] as Folder[],
@@ -97,6 +111,8 @@ const state = $state({
   anchor: null as number | null,
   threaded: false,
   expanded: [] as number[],
+  filters: { ...noFilters } as Filters,
+  all: false,
 });
 
 // Rows the user can see: in the threaded view replies stay hidden until their thread is opened.
@@ -117,6 +133,17 @@ function fail(e: unknown): string {
 let messageSeq = 0;
 // Bumped by every local change so a refresh started earlier cannot undo it with stale data.
 let mutations = 0;
+
+// Search filters live only in memory; the URL keeps just the text so links stay short.
+function searchParams(): string {
+  const f = state.filters;
+  let p = state.query ? `&q=${encodeURIComponent(state.query)}` : '';
+  for (const k of ['body', 'unread', 'flagged', 'attachments'] as const) if (f[k]) p += `&${k}=1`;
+  if (f.since) p += `&since=${f.since}`;
+  if (f.before) p += `&before=${f.before}`;
+  if (f.all) p += '&scope=all';
+  return p;
+}
 
 function sortParams(): string {
   return `&sort=${settings.value.sortBy}&order=${settings.value.sortDesc ? 'desc' : 'asc'}${settings.value.threads ? '&threads=1' : ''}`;
@@ -200,6 +227,25 @@ export const mail = {
     state.query = q;
     this.open(state.folder, 1);
   },
+  get filters() {
+    return state.filters;
+  },
+  // Results come from several folders, so actions that assume one folder are off.
+  get all() {
+    return state.all;
+  },
+  get filtering() {
+    const f = state.filters;
+    return f.body || f.all || f.unread || f.flagged || f.attachments || !!f.since || !!f.before;
+  },
+  setFilters(next: Filters) {
+    state.filters = { ...next };
+    this.open(state.folder, 1);
+  },
+  clearFilters() {
+    state.filters = { ...noFilters };
+    this.open(state.folder, 1);
+  },
   get uid() {
     return state.uid;
   },
@@ -267,7 +313,10 @@ export const mail = {
 
   async open(folder: string, page = 1, opts: { replace?: boolean; history?: boolean } = {}) {
     const mine = ++seq;
-    if (folder !== state.folder) state.query = '';
+    if (folder !== state.folder) {
+      state.query = '';
+      state.filters = { ...noFilters };
+    }
     if (opts.history !== false) {
       messageSeq++;
       state.uid = null;
@@ -281,13 +330,13 @@ export const mail = {
     state.error = '';
     if (opts.history !== false) writeLocation(folder, page, opts.replace ?? false);
     try {
-      const search = state.query ? `&q=${encodeURIComponent(state.query)}` : '';
-      const q = `folder=${encodeURIComponent(folder)}&page=${page}&size=${settings.value.pageSize}${search}${sortParams()}`;
+      const q = `folder=${encodeURIComponent(folder)}&page=${page}&size=${settings.value.pageSize}${searchParams()}${sortParams()}`;
       const res = await api<MessagePage>('GET', `/api/messages?${q}`);
       if (mine !== seq) return;
       state.total = res.total;
       state.messages = res.messages;
       state.threaded = !!res.threaded;
+      state.all = !!res.all;
     } catch (e) {
       if (mine !== seq) return;
       state.messages = [];
@@ -431,14 +480,14 @@ export const mail = {
     if (state.loading) return;
     const started = mutations;
     await this.loadFolders();
-    const search = state.query ? `&q=${encodeURIComponent(state.query)}` : '';
-    const q = `folder=${encodeURIComponent(state.folder)}&page=${state.page}&size=${settings.value.pageSize}${search}${sortParams()}`;
+    const q = `folder=${encodeURIComponent(state.folder)}&page=${state.page}&size=${settings.value.pageSize}${searchParams()}${sortParams()}`;
     try {
       const res = await api<MessagePage>('GET', `/api/messages?${q}`);
       if (started !== mutations) return;
       state.total = res.total;
       state.messages = res.messages;
       state.threaded = !!res.threaded;
+      state.all = !!res.all;
     } catch (e) {
       fail(e);
     }

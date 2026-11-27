@@ -376,5 +376,15 @@
   "list.thread_close": {
     "one": "Hide the conversation ({count} message)",
     "other": "Hide the conversation ({count} messages)"
-  }
+  },
+  "search.filters": "Search options",
+  "search.filter.body": "Also search message text",
+  "search.filter.all": "Search all folders",
+  "search.filter.unread": "Unread only",
+  "search.filter.flagged": "Flagged only",
+  "search.filter.attachments": "With attachments",
+  "search.filter.since": "From",
+  "search.filter.before": "To",
+  "search.filter.clear": "Clear",
+  "search.filter.apply": "Search"
 }

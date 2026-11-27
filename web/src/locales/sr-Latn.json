@@ -388,5 +388,15 @@
     "one": "Sakrij razgovor ({count} poruka)",
     "few": "Sakrij razgovor ({count} poruke)",
     "other": "Sakrij razgovor ({count} poruka)"
-  }
+  },
+  "search.filters": "Opcije pretrage",
+  "search.filter.body": "Pretraži i tekst poruke",
+  "search.filter.all": "Pretraži sve fascikle",
+  "search.filter.unread": "Samo nepročitane",
+  "search.filter.flagged": "Samo označene",
+  "search.filter.attachments": "Sa prilozima",
+  "search.filter.since": "Od",
+  "search.filter.before": "Do",
+  "search.filter.clear": "Očisti",
+  "search.filter.apply": "Pretraži"
 }

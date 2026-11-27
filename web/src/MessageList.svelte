@@ -7,6 +7,7 @@
   import { errorMessage } from './lib/errors';
   import { settings } from './lib/settings.svelte';
   import ListToolbar from './ListToolbar.svelte';
+  import SearchFilters from './SearchFilters.svelte';
   import { archiveMessages, flagMessages, folderLabel, moveMessages, removeMessages, spamMessages } from './lib/actions';
 
   const t = $derived(i18n.t);
@@ -52,19 +53,29 @@
     setTimeout(() => ghost.remove(), 0);
   }
 
-  function open(e: MouseEvent, uid: number) {
+  async function openElsewhere(folder: string, uid: number) {
+    await mail.open(folder);
+    mail.openMessage(uid);
+  }
+
+  function open(e: MouseEvent, uid: number, folder?: string) {
     if (e.button !== 0) return;
+    if (folder && folder !== mail.folder) {
+      e.preventDefault();
+      openElsewhere(folder, uid);
+      return;
+    }
     if (swiped) {
       e.preventDefault();
       swiped = false;
       return;
     }
-    if (e.ctrlKey || e.metaKey) {
+    if ((e.ctrlKey || e.metaKey) && !mail.all) {
       e.preventDefault();
       mail.select(uid, 'toggle');
       return;
     }
-    if (e.shiftKey) {
+    if (e.shiftKey && !mail.all) {
       e.preventDefault();
       mail.select(uid, 'range');
       return;
@@ -101,7 +112,8 @@
       e.preventDefault();
       mail.selectAll();
     }
-    if (e.key === 'Delete' && bulk) removeMessages([...mail.selected]);
+    if (e.key === 'Delete' && bulk && !mail.all) removeMessages([...mail.selected]);
+    if (mail.all) return;
     const targets = mail.selected.length ? [...mail.selected] : mail.uid !== null ? [mail.uid] : [];
     if (!targets.length || e.ctrlKey || e.metaKey || e.altKey) return;
     const key = e.key.toLowerCase();
@@ -120,7 +132,7 @@
     const item = node.parentElement!;
 
     function down(e: PointerEvent) {
-      if (e.pointerType !== 'touch') return;
+      if (e.pointerType !== 'touch' || mail.all) return;
       startX = e.clientX;
       startY = e.clientY;
       dx = 0;
@@ -211,6 +223,7 @@
       }}
       data-testid="search"
     />
+    <SearchFilters />
   </form>
   {#if bulk}
     <div class="page-header bulk" role="toolbar" aria-label={t('actions.label')} data-testid="bulk-bar">
@@ -353,6 +366,7 @@
               class="dot-btn"
               aria-label={m.seen ? t('actions.mark_unread') : t('actions.mark_read')}
               title={m.seen ? t('actions.mark_unread') : t('actions.mark_read')}
+              disabled={!!m.folder}
               onclick={() => flagMessages([m.uid], 'seen', !m.seen)}
               data-testid="row-dot"
             >
@@ -360,11 +374,11 @@
             </button>
             <a
               class="row"
-              draggable="true"
+              draggable={!m.folder}
               ondragstart={(e) => dragStart(e, m.uid)}
-              href={messagePath(mail.folder, m.uid)}
+              href={messagePath(m.folder ?? mail.folder, m.uid)}
               aria-current={mail.uid === m.uid ? 'true' : undefined}
-              onclick={(e) => open(e, m.uid)}
+              onclick={(e) => open(e, m.uid, m.folder)}
             >
               <span class="dot-space" aria-hidden="true"></span>
               <span class="who">
@@ -406,6 +420,7 @@
                     <path d="M4 14V2h8l-2 3 2 3H4" />
                   </svg>
                 {/if}
+                {#if m.folder}<span class="folder-tag" data-testid="result-folder">{folderLabel(m.folder)}</span>{/if}
                 <span class="text">{m.subject || t('list.no_subject')}</span>
               </span>
               {#if m.attachments}
@@ -414,7 +429,7 @@
                 </svg>
               {/if}
             </a>
-            <div class="hover" data-testid="row-actions">
+            <div class="hover" hidden={!!m.folder} data-testid="row-actions">
               <span class="size">{formatSize(i18n.locale, m.size)}</span>
               <button
                 type="button"
@@ -548,6 +563,9 @@
   .swipe-bg .icon {
     inline-size: 1.4rem;
     block-size: 1.4rem;
+  }
+  .hover[hidden] {
+    display: none !important;
   }
   .hover {
     position: absolute;
@@ -826,6 +844,14 @@
   }
   li.reply .dot-btn {
     inset-inline-start: calc(var(--depth) * 1rem + 0.25rem);
+  }
+  .folder-tag {
+    flex: none;
+    padding: 0 var(--space-2);
+    font-size: 0.75rem;
+    color: var(--color-text-muted);
+    background: var(--color-input-bg);
+    border-radius: 999px;
   }
   .thread-toggle {
     display: inline-flex;
