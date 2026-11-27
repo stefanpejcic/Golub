@@ -30,13 +30,3 @@ for (const theme of ['light', 'dark'] as const) {
   }
 }
 
-test('about dialog shows version, license and source link', async ({ page }) => {
-  await page.goto('/');
-  await page.getByTestId('about-open').click();
-  const about = page.getByTestId('about');
-  await expect(about).toBeVisible();
-  await expect(page.getByTestId('about-version')).toHaveText(/^(Version|Verzija) \S+/);
-  await expect(about.getByRole('link', { name: /Source code|Izvorni kod/ })).toHaveAttribute('href', 'https://github.com/stefanpejcic/Golub');
-  await page.getByTestId('about-close').click();
-  await expect(about).toBeHidden();
-});

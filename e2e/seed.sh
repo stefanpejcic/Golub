@@ -57,6 +57,15 @@ for i in 1 2 3 4 5; do
 done
 imap -u "$ALICE:$E2E_PASSWORD" "$IMAP/Actions" -X 'STORE 1:* -FLAGS (\Seen)' >/dev/null
 
+echo "appending bulk test messages"
+imap -u "$ALICE:$E2E_PASSWORD" "$IMAP/" -X 'CREATE Bulk' >/dev/null
+for i in 1 2 3 4 5 6 7 8; do
+  printf 'From: Dave <dave@%s>\r\nTo: Alice <%s>\r\nSubject: Bulk %d\r\nDate: %s\r\nContent-Type: text/plain; charset=utf-8\r\n\r\nBulk body %d.\r\n' \
+    "$E2E_DOMAIN" "$ALICE" "$i" "$(date -u -R -d "2026-03-01 +$i hours")" "$i" >"$tmp"
+  imap -u "$ALICE:$E2E_PASSWORD" "$IMAP/Bulk" -T "$tmp"
+done
+imap -u "$ALICE:$E2E_PASSWORD" "$IMAP/Bulk" -X 'STORE 1:* -FLAGS (\Seen)' >/dev/null
+
 # curl APPENDs with \Seen; reset so the mailbox looks like freshly delivered mail.
 imap -u "$ALICE:$E2E_PASSWORD" "$IMAP/INBOX" -X 'STORE 1:* -FLAGS (\Seen)' >/dev/null
 imap -u "$ALICE:$E2E_PASSWORD" "$IMAP/Paging" -X 'STORE 1:* -FLAGS (\Seen)' >/dev/null
