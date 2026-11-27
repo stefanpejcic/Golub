@@ -3,6 +3,7 @@
   import { i18n } from './lib/locale.svelte';
   import { mail, type Folder } from './lib/mail.svelte';
   import { folderPath } from './lib/format';
+  import { route } from './lib/route.svelte';
 
   const t = $derived(i18n.t);
 
@@ -15,9 +16,13 @@
     return f.special || !f.delim ? 0 : f.name.split(f.delim).length - 1;
   }
 
-  function go(e: MouseEvent, f: Folder) {
+  async function go(e: MouseEvent, f: Folder) {
     if (e.metaKey || e.ctrlKey || e.shiftKey || e.button !== 0) return;
     e.preventDefault();
+    if (route.compose || route.settingsSection) {
+      if (await route.go(folderPath(f.name))) mail.open(f.name, 1, { replace: true });
+      return;
+    }
     mail.open(f.name);
   }
 </script>

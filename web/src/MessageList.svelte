@@ -6,7 +6,7 @@
   import { errorMessage } from './lib/errors';
   import { settings } from './lib/settings.svelte';
   import ListToolbar from './ListToolbar.svelte';
-  import { archiveMessages, flagMessages, folderLabel, moveMessages, removeMessages } from './lib/actions';
+  import { archiveMessages, flagMessages, folderLabel, moveMessages, removeMessages, spamMessages } from './lib/actions';
 
   const t = $derived(i18n.t);
   const showRecipients = $derived(mail.current?.special === 'sent' || mail.current?.special === 'drafts');
@@ -55,15 +55,39 @@
     mail.openMessage(uid);
   }
 
+  // Up and down walk the list like a desktop client, opening each message.
+  function step(delta: number) {
+    const rows = mail.messages;
+    if (!rows.length) return;
+    const at = rows.findIndex((r) => r.uid === mail.uid);
+    const next = at < 0 ? (delta > 0 ? 0 : rows.length - 1) : at + delta;
+    if (next < 0 || next >= rows.length) return;
+    const uid = rows[next].uid;
+    mail.openMessage(uid, { replace: true });
+    document.querySelector(`[data-testid=message][data-uid="${uid}"]`)?.scrollIntoView({ block: 'nearest' });
+  }
+
   function onKey(e: KeyboardEvent) {
-    const tag = (e.target as HTMLElement).tagName;
-    if (['INPUT', 'TEXTAREA', 'SELECT'].includes(tag)) return;
+    const target = e.target as HTMLElement;
+    const tag = target.tagName;
+    if (['INPUT', 'TEXTAREA', 'SELECT'].includes(tag) || target.isContentEditable) return;
+    if ((e.key === 'ArrowDown' || e.key === 'ArrowUp') && !e.altKey && !e.ctrlKey && !e.metaKey && !e.shiftKey) {
+      e.preventDefault();
+      step(e.key === 'ArrowDown' ? 1 : -1);
+      return;
+    }
     if (e.key === 'Escape' && bulk) mail.clearSelection();
     if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'a' && mail.messages.length) {
       e.preventDefault();
       mail.selectAll();
     }
     if (e.key === 'Delete' && bulk) removeMessages([...mail.selected]);
+    // Single letters act on the selection, or on the open message when nothing else is selected.
+    const targets = mail.selected.length ? [...mail.selected] : mail.uid !== null ? [mail.uid] : [];
+    if (!targets.length || e.ctrlKey || e.metaKey || e.altKey) return;
+    const key = e.key.toLowerCase();
+    if (key === 'a' && mail.current?.special !== 'archive') archiveMessages(targets);
+    else if (key === 's' && mail.current?.special !== 'junk') spamMessages(targets);
   }
 
   // Touch swipe: right archives, left deletes. Only horizontal drags count, vertical ones scroll.

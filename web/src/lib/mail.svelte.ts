@@ -55,6 +55,12 @@ export interface MessageView {
   attachments: Attachment[];
 }
 
+export interface Moved {
+  folder: string;
+  uids: number[];
+  trashed?: boolean;
+}
+
 interface MessagePage {
   total: number;
   page: number;
@@ -334,9 +340,23 @@ export const mail = {
     await this.loadFolders();
   },
 
-  async move(uids: number[], to: string) {
-    await api('POST', '/api/messages/move', { folder: state.folder, uids, to });
+  async move(uids: number[], to: string): Promise<Moved> {
+    const res = await api<Moved>('POST', '/api/messages/move', { folder: state.folder, uids, to });
     await this.removeRows(uids);
+    return res;
+  },
+
+  async spam(uids: number[]): Promise<Moved> {
+    const res = await api<Moved>('POST', '/api/messages/spam', { folder: state.folder, uids });
+    await this.removeRows(uids);
+    return res;
+  },
+
+  // Puts moved messages back where they came from, using the UIDs the server reported.
+  async undoMove(moved: Moved, back: string) {
+    if (!moved.folder || !moved.uids.length) return;
+    await api('POST', '/api/messages/move', { folder: moved.folder, uids: moved.uids, to: back });
+    await this.refresh();
   },
 
   async copy(uids: number[], to: string) {
@@ -350,16 +370,16 @@ export const mail = {
     await Promise.all([this.loadFolders(), this.openMessage(uid, { history: false })]);
   },
 
-  async archive(uids: number[]): Promise<string> {
-    const res = await api<{ folder: string }>('POST', '/api/messages/archive', { folder: state.folder, uids });
+  async archive(uids: number[]): Promise<Moved> {
+    const res = await api<Moved>('POST', '/api/messages/archive', { folder: state.folder, uids });
     await this.removeRows(uids);
-    return res.folder;
+    return res;
   },
 
-  async remove(uids: number[]): Promise<boolean> {
-    const res = await api<{ trashed: boolean }>('POST', '/api/messages/delete', { folder: state.folder, uids });
+  async remove(uids: number[]): Promise<Moved> {
+    const res = await api<Moved>('POST', '/api/messages/delete', { folder: state.folder, uids });
     await this.removeRows(uids);
-    return res.trashed;
+    return res;
   },
 
   async createFolder(name: string) {

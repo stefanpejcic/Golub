@@ -9,7 +9,7 @@
   const groups = [
     { title: 'settings.group.preferences', items: ['general', 'mailbox', 'display', 'compose', 'special'] },
     { title: 'settings.group.account', items: ['folders', 'identities', 'responses'] },
-    { title: 'settings.group.golub', items: ['about'] },
+    { title: 'settings.group.golub', items: ['about', 'shortcuts'] },
   ];
 
   function back(e: MouseEvent) {

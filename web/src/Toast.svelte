@@ -5,7 +5,22 @@
 
 <div class="region" role="status" aria-live="polite">
   {#if toast.text}
-    <div class="toast" class:error={toast.error} data-testid="toast">{toast.text}</div>
+    <div class="toast" class:error={toast.error}>
+      <span data-testid="toast">{toast.text}</span>
+      {#if toast.action}
+        {@const action = toast.action}
+        <button
+          type="button"
+          onclick={() => {
+            // Take the callback first: {@const} is reactive and becomes null once the toast is dismissed.
+            const run = action.run;
+            toast.dismiss();
+            run();
+          }}
+          data-testid="toast-action">{action.label}</button
+        >
+      {/if}
+    </div>
   {/if}
 </div>
 
@@ -20,6 +35,10 @@
     z-index: 10;
   }
   .toast {
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+    pointer-events: auto;
     padding-block: var(--space-2);
     padding-inline: var(--space-3);
     color: var(--color-primary-text);
@@ -27,6 +46,16 @@
     border-radius: var(--radius);
     box-shadow: var(--shadow);
     font-weight: 500;
+  }
+  button {
+    padding: 0;
+    font: inherit;
+    font-weight: 600;
+    color: inherit;
+    text-decoration: underline;
+    background: none;
+    border: none;
+    cursor: pointer;
   }
   .error {
     color: #fff;
