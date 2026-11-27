@@ -13,7 +13,6 @@
   <a href="https://github.com/stefanpejcic/Golub/releases"><img alt="Release" src="https://img.shields.io/github/v/release/stefanpejcic/Golub"></a>
   <a href="https://github.com/stefanpejcic/Golub/actions/workflows/ci.yml"><img alt="CI" src="https://github.com/stefanpejcic/Golub/actions/workflows/ci.yml/badge.svg"></a>
   <a href="https://github.com/stefanpejcic/Golub/pkgs/container/golub"><img alt="Image size" src="https://img.shields.io/badge/image-6.6%20MB-blue"></a>
-  <a href="https://github.com/GoogleContainerTools/distroless"><img alt="Base image" src="https://img.shields.io/badge/base-distroless%2C%20non--root-blue"></a>
   <a href="https://github.com/stefanpejcic/Golub/actions/workflows/ci.yml"><img alt="Trivy" src="https://img.shields.io/badge/trivy-0%20vulnerabilities-brightgreen"></a>
   <img alt="Go version" src="https://img.shields.io/github/go-mod/go-version/stefanpejcic/Golub">
   <a href="LICENSE"><img alt="License" src="https://img.shields.io/github/license/stefanpejcic/Golub"></a>
