@@ -191,7 +191,8 @@
     text-align: end;
   }
   .size-col {
-    min-inline-size: 11rem;
+    inline-size: 1%;
+    white-space: nowrap;
   }
   .usage {
     display: flex;
@@ -206,7 +207,8 @@
     white-space: nowrap;
   }
   .bar {
-    flex: 1;
+    flex: none;
+    inline-size: 6rem;
     block-size: 0.375rem;
     overflow: hidden;
     background: var(--color-border);
