@@ -1,7 +1,7 @@
 <!-- SPDX-License-Identifier: GPL-3.0-or-later -->
 <script lang="ts">
   import { i18n } from './lib/locale.svelte';
-  import { isValidRecipient, splitRecipients } from './lib/compose';
+  import { isBareAddress, isValidRecipient, splitRecipients } from './lib/compose';
 
   let { value = $bindable([]), label, testid }: { value: string[]; label: string; testid: string } = $props();
   const t = $derived(i18n.t);
@@ -20,6 +20,10 @@
         e.preventDefault();
         commit();
       }
+    } else if (e.key === ' ' && isBareAddress(draft)) {
+      // A finished address followed by a space becomes a chip; "Name <address>" still allows spaces.
+      e.preventDefault();
+      commit();
     } else if (e.key === 'Backspace' && !draft && value.length) {
       value = value.slice(0, -1);
     }
@@ -103,8 +107,8 @@
     max-inline-size: 100%;
     padding-block: 2px;
     padding-inline: var(--space-2) 2px;
-    background: var(--color-hover);
-    border: 1px solid var(--color-border);
+    background: var(--color-input-bg);
+    border: 1px solid transparent;
     border-radius: 999px;
     overflow-wrap: anywhere;
   }

@@ -42,6 +42,10 @@ export function recipientAddress(r: string): string {
   return (m ? m[1] : r).trim();
 }
 
+export function isBareAddress(s: string): boolean {
+  return addrRe.test(s.trim());
+}
+
 export function isValidRecipient(r: string): boolean {
   return addrRe.test(recipientAddress(r));
 }

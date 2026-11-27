@@ -2,7 +2,7 @@
 
 import { describe, expect, it } from 'vitest';
 import { createTranslator } from './i18n';
-import { splitRecipients, isValidRecipient, quotePlain, quoteHtml, forwardPlain, withSignature, signatureBlock, escapeHtml } from './compose';
+import { splitRecipients, isValidRecipient, isBareAddress, quotePlain, quoteHtml, forwardPlain, withSignature, signatureBlock, escapeHtml } from './compose';
 
 const t = createTranslator('en', {
   en: {
@@ -25,6 +25,12 @@ describe('recipients', () => {
       'b@x.test',
       'c@x.test',
     ]);
+  });
+  it('recognises a finished bare address', () => {
+    expect(isBareAddress('bob@x.test')).toBe(true);
+    expect(isBareAddress('Bob')).toBe(false);
+    expect(isBareAddress('Bob <bob@x.test')).toBe(false);
+    expect(isBareAddress('bob@x')).toBe(false);
   });
   it('validates', () => {
     expect(isValidRecipient('Bob <bob@x.test>')).toBe(true);
