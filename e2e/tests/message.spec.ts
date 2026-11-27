@@ -60,11 +60,14 @@ test('attachments download with their real names', async ({ page }) => {
   await signIn(page);
   await openBySubject(page, 'With attachments');
   await expect(page.getByTestId('attachment')).toHaveCount(2);
-  const [download] = await Promise.all([
-    page.waitForEvent('download'),
-    page.getByTestId('attachment').filter({ hasText: 'članarina šema.txt' }).click(),
-  ]);
+  await page.getByTestId('attachment').filter({ hasText: 'članarina šema.txt' }).click();
+  const preview = page.getByTestId('attachment-preview');
+  await expect(preview).toContainText('članarina šema.txt');
+  await expect(page.getByTestId('preview-text')).toContainText('RFC 2231 encoded filename.');
+  const [download] = await Promise.all([page.waitForEvent('download'), page.getByTestId('preview-download').click()]);
   expect(download.suggestedFilename()).toBe('članarina šema.txt');
+  await page.keyboard.press('Escape');
+  await expect(preview).toBeHidden();
   const pdf = page.getByTestId('attachment').filter({ hasText: 'report.pdf' });
   await expect(pdf).toContainText('byte');
 });

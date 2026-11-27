@@ -216,12 +216,21 @@ func ListMessages(c *imapclient.Client, folder string, offset, limit int, query 
 	var order []uint32
 
 	if c.Caps().Has(imap.CapSort) {
-		uids, err := c.UIDSort(&imapclient.SortOptions{
-			SearchCriteria: searchCriteria(query),
-			SortCriteria:   []imapclient.SortCriterion{{Key: sortKeys[sortBy.Key], Reverse: sortBy.Desc}},
-		}).Wait()
-		if err != nil {
-			return Page{}, err
+		key := sortKey{folder: folder, query: query, sort: sortBy.Key, desc: sortBy.Desc}
+		st, cacheable := stateOf(sel)
+		uids, hit := sorted.get(c, key, st)
+		if !hit {
+			sortRuns.Add(1)
+			uids, err = c.UIDSort(&imapclient.SortOptions{
+				SearchCriteria: searchCriteria(query),
+				SortCriteria:   []imapclient.SortCriterion{{Key: sortKeys[sortBy.Key], Reverse: sortBy.Desc}},
+			}).Wait()
+			if err != nil {
+				return Page{}, err
+			}
+			if cacheable {
+				sorted.put(c, key, st, uids)
+			}
 		}
 		page.Total = len(uids)
 		if offset >= len(uids) {

@@ -238,3 +238,37 @@ func TestMarkAllRead(t *testing.T) {
 		t.Fatalf("%+v", folders[0])
 	}
 }
+
+func TestSortCacheReusedUntilFolderChanges(t *testing.T) {
+	c := seededClient(t, 30)
+	if !c.Caps().Has(imap.CapSort) {
+		t.Skip("test server has no SORT")
+	}
+	before := sortRuns.Load()
+	p1, err := ListMessages(c, "INBOX", 0, 10, "")
+	if err != nil {
+		t.Fatal(err)
+	}
+	p2, _ := ListMessages(c, "INBOX", 10, 10, "")
+	if got := sortRuns.Load() - before; got != 1 {
+		t.Fatalf("second page ran SORT again: %d runs", got)
+	}
+	if p1.Messages[9].UID == p2.Messages[0].UID || p2.Total != 30 {
+		t.Fatalf("pages overlap or wrong total: %d", p2.Total)
+	}
+
+	if _, err := AppendMessage(c, "INBOX", []byte("Subject: new\r\n\r\nx\r\n")); err != nil {
+		t.Fatal(err)
+	}
+	p3, _ := ListMessages(c, "INBOX", 0, 10, "")
+	if sortRuns.Load()-before != 2 || p3.Total != 31 {
+		t.Fatalf("new mail must invalidate the cache: total %d", p3.Total)
+	}
+
+	if _, err := ListMessages(c, "INBOX", 0, 10, "", Sort{Key: "size"}); err != nil {
+		t.Fatal(err)
+	}
+	if sortRuns.Load()-before != 3 {
+		t.Fatal("a different sort needs its own SORT")
+	}
+}
