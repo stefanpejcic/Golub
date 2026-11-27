@@ -53,7 +53,14 @@ jobs:
           version: v2.15.0
           # Prebuilt binaries can lag behind the Go version in go.mod.
           install-mode: goinstall
-      - run: go test -race ./...
+      - name: go test
+        # Failing tests become annotations, which can be read without access to the job log.
+        run: |
+          set -o pipefail
+          go test -race ./... 2>&1 | tee go-test.log || {
+            grep -E -- '--- FAIL|panic:|_test\.go:[0-9]+:' go-test.log | head -20 | sed 's/^/::error::/'
+            exit 1
+          }
       - run: go run golang.org/x/vuln/cmd/govulncheck@latest ./...
 
   meta:
@@ -93,7 +100,7 @@ jobs:
       - name: seed
         run: ./e2e/seed.sh
       - name: seed 50k folder for performance budgets
-        run: EXEC="docker compose -f e2e/docker-compose.yml exec -T mailserver" ./e2e/perf-seed.sh
+        run: ./e2e/perf-seed.sh
       - name: healthz
         run: curl -fsS localhost:8080/healthz
       - uses: actions/setup-node@v7
