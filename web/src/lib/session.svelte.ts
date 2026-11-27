@@ -45,6 +45,12 @@ export const session = {
     await api('POST', '/api/logout').catch(() => undefined);
     state.info = null;
     state.status = 'anonymous';
+    history.replaceState(null, '', '/');
+  },
+  // Called when the server reports the session is gone (expired or password changed).
+  expire() {
+    state.info = null;
+    state.status = 'anonymous';
   },
   async savePrefs(prefs: { locale?: string; theme?: string }) {
     if (state.status !== 'authenticated') return;

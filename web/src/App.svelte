@@ -5,6 +5,7 @@
   import { session } from './lib/session.svelte';
   import { THEMES, type Theme } from './lib/prefs';
   import Login from './Login.svelte';
+  import Mailbox from './Mailbox.svelte';
 
   const t = $derived(i18n.t);
 
@@ -60,8 +61,8 @@
     <Login />
   </main>
 {:else}
-  <main class="empty">
-    <p>{t('shell.placeholder')}</p>
+  <main>
+    <Mailbox />
   </main>
 {/if}
 

@@ -1,6 +1,5 @@
 {
   "app.name": "Golub",
-  "shell.placeholder": "Your mailbox will appear here.",
   "settings.theme": "Theme",
   "settings.theme.system": "System",
   "settings.theme.light": "Light",
@@ -22,5 +21,24 @@
   "errors.request.invalid": "Please fill in all fields.",
   "errors.network": "No connection to the server.",
   "errors.server.error": "Something went wrong on the server.",
-  "errors.unknown": "Something went wrong."
+  "errors.unknown": "Something went wrong.",
+  "folders.label": "Folders",
+  "folders.unread": {
+    "one": "{count} unread message",
+    "other": "{count} unread messages"
+  },
+  "folder.inbox": "Inbox",
+  "folder.drafts": "Drafts",
+  "folder.sent": "Sent",
+  "folder.archive": "Archive",
+  "folder.junk": "Spam",
+  "folder.trash": "Trash",
+  "list.range": "{from}–{to} of {total}",
+  "list.prev": "Newer",
+  "list.next": "Older",
+  "list.empty": "No messages in this folder.",
+  "list.no_subject": "(no subject)",
+  "list.attachment": "Has attachments",
+  "list.flagged": "Flagged",
+  "errors.folder.not_found": "This folder does not exist."
 }

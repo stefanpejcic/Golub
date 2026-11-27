@@ -1,6 +1,5 @@
 {
   "app.name": "Golub",
-  "shell.placeholder": "Ovde će se prikazati vaše poštansko sanduče.",
   "settings.theme": "Tema",
   "settings.theme.system": "Sistemska",
   "settings.theme.light": "Svetla",
@@ -22,5 +21,25 @@
   "errors.request.invalid": "Popunite sva polja.",
   "errors.network": "Nema veze sa serverom.",
   "errors.server.error": "Došlo je do greške na serveru.",
-  "errors.unknown": "Došlo je do greške."
+  "errors.unknown": "Došlo je do greške.",
+  "folders.label": "Fascikle",
+  "folders.unread": {
+    "one": "{count} nepročitana poruka",
+    "few": "{count} nepročitane poruke",
+    "other": "{count} nepročitanih poruka"
+  },
+  "folder.inbox": "Prijemno sanduče",
+  "folder.drafts": "Nacrti",
+  "folder.sent": "Poslato",
+  "folder.archive": "Arhiva",
+  "folder.junk": "Neželjeno",
+  "folder.trash": "Otpad",
+  "list.range": "{from}–{to} od {total}",
+  "list.prev": "Novije",
+  "list.next": "Starije",
+  "list.empty": "Nema poruka u ovoj fascikli.",
+  "list.no_subject": "(bez naslova)",
+  "list.attachment": "Ima priloge",
+  "list.flagged": "Označeno",
+  "errors.folder.not_found": "Ova fascikla ne postoji."
 }
