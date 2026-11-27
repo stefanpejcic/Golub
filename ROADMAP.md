@@ -45,7 +45,7 @@
 - [ ] Perf budgets in CI
 - [ ] Benchmark against Roundcube and other webmail clients on the test server (latency, memory, page weight), publish results
 - [ ] README rewrite for release: drop "early development", position as a Roundcube alternative, clear feature list and quick start
-- [ ] Final logo (current hexagon envelope is a placeholder)
+- [x] Logo: carrier pigeon mascot in Go cyan with speed lines, plus a head mark for small sizes
 - [ ] Tag `v0.1.0`
 
 ## Next: Settings

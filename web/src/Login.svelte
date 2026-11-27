@@ -43,7 +43,7 @@
 <div class="screen">
   <main>
     <div class="brand">
-      <Logo size={44} />
+      <Logo size={96} variant="mascot" />
       <span>{t('app.name')}</span>
     </div>
     <form class="card" onsubmit={submit} data-testid="login-form">
@@ -105,8 +105,9 @@
   }
   .brand {
     display: flex;
+    flex-direction: column;
     align-items: center;
-    gap: var(--space-2);
+    gap: var(--space-1);
     font-size: 1.5rem;
     font-weight: 600;
   }

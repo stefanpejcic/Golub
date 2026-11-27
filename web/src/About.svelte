@@ -25,7 +25,7 @@
 
 <section aria-labelledby="about-title" data-testid="about">
   <div class="head">
-    <Logo size={48} />
+    <Logo size={64} variant="mascot" />
     <div>
       <h2 id="about-title">{t('app.name')}</h2>
       {#if version}
