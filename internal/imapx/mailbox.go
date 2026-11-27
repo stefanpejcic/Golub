@@ -53,6 +53,8 @@ type Summary struct {
 	Attachments bool      `json:"attachments"`
 	Size        int64     `json:"size"`
 	Priority    int       `json:"priority"`
+	// Folder is set only in results that span folders.
+	Folder string `json:"folder,omitempty"`
 	// Thread fields are set only in the threaded view; the first message of a thread carries the counts.
 	Depth        int    `json:"depth,omitempty"`
 	Root         uint32 `json:"root,omitempty"`
@@ -167,18 +169,56 @@ func deref(p *uint32) uint32 {
 	return *p
 }
 
-// searchCriteria matches query against subject, sender and recipients; empty matches all.
-func searchCriteria(query string) *imap.SearchCriteria {
-	if query == "" {
-		return &imap.SearchCriteria{}
+// Query narrows a message list. The zero value matches everything.
+type Query struct {
+	Text        string
+	Body        bool
+	Since       time.Time
+	Before      time.Time
+	Unread      bool
+	Flagged     bool
+	Attachments bool
+}
+
+// IsZero reports a query that matches every message.
+func (q Query) IsZero() bool { return q == Query{} }
+
+// criteria matches text against subject, sender and recipients, and the body when asked.
+func (q Query) criteria() *imap.SearchCriteria {
+	c := &imap.SearchCriteria{Since: q.Since, Before: q.Before}
+	if q.Text != "" {
+		h := func(key string) imap.SearchCriteria {
+			return imap.SearchCriteria{Header: []imap.SearchCriteriaHeaderField{{Key: key, Value: q.Text}}}
+		}
+		headers := imap.SearchCriteria{Or: [][2]imap.SearchCriteria{{
+			h("Subject"),
+			{Or: [][2]imap.SearchCriteria{{h("From"), {Or: [][2]imap.SearchCriteria{{h("To"), h("Cc")}}}}}},
+		}}}
+		if q.Body {
+			c.Or = [][2]imap.SearchCriteria{{headers, {Text: []string{q.Text}}}}
+		} else {
+			c.Or = headers.Or
+		}
 	}
-	h := func(key string) imap.SearchCriteria {
-		return imap.SearchCriteria{Header: []imap.SearchCriteriaHeaderField{{Key: key, Value: query}}}
+	if q.Unread {
+		c.NotFlag = append(c.NotFlag, imap.FlagSeen)
 	}
-	return &imap.SearchCriteria{Or: [][2]imap.SearchCriteria{{
-		h("Subject"),
-		{Or: [][2]imap.SearchCriteria{{h("From"), {Or: [][2]imap.SearchCriteria{{h("To"), h("Cc")}}}}}},
-	}}}
+	if q.Flagged {
+		c.Flag = append(c.Flag, imap.FlagFlagged)
+	}
+	if q.Attachments {
+		// IMAP has no attachment search; mixed multiparts are the usual carrier.
+		c.Header = append(c.Header, imap.SearchCriteriaHeaderField{Key: "Content-Type", Value: "multipart/mixed"})
+	}
+	return c
+}
+
+// cacheKey identifies the query in the sort cache; flag filters change without a new UIDNEXT, so they are not cached.
+func (q Query) cacheKey() (string, bool) {
+	if q.Unread || q.Flagged {
+		return "", false
+	}
+	return fmt.Sprintf("%q|%t|%d|%d|%t", q.Text, q.Body, q.Since.Unix(), q.Before.Unix(), q.Attachments), true
 }
 
 // Sort orders the message list.
@@ -196,7 +236,7 @@ var sortKeys = map[string]imapclient.SortKey{
 func ValidSort(key string) bool { _, ok := sortKeys[key]; return ok }
 
 // ListMessages returns one page of a folder in the requested order, newest first by default.
-func ListMessages(c *imapclient.Client, folder string, offset, limit int, query string, sorting ...Sort) (Page, error) {
+func ListMessages(c *imapclient.Client, folder string, offset, limit int, query Query, sorting ...Sort) (Page, error) {
 	sortBy := Sort{Key: "date", Desc: true}
 	if len(sorting) > 0 && ValidSort(sorting[0].Key) {
 		sortBy = sorting[0]
@@ -234,8 +274,8 @@ func ListMessages(c *imapclient.Client, folder string, offset, limit int, query 
 		if msgs, err = c.Fetch(set, fetch).Collect(); err != nil {
 			return Page{}, err
 		}
-	} else if query != "" {
-		res, err := c.UIDSearch(searchCriteria(query), nil).Wait()
+	} else if !query.IsZero() {
+		res, err := c.UIDSearch(query.criteria(), nil).Wait()
 		if err != nil {
 			return Page{}, err
 		}
@@ -288,14 +328,16 @@ func ListMessages(c *imapclient.Client, folder string, offset, limit int, query 
 	return page, nil
 }
 
-func sortedUIDs(c *imapclient.Client, folder, query string, sortBy Sort, st sortState, cacheable bool) ([]uint32, error) {
-	key := sortKey{folder: folder, query: query, sort: sortBy.Key, desc: sortBy.Desc}
-	if uids, ok := sorted.get(c, key, st); ok {
+func sortedUIDs(c *imapclient.Client, folder string, query Query, sortBy Sort, st sortState, cacheable bool) ([]uint32, error) {
+	qk, ok := query.cacheKey()
+	cacheable = cacheable && ok
+	key := sortKey{folder: folder, query: qk, sort: sortBy.Key, desc: sortBy.Desc}
+	if uids, ok := sorted.get(c, key, st); cacheable && ok {
 		return uids, nil
 	}
 	sortRuns.Add(1)
 	uids, err := c.UIDSort(&imapclient.SortOptions{
-		SearchCriteria: searchCriteria(query),
+		SearchCriteria: query.criteria(),
 		SortCriteria:   []imapclient.SortCriterion{{Key: sortKeys[sortBy.Key], Reverse: sortBy.Desc}},
 	}).Wait()
 	if err != nil {

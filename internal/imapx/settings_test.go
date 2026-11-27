@@ -22,7 +22,7 @@ func TestSettingsRoundTrip(t *testing.T) {
 	if err != nil || string(data) != `{"pageSize":100}` {
 		t.Fatalf("got %q %v", data, err)
 	}
-	p, err := ListMessages(c, SettingsFolder, 0, 10, "")
+	p, err := ListMessages(c, SettingsFolder, 0, 10, Query{})
 	if err != nil || p.Total != 1 {
 		t.Fatalf("old settings not cleaned up: %d %v", p.Total, err)
 	}

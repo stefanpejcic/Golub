@@ -171,3 +171,41 @@ func TestMessagesSearch(t *testing.T) {
 		t.Errorf("control char query: %d", rec.Code)
 	}
 }
+
+func TestMessagesFilters(t *testing.T) {
+	h, _ := newMailServer(t, 12)
+	var body struct {
+		Total    int
+		Messages []imapx.Summary
+	}
+	read := func(path string) int {
+		rec := authed(t, h, path)
+		if rec.Code != 200 {
+			t.Fatalf("%s: %d %s", path, rec.Code, rec.Body)
+		}
+		body.Messages = nil
+		_ = json.Unmarshal(rec.Body.Bytes(), &body)
+		return body.Total
+	}
+	if n := read("/api/messages?folder=INBOX&unread=1"); n != 6 {
+		t.Errorf("unread = %d", n)
+	}
+	if n := read("/api/messages?folder=INBOX&body=1&q=body"); n != 12 {
+		t.Errorf("body search = %d", n)
+	}
+	if n := read("/api/messages?folder=INBOX&q=" + url.QueryEscape("Message 00") + "&scope=all"); n != 9 || body.Messages[0].Folder != "INBOX" {
+		t.Errorf("all folders = %d %+v", n, body.Messages)
+	}
+	for _, bad := range []string{"since=yesterday", "before=2026-13-01", "unread=yes"} {
+		if rec := authed(t, h, "/api/messages?folder=INBOX&"+bad); rec.Code != 400 {
+			t.Errorf("%s: %d", bad, rec.Code)
+		}
+	}
+}
+
+func TestParseQueryDates(t *testing.T) {
+	q, ok := parseQuery(url.Values{"since": {"2026-03-01"}, "before": {"2026-03-31"}})
+	if !ok || q.Since.Format(time.DateOnly) != "2026-03-01" || q.Before.Format(time.DateOnly) != "2026-04-01" {
+		t.Fatalf("the end date is inclusive: %+v", q)
+	}
+}

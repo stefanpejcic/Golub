@@ -99,7 +99,7 @@ func TestListFolders(t *testing.T) {
 
 func TestListMessagesPaging(t *testing.T) {
 	c := seededClient(t, 7)
-	p, err := ListMessages(c, "INBOX", 0, 3, "")
+	p, err := ListMessages(c, "INBOX", 0, 3, Query{})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -117,7 +117,7 @@ func TestListMessagesPaging(t *testing.T) {
 		t.Error("message 006 should be seen")
 	}
 
-	last, err := ListMessages(c, "INBOX", 6, 3, "")
+	last, err := ListMessages(c, "INBOX", 6, 3, Query{})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -125,7 +125,7 @@ func TestListMessagesPaging(t *testing.T) {
 		t.Errorf("last page: %+v", last.Messages)
 	}
 
-	past, err := ListMessages(c, "INBOX", 50, 3, "")
+	past, err := ListMessages(c, "INBOX", 50, 3, Query{})
 	if err != nil || len(past.Messages) != 0 || past.Total != 7 {
 		t.Errorf("past end: %+v %v", past, err)
 	}
@@ -133,11 +133,11 @@ func TestListMessagesPaging(t *testing.T) {
 
 func TestListMessagesEmptyAndMissing(t *testing.T) {
 	c := seededClient(t, 0)
-	p, err := ListMessages(c, "Work", 0, 50, "")
+	p, err := ListMessages(c, "Work", 0, 50, Query{})
 	if err != nil || p.Total != 0 || len(p.Messages) != 0 {
 		t.Fatalf("%+v %v", p, err)
 	}
-	if _, err := ListMessages(c, "Nope", 0, 50, ""); err == nil {
+	if _, err := ListMessages(c, "Nope", 0, 50, Query{}); err == nil {
 		t.Fatal("expected error for missing folder")
 	}
 }
@@ -159,22 +159,22 @@ func TestDecodeLegacyCharsets(t *testing.T) {
 
 func TestListMessagesSearch(t *testing.T) {
 	c := seededClient(t, 12)
-	p, err := ListMessages(c, "INBOX", 0, 50, "Message 01")
+	p, err := ListMessages(c, "INBOX", 0, 50, Query{Text: "Message 01"})
 	if err != nil {
 		t.Fatal(err)
 	}
 	if p.Total != 3 || len(p.Messages) != 3 || p.Messages[0].Subject != "Message 012" {
 		t.Fatalf("%+v", p)
 	}
-	p, _ = ListMessages(c, "INBOX", 0, 2, "Message 01")
+	p, _ = ListMessages(c, "INBOX", 0, 2, Query{Text: "Message 01"})
 	if p.Total != 3 || len(p.Messages) != 2 {
 		t.Fatalf("paged search: %+v", p)
 	}
-	p, _ = ListMessages(c, "INBOX", 0, 50, "bob@golub.test")
+	p, _ = ListMessages(c, "INBOX", 0, 50, Query{Text: "bob@golub.test"})
 	if p.Total != 12 {
 		t.Fatalf("search by sender: %d", p.Total)
 	}
-	p, _ = ListMessages(c, "INBOX", 0, 50, "nothing matches this")
+	p, _ = ListMessages(c, "INBOX", 0, 50, Query{Text: "nothing matches this"})
 	if p.Total != 0 || len(p.Messages) != 0 {
 		t.Fatalf("no match: %+v", p)
 	}
@@ -182,14 +182,14 @@ func TestListMessagesSearch(t *testing.T) {
 
 func TestListMessagesAscending(t *testing.T) {
 	c := seededClient(t, 5)
-	p, err := ListMessages(c, "INBOX", 0, 2, "", Sort{Key: "arrival", Desc: false})
+	p, err := ListMessages(c, "INBOX", 0, 2, Query{}, Sort{Key: "arrival", Desc: false})
 	if err != nil {
 		t.Fatal(err)
 	}
 	if p.Messages[0].Subject != "Message 001" || p.Messages[1].Subject != "Message 002" {
 		t.Fatalf("%+v", p.Messages)
 	}
-	p, _ = ListMessages(c, "INBOX", 4, 2, "", Sort{Key: "arrival", Desc: false})
+	p, _ = ListMessages(c, "INBOX", 4, 2, Query{}, Sort{Key: "arrival", Desc: false})
 	if len(p.Messages) != 1 || p.Messages[0].Subject != "Message 005" {
 		t.Fatalf("last page %+v", p.Messages)
 	}
@@ -215,7 +215,7 @@ func TestPriorityInList(t *testing.T) {
 			t.Fatal(err)
 		}
 	}
-	p, err := ListMessages(c, "Work", 0, 10, "", Sort{Key: "arrival"})
+	p, err := ListMessages(c, "Work", 0, 10, Query{}, Sort{Key: "arrival"})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -245,11 +245,11 @@ func TestSortCacheReusedUntilFolderChanges(t *testing.T) {
 		t.Skip("test server has no SORT")
 	}
 	before := sortRuns.Load()
-	p1, err := ListMessages(c, "INBOX", 0, 10, "")
+	p1, err := ListMessages(c, "INBOX", 0, 10, Query{})
 	if err != nil {
 		t.Fatal(err)
 	}
-	p2, _ := ListMessages(c, "INBOX", 10, 10, "")
+	p2, _ := ListMessages(c, "INBOX", 10, 10, Query{})
 	if got := sortRuns.Load() - before; got != 1 {
 		t.Fatalf("second page ran SORT again: %d runs", got)
 	}
@@ -260,12 +260,12 @@ func TestSortCacheReusedUntilFolderChanges(t *testing.T) {
 	if _, err := AppendMessage(c, "INBOX", []byte("Subject: new\r\n\r\nx\r\n")); err != nil {
 		t.Fatal(err)
 	}
-	p3, _ := ListMessages(c, "INBOX", 0, 10, "")
+	p3, _ := ListMessages(c, "INBOX", 0, 10, Query{})
 	if sortRuns.Load()-before != 2 || p3.Total != 31 {
 		t.Fatalf("new mail must invalidate the cache: total %d", p3.Total)
 	}
 
-	if _, err := ListMessages(c, "INBOX", 0, 10, "", Sort{Key: "size"}); err != nil {
+	if _, err := ListMessages(c, "INBOX", 0, 10, Query{}, Sort{Key: "size"}); err != nil {
 		t.Fatal(err)
 	}
 	if sortRuns.Load()-before != 3 {

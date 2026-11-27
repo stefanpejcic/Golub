@@ -74,7 +74,7 @@ func CanThread(c *imapclient.Client) bool {
 }
 
 // ListThreads pages through conversations; each page holds limit threads with all their messages.
-func ListThreads(c *imapclient.Client, folder string, offset, limit int, query string, sortBy Sort) (Page, error) {
+func ListThreads(c *imapclient.Client, folder string, offset, limit int, query Query, sortBy Sort) (Page, error) {
 	if !ValidSort(sortBy.Key) {
 		sortBy = Sort{Key: "date", Desc: true}
 	}
@@ -145,13 +145,15 @@ func ListThreads(c *imapclient.Client, folder string, offset, limit int, query s
 	return page, nil
 }
 
-func threadsOf(c *imapclient.Client, folder, query string, st sortState, cacheable bool) ([][]member, error) {
-	key := sortKey{folder: folder, query: query, sort: "thread"}
-	if e, ok := sorted.getEntry(c, key, st); ok {
+func threadsOf(c *imapclient.Client, folder string, query Query, st sortState, cacheable bool) ([][]member, error) {
+	qk, ok := query.cacheKey()
+	cacheable = cacheable && ok
+	key := sortKey{folder: folder, query: qk, sort: "thread"}
+	if e, ok := sorted.getEntry(c, key, st); cacheable && ok {
 		return e.threads, nil
 	}
 	sortRuns.Add(1)
-	trees, err := c.UIDThread(&imapclient.ThreadOptions{Algorithm: imap.ThreadReferences, SearchCriteria: searchCriteria(query)}).Wait()
+	trees, err := c.UIDThread(&imapclient.ThreadOptions{Algorithm: imap.ThreadReferences, SearchCriteria: query.criteria()}).Wait()
 	if err != nil {
 		return nil, err
 	}

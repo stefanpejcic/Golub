@@ -7,8 +7,10 @@ import (
 	"errors"
 	"log/slog"
 	"net/http"
+	"net/url"
 	"strconv"
 	"strings"
+	"time"
 	"unicode"
 	"unicode/utf8"
 
@@ -87,34 +89,70 @@ func (a *authAPI) folders(w http.ResponseWriter, r *http.Request, s auth.Session
 func (a *authAPI) messages(w http.ResponseWriter, r *http.Request, s auth.Session) {
 	q := r.URL.Query()
 	folder := q.Get("folder")
-	query := strings.TrimSpace(q.Get("q"))
 	order := imapx.Sort{Key: q.Get("sort"), Desc: q.Get("order") != "asc"}
 	if order.Key == "" {
 		order.Key = "date"
 	}
 	page, okPage := intParam(q.Get("page"), 1)
 	size, okSize := intParam(q.Get("size"), defaultPageSize)
-	if !validFolder(folder) || !okPage || !okSize || page < 1 || size < 1 || size > maxPageSize || !validQuery(query) || !imapx.ValidSort(order.Key) {
+	query, okQuery := parseQuery(q)
+	if !validFolder(folder) || !okPage || !okSize || !okQuery || page < 1 || size < 1 || size > maxPageSize || !imapx.ValidSort(order.Key) {
 		writeError(w, http.StatusBadRequest, "request.invalid")
 		return
 	}
 	var p imapx.Page
-	threaded := false
+	threaded, all := false, q.Get("scope") == "all" && !query.IsZero()
 	err := a.do(r, s, func(c *imapclient.Client) error {
 		var err error
-		if q.Get("threads") == "1" && imapx.CanThread(c) {
+		switch {
+		case all:
+			p, err = imapx.SearchAll(c, query, maxPageSize)
+		case q.Get("threads") == "1" && imapx.CanThread(c):
 			threaded = true
 			p, err = imapx.ListThreads(c, folder, (page-1)*size, size, query, order)
-			return err
+		default:
+			p, err = imapx.ListMessages(c, folder, (page-1)*size, size, query, order)
 		}
-		p, err = imapx.ListMessages(c, folder, (page-1)*size, size, query, order)
 		return err
 	})
 	if err != nil {
 		a.mailError(w, r, err)
 		return
 	}
-	writeJSON(w, http.StatusOK, map[string]any{"total": p.Total, "page": page, "size": size, "messages": p.Messages, "threaded": threaded})
+	writeJSON(w, http.StatusOK, map[string]any{"total": p.Total, "page": page, "size": size, "messages": p.Messages, "threaded": threaded, "all": all})
+}
+
+// parseQuery reads the search fields; dates are whole days and the end date is inclusive.
+func parseQuery(q url.Values) (imapx.Query, bool) {
+	out := imapx.Query{Text: strings.TrimSpace(q.Get("q"))}
+	if !validQuery(out.Text) {
+		return out, false
+	}
+	flags := map[string]*bool{"body": &out.Body, "unread": &out.Unread, "flagged": &out.Flagged, "attachments": &out.Attachments}
+	for name, dst := range flags {
+		switch q.Get(name) {
+		case "", "0":
+		case "1":
+			*dst = true
+		default:
+			return out, false
+		}
+	}
+	for name, dst := range map[string]*time.Time{"since": &out.Since, "before": &out.Before} {
+		v := q.Get(name)
+		if v == "" {
+			continue
+		}
+		d, err := time.Parse(time.DateOnly, v)
+		if err != nil {
+			return out, false
+		}
+		*dst = d
+	}
+	if !out.Before.IsZero() {
+		out.Before = out.Before.AddDate(0, 0, 1)
+	}
+	return out, true
 }
 
 func intParam(v string, def int) (int, bool) {
