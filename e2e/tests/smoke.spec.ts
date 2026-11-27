@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 import { expect, test } from '@playwright/test';
+import { ALICE, PASSWORD } from './env';
 
 const titles: Record<string, string> = {
   en: 'Sign in to your mailbox',
@@ -30,3 +31,25 @@ for (const theme of ['light', 'dark'] as const) {
   }
 }
 
+
+test('theme toggle survives reload and a new tab', async ({ browser, baseURL }) => {
+  const ctx = await browser.newContext({ colorScheme: 'dark', locale: 'en-US' });
+  const page = await ctx.newPage();
+  await page.goto(baseURL!);
+  await page.getByLabel('Email address').fill(ALICE);
+  await page.getByLabel('Password').fill(PASSWORD);
+  await page.getByRole('button', { name: 'Sign in' }).click();
+  await expect(page.getByTestId('user-email')).toHaveText(ALICE);
+  await page.getByTestId('theme-toggle').click();
+  await expect(page.locator('html')).toHaveAttribute('data-theme', 'light');
+  await page.reload();
+  await expect(page.locator('html')).toHaveAttribute('data-theme', 'light');
+  const second = await ctx.newPage();
+  await second.goto(baseURL!);
+  await expect(second.locator('html')).toHaveAttribute('data-theme', 'light');
+  await page.getByTestId('theme-toggle').click();
+  await expect(page.locator('html')).toHaveAttribute('data-theme', 'dark');
+  await page.reload();
+  await expect(page.locator('html')).toHaveAttribute('data-theme', 'dark');
+  await ctx.close();
+});

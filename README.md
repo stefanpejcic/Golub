@@ -44,6 +44,10 @@ All settings come from environment variables and are validated at startup.
 | `GOLUB_DEFAULT_THEME` | `system` | `system`, `light` or `dark`. |
 | `GOLUB_LOG_LEVEL` | `info` | `debug`, `info`, `warn`, `error`. |
 
+## Versioning
+
+Golub follows [semantic versioning](https://semver.org). `VERSION` holds the next release; builds between releases report `X.Y.Z-dev.N`, where N is the commit count. `scripts/version.sh` prints the version for the current checkout.
+
 ## Development
 
 ```

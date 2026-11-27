@@ -72,7 +72,7 @@ jobs:
           context: .
           load: true
           tags: golub:ci
-          build-args: VERSION=ci
+          build-args: VERSION=0.0.0-ci
           cache-from: type=gha
           cache-to: type=gha,mode=max
       - name: healthz

@@ -105,3 +105,45 @@ test('touch swipe right archives, left deletes', async ({ page }) => {
   await expect(page.getByTestId('toast')).toHaveText('Moved to Trash.');
   await expect(row(page, 'Bulk 7')).toHaveCount(0);
 });
+
+test('toolbar: select menu, sort options and refresh', async ({ page }) => {
+  await signIn(page);
+  await page.locator('[data-testid=folder][data-folder=Paging]').click();
+  await expect(page.getByTestId('message')).toHaveCount(50);
+  await page.getByTestId('select').click();
+  await page.getByTestId('select-all').click();
+  await expect(page.getByTestId('bulk-count')).toHaveText('50 selected');
+  await page.getByTestId('select').click();
+  await page.getByTestId('select-invert').click();
+  await expect(page.getByTestId('bulk-bar')).toHaveCount(0);
+  await page.getByTestId('select').click();
+  await page.getByTestId('select-unread').click();
+  await expect(page.getByTestId('bulk-count')).toHaveText('50 selected');
+  await page.getByTestId('select').click();
+  await page.getByTestId('select-none').click();
+  await expect(page.getByTestId('bulk-bar')).toHaveCount(0);
+
+  await expect(page.getByTestId('message').first()).toContainText('Paging message 120');
+  await page.getByTestId('list-options').click();
+  await page.getByTestId('options-asc').check();
+  await page.getByTestId('options-save').click();
+  await expect(page.getByTestId('message').first()).toContainText('Paging message 001');
+  await page.reload();
+  await expect(page.getByTestId('message').first()).toContainText('Paging message 001');
+  await page.getByTestId('list-options').click();
+  await page.getByTestId('options-desc').check();
+  await page.getByTestId('options-save').click();
+  await expect(page.getByTestId('message').first()).toContainText('Paging message 120');
+
+  await page.getByTestId('refresh').click();
+  await expect(page.getByTestId('message').first()).toContainText('Paging message 120');
+});
+
+test('settings cog toggles between settings and mail', async ({ page }) => {
+  await signIn(page);
+  await page.getByTestId('settings-open').click();
+  await expect(page).toHaveURL(/\/settings\/general$/);
+  await page.getByTestId('settings-open').click();
+  await expect(page).toHaveURL(/\/mail\/INBOX$/);
+  await expect(page.getByTestId('message').first()).toBeVisible();
+});
