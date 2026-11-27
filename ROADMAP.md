@@ -3,14 +3,14 @@
 ## v0
 
 ### 1. Skeleton
-- [ ] Go module, config validation
-- [ ] Optional TLS with cert reload
-- [ ] `/healthz`
-- [ ] Dockerfile (distroless, non-root)
-- [ ] Svelte shell embedded
-- [ ] Theme tokens (light/dark) and toggle
-- [ ] i18n with `en` + `sr-Latn`, locale-key CI check
-- [ ] LICENSE, SPDX check
+- [x] Go module, config validation
+- [x] Optional TLS with cert reload
+- [x] `/healthz`
+- [x] Dockerfile (distroless, non-root)
+- [x] Svelte shell embedded
+- [x] Theme tokens (light/dark) and toggle
+- [x] i18n with `en` + `sr-Latn`, locale-key CI check
+- [x] LICENSE, SPDX check
 - [ ] CI green
 
 ### 2. Test env
