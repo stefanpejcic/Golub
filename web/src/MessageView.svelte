@@ -9,6 +9,8 @@
   import { api, ApiError } from './lib/api';
   import { toast } from './lib/toast.svelte';
   import { dialog } from './lib/dialog.svelte';
+  import { previewKind, type PreviewKind } from './lib/preview';
+  import AttachmentPreview from './AttachmentPreview.svelte';
   import { archiveMessages, copyMessages, flagMessages, folderLabel, moveMessages, removeMessages } from './lib/actions';
   import Menu from './Menu.svelte';
 
@@ -47,6 +49,15 @@
     } else if (u.url) {
       window.open(u.url, '_blank', 'noopener,noreferrer');
     }
+  }
+
+  let preview = $state<{ url: string; filename: string; kind: Exclude<PreviewKind, null> } | null>(null);
+
+  function openAttachment(e: MouseEvent, url: string, filename: string, contentType: string, size: number) {
+    const kind = previewKind(contentType, size);
+    if (!kind || e.metaKey || e.ctrlKey || e.shiftKey || e.button !== 0) return;
+    e.preventDefault();
+    preview = { url, filename, kind };
   }
 
   let receiptBusy = $state(false);
@@ -350,10 +361,13 @@
       <section class="attachments" aria-label={t('message.attachments', { count: m.attachments.length })}>
         <ul>
           {#each m.attachments as a (a.id)}
+            {@const url = `/api/message/part?${query}&part=${encodeURIComponent(a.id)}`}
             <li>
               <a
-                href={`/api/message/part?${query}&part=${encodeURIComponent(a.id)}`}
+                href={url}
                 download={a.filename}
+                onclick={(e) => openAttachment(e, url, a.filename, a.contentType, a.size)}
+                data-preview={previewKind(a.contentType, a.size) ?? undefined}
                 data-testid="attachment"
               >
                 <svg class="icon" viewBox="0 0 16 16" aria-hidden="true">
@@ -366,6 +380,10 @@
           {/each}
         </ul>
       </section>
+    {/if}
+
+    {#if preview}
+      <AttachmentPreview {...preview} onclose={() => (preview = null)} />
     {/if}
 
     {#if asHtml}

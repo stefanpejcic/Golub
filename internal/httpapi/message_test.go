@@ -244,3 +244,41 @@ func TestRawAndHeaders(t *testing.T) {
 		t.Fatalf("headers only: %q", body)
 	}
 }
+
+func TestPartPreview(t *testing.T) {
+	h := newMessageServer(t, "05-attachment.eml", "02-html.eml")
+	c := login(t, h)
+	_, v := getMessage(t, h, c, 1)
+
+	for _, a := range v.Attachments {
+		r := httptest.NewRequest("GET", fmt.Sprintf("/api/message/part?folder=INBOX&uid=1&part=%s&inline=1", a.ID), nil)
+		r.AddCookie(c)
+		rec := serve(h, r)
+		cd, csp := rec.Header().Get("Content-Disposition"), rec.Header().Get("Content-Security-Policy")
+		if rec.Code != 200 || !strings.HasPrefix(cd, "inline;") {
+			t.Fatalf("%s: %d %q", a.Filename, rec.Code, cd)
+		}
+		switch a.Filename {
+		case "report.pdf":
+			// Chrome refuses to show a PDF under a sandbox CSP, so it gets a strict policy without one.
+			if strings.Contains(csp, "sandbox") || !strings.Contains(csp, "default-src 'none'") || !strings.Contains(csp, "frame-ancestors 'self'") {
+				t.Errorf("pdf csp %q", csp)
+			}
+		case "članarina šema.txt":
+			if rec.Header().Get("Content-Type") != "text/plain; charset=utf-8" || !strings.Contains(csp, "sandbox") {
+				t.Errorf("text: %q %q", rec.Header().Get("Content-Type"), csp)
+			}
+		}
+	}
+}
+
+func TestPreviewOnlySafeTypes(t *testing.T) {
+	for ct, want := range map[string]bool{
+		"image/png": true, "image/jpeg": true, "application/pdf": true, "text/plain; charset=windows-1250": true,
+		"image/svg+xml": false, "text/html": false, "application/zip": false, "": false,
+	} {
+		if got := previewable(ct); got != want {
+			t.Errorf("%q = %v", ct, got)
+		}
+	}
+}

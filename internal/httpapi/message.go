@@ -12,8 +12,11 @@ import (
 	"strconv"
 	"strings"
 	"time"
+	"unicode/utf8"
 
 	"github.com/emersion/go-imap/v2/imapclient"
+
+	"golang.org/x/text/encoding/htmlindex"
 
 	"github.com/stefanpejcic/golub/internal/auth"
 	"github.com/stefanpejcic/golub/internal/imapx"
@@ -200,11 +203,50 @@ func (a *authAPI) messagePart(w http.ResponseWriter, r *http.Request, s auth.Ses
 		name = "attachment"
 	}
 	h := w.Header()
+	content := p.Content
 	h.Set("Content-Type", downloadType(p.ContentType))
 	h.Set("Content-Disposition", contentDisposition(name))
 	h.Set("Content-Security-Policy", "default-src 'none'; sandbox")
-	h.Set("Content-Length", strconv.Itoa(len(p.Content)))
-	_, _ = w.Write(p.Content) //nolint:gosec // served as an attachment with nosniff and a sandbox CSP
+	if r.URL.Query().Get("inline") == "1" && previewable(p.ContentType) {
+		h.Set("Content-Disposition", "inline;"+strings.TrimPrefix(contentDisposition(name), "attachment;"))
+		mt, params, _ := stdmime.ParseMediaType(p.ContentType)
+		switch {
+		case mt == "application/pdf":
+			// Chrome will not render a PDF under a sandbox CSP.
+			h.Set("Content-Security-Policy", "default-src 'none'; object-src 'self'; style-src 'unsafe-inline'; frame-ancestors 'self'")
+		case strings.HasPrefix(mt, "text/"):
+			content = toUTF8(content, params["charset"])
+			h.Set("Content-Type", "text/plain; charset=utf-8")
+		}
+	}
+	h.Set("Content-Length", strconv.Itoa(len(content)))
+	_, _ = w.Write(content) //nolint:gosec // nosniff, a strict CSP and only safe types are ever served inline
+}
+
+var previewTypes = map[string]bool{
+	"image/png": true, "image/jpeg": true, "image/gif": true, "image/webp": true, "image/avif": true, "image/bmp": true,
+	"application/pdf": true, "text/plain": true, "text/csv": true, "text/markdown": true,
+}
+
+// previewable lists the attachment types the browser may show inline.
+func previewable(ct string) bool {
+	mt, _, err := stdmime.ParseMediaType(ct)
+	return err == nil && previewTypes[mt]
+}
+
+func toUTF8(b []byte, charset string) []byte {
+	if charset == "" || utf8.Valid(b) {
+		return b
+	}
+	enc, err := htmlindex.Get(charset)
+	if err != nil {
+		return b
+	}
+	out, err := enc.NewDecoder().Bytes(b)
+	if err != nil {
+		return b
+	}
+	return out
 }
 
 var riskyTypes = map[string]bool{
