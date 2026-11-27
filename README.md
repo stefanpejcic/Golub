@@ -125,6 +125,15 @@ Images are published for `linux/amd64` and `linux/arm64`:
 
 Images are signed with cosign and carry an SBOM and build provenance. `GET /healthz` reports the running version.
 
+| Image | |
+|---|---|
+| Current release | `0.1.0` |
+| Download size | 6.6 MB (amd64), 16.9 MB unpacked |
+| Base | distroless static Debian 13, runs as a non-root user |
+| Known vulnerabilities | none (Trivy 0.76.2, 27 November 2026) |
+
+Every CI build is scanned with [Trivy](https://trivy.dev) and fails on a high or critical vulnerability that has a fix.
+
 ## Configuration
 
 All settings come from environment variables and are checked at startup; a wrong value stops Golub with a message naming the variable.

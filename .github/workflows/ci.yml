@@ -82,6 +82,17 @@ jobs:
           build-args: VERSION=0.0.0-ci
           cache-from: type=gha
           cache-to: type=gha,mode=max
+      - name: trivy scan
+        # a pinned release checked against its sha256 instead of an action tag, tags can be moved to other code
+        env:
+          TRIVY_VERSION: 0.76.2
+          TRIVY_SHA256: bc0fc726e017b8927a62b2d3531d7a84ee01769daf5c99ed866dced54089fdbf
+        run: |
+          curl -fsSL -o trivy.tgz "https://github.com/aquasecurity/trivy/releases/download/v${TRIVY_VERSION}/trivy_${TRIVY_VERSION}_Linux-64bit.tar.gz"
+          echo "${TRIVY_SHA256}  trivy.tgz" | sha256sum -c -
+          tar xzf trivy.tgz trivy
+          ./trivy image --scanners vuln,secret golub:ci
+          ./trivy image --scanners vuln,secret --severity HIGH,CRITICAL --ignore-unfixed --exit-code 1 --quiet golub:ci
       - name: healthz
         run: |
           docker run -d --name golub -p 8080:8080 \
