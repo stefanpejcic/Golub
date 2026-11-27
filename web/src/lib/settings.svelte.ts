@@ -35,6 +35,7 @@ export interface Settings {
   replyPosition: 'above' | 'below';
   forwardMode: 'inline' | 'attachment';
   signatureOnReply: boolean;
+  spellCheck: boolean;
   draftAutosave: number;
   deleteMode: 'trash' | 'permanent';
   emptyTrashOnLogout: boolean;
@@ -58,6 +59,7 @@ export const DEFAULTS: Settings = {
   replyPosition: 'above',
   forwardMode: 'inline',
   signatureOnReply: true,
+  spellCheck: true,
   draftAutosave: 60,
   deleteMode: 'trash',
   emptyTrashOnLogout: false,

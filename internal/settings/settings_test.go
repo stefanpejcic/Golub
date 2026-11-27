@@ -87,3 +87,14 @@ func TestEncodeIsCompactJSON(t *testing.T) {
 		t.Fatalf("%d %v", len(b), err)
 	}
 }
+
+func TestSpellCheckDefaultsOn(t *testing.T) {
+	s, err := Decode([]byte(`{"pageSize":25}`), "alice@golub.test")
+	if err != nil || !s.SpellCheck {
+		t.Fatalf("%v %+v", err, s)
+	}
+	s, _ = Decode([]byte(`{"spellCheck":false}`), "alice@golub.test")
+	if s.SpellCheck {
+		t.Fatal("explicit false must stick")
+	}
+}

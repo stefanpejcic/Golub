@@ -323,5 +323,9 @@
   "dialog.cancel": "Otkaži",
   "dialog.delete": "Obriši",
   "compose.link_insert": "Ubaci link",
-  "compose.send_anyway": "Pošalji svejedno"
+  "compose.send_anyway": "Pošalji svejedno",
+  "message.download": "Preuzmi",
+  "common.close": "Zatvori",
+  "common.loading": "Učitavanje…",
+  "settings.spellCheck": "Proveravaj pravopis tokom pisanja (koristi rečnik pregledača)"
 }

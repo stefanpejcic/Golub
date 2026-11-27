@@ -59,6 +59,7 @@ type Settings struct {
 	ForwardMode        string            `json:"forwardMode"`
 	SignatureOnReply   bool              `json:"signatureOnReply"`
 	DraftAutosave      int               `json:"draftAutosave"`
+	SpellCheck         bool              `json:"spellCheck"`
 	DeleteMode         string            `json:"deleteMode"`
 	EmptyTrashOnLogout bool              `json:"emptyTrashOnLogout"`
 	SpecialFolders     map[string]string `json:"specialFolders,omitempty"`
@@ -84,6 +85,7 @@ func Defaults(email string) Settings {
 		ComposeHTML:      true,
 		ReplyPosition:    "above",
 		ForwardMode:      "inline",
+		SpellCheck:       true,
 		SignatureOnReply: true,
 		DraftAutosave:    60,
 		DeleteMode:       "trash",

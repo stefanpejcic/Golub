@@ -314,5 +314,9 @@
   "dialog.cancel": "Cancel",
   "dialog.delete": "Delete",
   "compose.link_insert": "Insert link",
-  "compose.send_anyway": "Send anyway"
+  "compose.send_anyway": "Send anyway",
+  "message.download": "Download",
+  "common.close": "Close",
+  "common.loading": "Loading…",
+  "settings.spellCheck": "Check spelling while writing (uses the browser's dictionary)"
 }
