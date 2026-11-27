@@ -107,6 +107,7 @@ func securityHeaders(https bool, next http.Handler) http.Handler {
 		h.Set("Referrer-Policy", "no-referrer")
 		h.Set("X-Frame-Options", "DENY")
 		h.Set("Content-Security-Policy", appCSP)
+		h.Set("X-Robots-Tag", "noindex, nofollow, noarchive")
 		if https {
 			h.Set("Strict-Transport-Security", "max-age=31536000")
 		}

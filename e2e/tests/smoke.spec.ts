@@ -53,3 +53,11 @@ test('theme toggle survives reload and a new tab', async ({ browser, baseURL }) 
   await expect(page.locator('html')).toHaveAttribute('data-theme', 'system');
   await ctx.close();
 });
+
+test('search engines are kept out', async ({ request }) => {
+  const robots = await request.get('/robots.txt');
+  expect(await robots.text()).toContain('Disallow: /');
+  const page = await request.get('/');
+  expect(page.headers()['x-robots-tag']).toBe('noindex, nofollow, noarchive');
+  expect(await page.text()).toContain('<meta name="robots" content="noindex, nofollow"');
+});

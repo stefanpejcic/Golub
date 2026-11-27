@@ -161,7 +161,8 @@ func (p *Proxy) fetch(ctx context.Context, target string) ([]byte, error) {
 	if err != nil {
 		return nil, err
 	}
-	req.Header.Set("User-Agent", "Golub image proxy")
+	// A plain browser string: naming Golub would tell every sender which client opened their mail.
+	req.Header.Set("User-Agent", "Mozilla/5.0")
 	req.Header.Set("Accept", "image/*")
 	resp, err := p.client.Do(req) //nolint:gosec // see above
 	if err != nil {

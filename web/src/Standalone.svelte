@@ -1,11 +1,11 @@
 <!-- SPDX-License-Identifier: GPL-3.0-or-later -->
 <script lang="ts">
+  import '@fontsource-variable/inter';
   import { mail } from './lib/mail.svelte';
   import { settings } from './lib/settings.svelte';
   import MessageView from './MessageView.svelte';
   import Toast from './Toast.svelte';
 
-  // A single message without the mailbox around it, for "open in new window" and printing.
   const params = new URLSearchParams(location.search);
   const folder = params.get('folder') ?? 'INBOX';
   const uid = Number(params.get('uid')) || 0;

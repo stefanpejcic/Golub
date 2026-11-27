@@ -177,7 +177,6 @@
     dirty = true;
   }
 
-  // Switching to plain text keeps the formatted version so switching back restores it unchanged.
   let keptHtml = '';
   let keptPlain = '';
 
@@ -314,7 +313,6 @@
     }
   }
 
-  // Asked when leaving with unsaved changes: save and close, discard, or stay.
   let leaveDialog = $state<HTMLDialogElement>();
   let answer: ((v: 'save' | 'discard' | 'cancel') => void) | null = null;
 

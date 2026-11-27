@@ -95,6 +95,7 @@ func TestSecurityHeaders(t *testing.T) {
 		"X-Content-Type-Options": "nosniff",
 		"Referrer-Policy":        "no-referrer",
 		"X-Frame-Options":        "DENY",
+		"X-Robots-Tag":           "noindex, nofollow, noarchive",
 	} {
 		if got := rec.Header().Get(k); got != want {
 			t.Errorf("%s = %q", k, got)

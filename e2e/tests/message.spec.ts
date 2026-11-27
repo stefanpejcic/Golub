@@ -37,6 +37,7 @@ test('HTML message holds back remote images until asked', async ({ page }) => {
   const frame = page.frameLocator('[data-testid=message-body]');
   await expect(frame.locator('h1')).toHaveText('Newsletter');
   await expect(page.getByTestId('images-blocked')).toContainText('1 remote image was hidden');
+  await expect(page.getByTestId('trackers')).toHaveText('1 tracking pixel blocked');
   await expect(frame.locator('img')).toHaveCount(0);
   await expect(frame.locator('a[href="https://example.com/"]')).toHaveAttribute('target', '_blank');
 

@@ -1,7 +1,6 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 import { mount } from 'svelte';
-import '@fontsource-variable/inter';
 import './theme/tokens.css';
 import './app.css';
 import App from './App.svelte';

@@ -12,8 +12,7 @@ import (
 	"github.com/emersion/go-imap/v2/imapclient"
 )
 
-// SettingsFolder holds one message with the user's settings as JSON. It is created
-// unsubscribed so other mail clients do not show it.
+// SettingsFolder holds the settings JSON; it stays unsubscribed so other clients do not show it.
 const SettingsFolder = "golub-settings"
 
 func isNonexistent(err error) bool {

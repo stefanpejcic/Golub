@@ -55,7 +55,6 @@
     mail.openMessage(uid);
   }
 
-  // Up and down walk the list like a desktop client, opening each message.
   function step(delta: number) {
     const rows = mail.messages;
     if (!rows.length) return;
@@ -82,7 +81,6 @@
       mail.selectAll();
     }
     if (e.key === 'Delete' && bulk) removeMessages([...mail.selected]);
-    // Single letters act on the selection, or on the open message when nothing else is selected.
     const targets = mail.selected.length ? [...mail.selected] : mail.uid !== null ? [mail.uid] : [];
     if (!targets.length || e.ctrlKey || e.metaKey || e.altKey) return;
     const key = e.key.toLowerCase();
@@ -90,7 +88,7 @@
     else if (key === 's' && mail.current?.special !== 'junk') spamMessages(targets);
   }
 
-  // Touch swipe: right archives, left deletes. Only horizontal drags count, vertical ones scroll.
+  // Only horizontal drags count as swipes, so vertical ones still scroll the list.
   const SWIPE_RATIO = 0.35;
   function swipe(node: HTMLElement, uid: number) {
     let startX = 0;

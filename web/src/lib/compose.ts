@@ -91,7 +91,6 @@ export function forwardHtml(t: Translate, locale: string, q: Quote, subject: str
   return `<p>${head}</p>${inner}`;
 }
 
-// Plain-text body: new text, signature and quote in the user's chosen order.
 // Signatures that already start with a "--" separator keep it instead of getting a second one.
 export function signatureBlock(signature: string): string {
   if (!signature.trim()) return '';

@@ -1,5 +1,6 @@
 <!-- SPDX-License-Identifier: GPL-3.0-or-later -->
 <script lang="ts">
+  import '@fontsource-variable/inter';
   import { i18n } from './lib/locale.svelte';
   import { mail } from './lib/mail.svelte';
   import FolderList from './FolderList.svelte';

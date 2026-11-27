@@ -52,6 +52,7 @@ export interface MessageView {
   text: string;
   html: boolean;
   blockedImages: number;
+  trackers: number;
   attachments: Attachment[];
 }
 
@@ -179,7 +180,6 @@ export const mail = {
   isSelected(uid: number) {
     return state.selected.includes(uid);
   },
-  // Ctrl/Cmd toggles one row, Shift extends from the last clicked row, like a desktop mail client.
   select(uid: number, mode: 'single' | 'toggle' | 'range') {
     if (mode === 'range' && state.anchor !== null) {
       const uids = state.messages.map((m) => m.uid);
@@ -305,7 +305,6 @@ export const mail = {
     if (opts.history !== false) writeLocation(state.folder, state.page, false);
   },
 
-  // Updates rows, the open message and unread counters before the server answers.
   async setFlag(uids: number[], flag: 'seen' | 'flagged', value: boolean) {
     mutations++;
     const folder = state.folder;
@@ -325,7 +324,6 @@ export const mail = {
     }
   },
 
-  // Removes rows from the list and opens the next message, like a desktop client.
   async removeRows(uids: number[]) {
     mutations++;
     const idx = state.messages.findIndex((r) => uids.includes(r.uid));
@@ -352,7 +350,6 @@ export const mail = {
     return res;
   },
 
-  // Puts moved messages back where they came from, using the UIDs the server reported.
   async undoMove(moved: Moved, back: string) {
     if (!moved.folder || !moved.uids.length) return;
     await api('POST', '/api/messages/move', { folder: moved.folder, uids: moved.uids, to: back });
@@ -364,7 +361,6 @@ export const mail = {
     await this.loadFolders();
   },
 
-  // Opens one message outside the mailbox layout, for new windows and printing.
   async openStandalone(folder: string, uid: number) {
     state.folder = folder;
     await Promise.all([this.loadFolders(), this.openMessage(uid, { history: false })]);
@@ -391,7 +387,6 @@ export const mail = {
     await this.loadFolders();
   },
 
-  // Quietly refreshes counters and the visible page without touching selection or the open message.
   async refresh() {
     if (state.loading) return;
     const started = mutations;

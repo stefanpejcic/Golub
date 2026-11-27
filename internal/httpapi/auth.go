@@ -9,6 +9,7 @@ import (
 	"mime"
 	"net/http"
 	"slices"
+	"strings"
 	"time"
 
 	"github.com/stefanpejcic/golub/internal/auth"
@@ -189,7 +190,8 @@ func (a *authAPI) sso(w http.ResponseWriter, r *http.Request) {
 	}
 	if err := a.o.Mail.Check(r.Context(), claims.Email+"*"+a.o.MasterUser, a.o.MasterPassword); err != nil {
 		if errors.Is(err, imapx.ErrInvalidCredentials) {
-			slog.Error("sso master login rejected", "email", claims.Email)
+			_, domain, _ := strings.Cut(claims.Email, "@")
+			slog.Error("sso master login rejected", "domain", domain)
 			fail("auth.sso_invalid")
 			return
 		}

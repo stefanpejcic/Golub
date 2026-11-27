@@ -148,12 +148,12 @@ func TestMessageBody(t *testing.T) {
 	if rec.Header().Get("X-Frame-Options") != "SAMEORIGIN" {
 		t.Error("body must be frameable by the app")
 	}
-	if strings.Contains(rec.Body.String(), "example.com/track.png") {
+	if strings.Contains(rec.Body.String(), "example.com/banner.png") {
 		t.Error("remote image loaded without consent")
 	}
 
 	rec = body(t, h, c, 1, true)
-	if !strings.Contains(rec.Body.String(), `src="/proxy?u=https%3A%2F%2Fexample.com%2Ftrack.png&amp;s=`) {
+	if !strings.Contains(rec.Body.String(), `src="/proxy?u=https%3A%2F%2Fexample.com%2Fbanner.png&amp;s=`) || strings.Contains(rec.Body.String(), "track.png") {
 		t.Errorf("proxy url missing: %s", rec.Body)
 	}
 	if !strings.Contains(rec.Header().Get("Content-Security-Policy"), "img-src data: http://mail.example.test/proxy") {

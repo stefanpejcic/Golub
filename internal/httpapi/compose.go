@@ -273,7 +273,7 @@ func (a *authAPI) composeSend(w http.ResponseWriter, r *http.Request, s auth.Ses
 		if len(rcpts) > maxRecipients {
 			return badRequest("compose.too_many_recipients", "")
 		}
-		raw, _, err = compose.Build(d, "Golub/"+a.o.Version)
+		raw, _, err = compose.Build(d)
 		if err != nil {
 			return badRequest("request.invalid", "")
 		}
@@ -343,7 +343,7 @@ func (a *authAPI) composeDraft(w http.ResponseWriter, r *http.Request, s auth.Se
 		if err != nil {
 			return err
 		}
-		raw, _, err := compose.Build(d, "Golub/"+a.o.Version)
+		raw, _, err := compose.Build(d)
 		if err != nil {
 			return badRequest("request.invalid", "")
 		}

@@ -28,7 +28,7 @@ func TestBuildRoundTrip(t *testing.T) {
 		},
 		Date: time.Date(2026, 11, 27, 10, 0, 0, 0, time.UTC),
 	}
-	raw, id, err := Build(d, "Golub/test")
+	raw, id, err := Build(d)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -41,7 +41,10 @@ func TestBuildRoundTrip(t *testing.T) {
 			t.Errorf("bcc leaked into headers")
 		}
 	}
-	for _, want := range []string{"In-Reply-To: <orig@golub.test>", "References: <root@golub.test> <orig@golub.test>", "Message-Id: " + id, "User-Agent: Golub/test"} {
+	if strings.Contains(s, "User-Agent") || strings.Contains(s, "X-Mailer") {
+		t.Error("outgoing mail must not reveal the client")
+	}
+	for _, want := range []string{"In-Reply-To: <orig@golub.test>", "References: <root@golub.test> <orig@golub.test>", "Message-Id: " + id} {
 		if !strings.Contains(s, want) {
 			t.Errorf("missing %q in\n%s", want, s)
 		}
@@ -63,7 +66,7 @@ func TestBuildRoundTrip(t *testing.T) {
 }
 
 func TestBuildPlainOnly(t *testing.T) {
-	raw, _, err := Build(Draft{From: mail.Address{Address: "a@golub.test"}, To: []mail.Address{{Address: "b@golub.test"}}, Text: "hi"}, "Golub")
+	raw, _, err := Build(Draft{From: mail.Address{Address: "a@golub.test"}, To: []mail.Address{{Address: "b@golub.test"}}, Text: "hi"})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -85,11 +88,11 @@ func TestRecipients(t *testing.T) {
 }
 
 func TestBuildRejectsHeaderInjection(t *testing.T) {
-	_, _, err := Build(Draft{From: mail.Address{Address: "a@golub.test"}, To: []mail.Address{{Address: "b@golub.test"}}, Subject: "hi\r\nBcc: evil@x.y"}, "Golub")
+	_, _, err := Build(Draft{From: mail.Address{Address: "a@golub.test"}, To: []mail.Address{{Address: "b@golub.test"}}, Subject: "hi\r\nBcc: evil@x.y"})
 	if err == nil {
 		t.Fatal("expected error")
 	}
-	_, _, err = Build(Draft{From: mail.Address{Address: "a@golub.test"}, To: []mail.Address{{Address: "b@golub.test"}}, InReplyTo: "<x>\r\nBcc: e@x.y"}, "Golub")
+	_, _, err = Build(Draft{From: mail.Address{Address: "a@golub.test"}, To: []mail.Address{{Address: "b@golub.test"}}, InReplyTo: "<x>\r\nBcc: e@x.y"})
 	if err == nil {
 		t.Fatal("expected error for In-Reply-To")
 	}
@@ -111,7 +114,7 @@ func TestReplySubject(t *testing.T) {
 }
 
 func TestBuildWithoutRecipients(t *testing.T) {
-	raw, _, err := Build(Draft{From: mail.Address{Address: "a@golub.test"}, Subject: "draft", Text: "x"}, "Golub")
+	raw, _, err := Build(Draft{From: mail.Address{Address: "a@golub.test"}, Subject: "draft", Text: "x"})
 	if err != nil {
 		t.Fatal(err)
 	}

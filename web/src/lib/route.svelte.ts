@@ -10,7 +10,6 @@ addEventListener('popstate', () => {
 let guard: (() => Promise<boolean>) | null = null;
 
 export const route = {
-  // The composer registers a guard so leaving it can offer to save the draft first.
   setGuard(fn: (() => Promise<boolean>) | null) {
     guard = fn;
   },
@@ -37,7 +36,6 @@ export const route = {
     state.search = location.search;
     return true;
   },
-  // Called after code that edits history directly.
   sync() {
     state.path = location.pathname;
     state.search = location.search;

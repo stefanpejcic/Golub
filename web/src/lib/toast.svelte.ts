@@ -18,7 +18,6 @@ export const toast = {
   get action() {
     return state.action;
   },
-  // A toast with an action (such as Undo) stays a little longer so there is time to use it.
   show(text: string, error = false, action: ToastAction | null = null) {
     state.text = text;
     state.error = error;

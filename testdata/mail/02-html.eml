@@ -8,4 +8,5 @@ Content-Type: text/html; charset=utf-8
 
 <html><body><h1>Newsletter</h1><p style="color:#333">Hello <b>Alice</b>.</p>
 <p><a href="https://example.com/">Link</a></p>
+<img src="https://example.com/banner.png" width="600" height="200" alt="banner">
 <img src="https://example.com/track.png" width="1" height="1"></body></html>

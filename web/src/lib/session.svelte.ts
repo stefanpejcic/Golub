@@ -16,8 +16,7 @@ type Status = 'loading' | 'anonymous' | 'authenticated';
 
 const state = $state<{ status: Status; info: SessionInfo | null }>({ status: 'loading', info: null });
 
-// The preference cookies are written the moment the user changes something, so they win over a
-// session that may not have caught up yet (for example after an immediate reload).
+// Preference cookies change instantly, so they win over a session that may still lag behind.
 function adopt(info: SessionInfo) {
   state.info = info;
   state.status = 'authenticated';
@@ -50,7 +49,6 @@ export const session = {
     state.status = 'anonymous';
     history.replaceState(null, '', '/');
   },
-  // Called when the server reports the session is gone (expired or password changed).
   expire() {
     state.info = null;
     state.status = 'anonymous';

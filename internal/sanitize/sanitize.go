@@ -7,6 +7,7 @@ import (
 	"bytes"
 	"encoding/base64"
 	"regexp"
+	"strconv"
 	"strings"
 
 	"github.com/microcosm-cc/bluemonday"
@@ -24,10 +25,11 @@ type Options struct {
 	Proxy func(url string) string
 }
 
-// Result is sanitized HTML plus how many remote images were held back.
+// Result is sanitized HTML plus how many remote images were held back or dropped as trackers.
 type Result struct {
 	HTML          string
 	BlockedImages int
+	Trackers      int
 }
 
 var (
@@ -134,6 +136,11 @@ func keepImage(n *html.Node, o Options, res *Result) bool {
 			n.Attr[i].Val = uri
 			return true
 		case strings.HasPrefix(lower, "http://"), strings.HasPrefix(lower, "https://"):
+			// Tiny or hidden remote images only report that the mail was opened, so they never load.
+			if isTracker(n) {
+				res.Trackers++
+				return false
+			}
 			if !o.RemoteImages || o.Proxy == nil {
 				res.BlockedImages++
 				return false
@@ -144,6 +151,27 @@ func keepImage(n *html.Node, o Options, res *Result) bool {
 			return true
 		default:
 			return false
+		}
+	}
+	return false
+}
+
+var (
+	hiddenRe = regexp.MustCompile(`(?i)(display\s*:\s*none|visibility\s*:\s*hidden|opacity\s*:\s*0(\.0*)?\s*(;|$))`)
+	tinyRe   = regexp.MustCompile(`(?i)(^|;)\s*(width|height)\s*:\s*[01](\.\d+)?\s*(px)?\s*(;|$)`)
+)
+
+func isTracker(n *html.Node) bool {
+	for _, a := range n.Attr {
+		switch a.Key {
+		case "width", "height":
+			if v, err := strconv.Atoi(strings.TrimSpace(strings.TrimSuffix(a.Val, "px"))); err == nil && v <= 1 {
+				return true
+			}
+		case "style":
+			if hiddenRe.MatchString(a.Val) || tinyRe.MatchString(a.Val) {
+				return true
+			}
 		}
 	}
 	return false

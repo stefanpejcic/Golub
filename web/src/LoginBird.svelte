@@ -1,6 +1,5 @@
 <!-- SPDX-License-Identifier: GPL-3.0-or-later -->
 <script lang="ts">
-  // The login mascot peeks over its wing at an empty password field and covers its eye while you type.
   let { mode = 'open', size = 96 }: { mode?: 'open' | 'peek' | 'cover'; size?: number } = $props();
 </script>
 

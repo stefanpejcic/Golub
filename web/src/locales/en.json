@@ -281,5 +281,10 @@
   "shortcuts.archive": "Archive",
   "shortcuts.spam": "Move to Spam",
   "shortcuts.send": "Send",
-  "shortcuts.save": "Save draft"
+  "shortcuts.save": "Save draft",
+  "login.project": "Golub Webmail",
+  "message.trackers_blocked": {
+    "one": "{count} tracking pixel blocked",
+    "other": "{count} tracking pixels blocked"
+  }
 }

@@ -47,6 +47,7 @@ type messageView struct {
 	Text          string            `json:"text"`
 	HTML          bool              `json:"html"`
 	BlockedImages int               `json:"blockedImages"`
+	Trackers      int               `json:"trackers"`
 	Attachments   []mime.Attachment `json:"attachments"`
 }
 
@@ -120,7 +121,8 @@ func (a *authAPI) message(w http.ResponseWriter, r *http.Request, s auth.Session
 		v.Attachments = []mime.Attachment{}
 	}
 	if v.HTML {
-		v.BlockedImages = sanitize.HTML(m.HTML, sanitize.Options{}).BlockedImages
+		res := sanitize.HTML(m.HTML, sanitize.Options{})
+		v.BlockedImages, v.Trackers = res.BlockedImages, res.Trackers
 	}
 	writeJSON(w, http.StatusOK, v)
 }

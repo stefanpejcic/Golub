@@ -21,7 +21,6 @@
         commit();
       }
     } else if (e.key === ' ' && isBareAddress(draft)) {
-      // A finished address followed by a space becomes a chip; "Name <address>" still allows spaces.
       e.preventDefault();
       commit();
     } else if (e.key === 'Backspace' && !draft && value.length) {

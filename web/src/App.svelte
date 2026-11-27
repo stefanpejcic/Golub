@@ -2,8 +2,7 @@
 <script lang="ts">
   import { session } from './lib/session.svelte';
   import Login from './Login.svelte';
-  import Mailbox from './Mailbox.svelte';
-  import Standalone from './Standalone.svelte';
+  import { loadMailbox, loadStandalone } from './lib/inside';
 
   session.load();
 </script>
@@ -12,8 +11,12 @@
   <Login />
 {:else if session.status === 'authenticated'}
   {#if location.pathname === '/message'}
-    <Standalone />
+    {#await loadStandalone() then mod}
+      <mod.default />
+    {/await}
   {:else}
-    <Mailbox />
+    {#await loadMailbox() then mod}
+      <mod.default />
+    {/await}
   {/if}
 {/if}

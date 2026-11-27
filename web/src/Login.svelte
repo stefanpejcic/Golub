@@ -6,7 +6,8 @@
   import { errorMessage } from './lib/errors';
   import LoginBird from './LoginBird.svelte';
   import { isBareAddress } from './lib/compose';
-  import Prefs from './Prefs.svelte';
+  import { loadMailbox } from './lib/inside';
+  import ThemeSwitch from './ThemeSwitch.svelte';
 
   const t = $derived(i18n.t);
 
@@ -59,7 +60,15 @@
       {/if}
       <label>
         <span>{t('login.email')}</span>
-        <input class="input" type="email" name="email" autocomplete="username" required bind:value={email} />
+        <input
+          class="input"
+          type="email"
+          name="email"
+          autocomplete="username"
+          required
+          bind:value={email}
+          oninput={() => loadMailbox()}
+        />
       </label>
       <label>
         <span>{t('login.password')}</span>
@@ -91,12 +100,17 @@
     </select>
   </main>
   <footer>
-    <Prefs />
+    <ThemeSwitch />
+    <a class="project" href="https://github.com/stefanpejcic/Golub" target="_blank" rel="noopener noreferrer" data-testid="login-project">
+      {t('login.project')}
+    </a>
   </footer>
 </div>
 
 <style>
+  /* The login page stays on system fonts so it does not wait for, or swap to, the web font. */
   .screen {
+    font-family: var(--font-system);
     display: flex;
     flex-direction: column;
     min-block-size: 100vh;
@@ -159,9 +173,19 @@
     color: var(--color-danger);
   }
   footer {
-    align-self: flex-start;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-3);
+    padding: var(--space-3);
   }
-  footer :global(.prefs) {
-    border-block-start: none;
+  .project {
+    font-size: 0.85rem;
+    color: var(--color-text-muted);
+    text-decoration: none;
+  }
+  .project:hover {
+    color: var(--color-text);
+    text-decoration: underline;
   }
 </style>

@@ -82,7 +82,6 @@ export const settings = {
     }
     state.loaded = true;
   },
-  // Saves a full copy so the server validates the whole document; returns the error field on failure.
   async save(next: Settings) {
     state.value = await api<Settings>('PUT', '/api/settings', next);
   },

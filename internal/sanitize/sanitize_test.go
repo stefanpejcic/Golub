@@ -79,11 +79,11 @@ func TestLinks(t *testing.T) {
 func TestRemoteImagesBlockedByDefault(t *testing.T) {
 	m := fixture(t, "02-html.eml")
 	r := HTML(m.HTML, Options{})
-	if r.BlockedImages != 1 || strings.Contains(r.HTML, "example.com/track.png") {
+	if r.BlockedImages != 1 || r.Trackers != 1 || strings.Contains(r.HTML, "example.com/") && strings.Contains(r.HTML, "<img") {
 		t.Fatalf("%+v", r)
 	}
 	r = HTML(m.HTML, Options{RemoteImages: true, Proxy: func(u string) string { return "/proxy?u=" + u }})
-	if r.BlockedImages != 0 || !strings.Contains(r.HTML, `src="/proxy?u=https://example.com/track.png"`) {
+	if r.BlockedImages != 0 || !strings.Contains(r.HTML, `src="/proxy?u=https://example.com/banner.png"`) || strings.Contains(r.HTML, "track.png") {
 		t.Fatalf("%+v", r)
 	}
 }
@@ -115,5 +115,28 @@ func TestDocumentWrapper(t *testing.T) {
 	doc := Document("<p>x</p>")
 	if !strings.HasPrefix(doc, "<!doctype html>") || !strings.Contains(doc, `<meta charset="utf-8">`) || !strings.Contains(doc, "<p>x</p>") {
 		t.Fatal(doc)
+	}
+}
+
+func TestTrackingPixelsRemovedEvenWhenImagesAllowed(t *testing.T) {
+	in := `<p>hi</p>` +
+		`<img src="https://t.example/open.gif" width="1" height="1">` +
+		`<img src="https://t.example/o2.gif" width="0" height="0">` +
+		`<img src="https://t.example/o3.gif" style="display:none">` +
+		`<img src="https://t.example/o4.gif" style="width: 1px; height: 1px">` +
+		`<img src="https://cdn.example/logo.png" width="120" height="40">`
+	r := HTML(in, Options{RemoteImages: true, Proxy: func(u string) string { return "/proxy?u=" + u }})
+	if strings.Contains(r.HTML, "t.example") {
+		t.Fatalf("tracker kept: %s", r.HTML)
+	}
+	if !strings.Contains(r.HTML, "/proxy?u=https://cdn.example/logo.png") {
+		t.Fatalf("real image dropped: %s", r.HTML)
+	}
+	if r.Trackers != 4 {
+		t.Errorf("trackers = %d", r.Trackers)
+	}
+	blocked := HTML(in, Options{})
+	if blocked.BlockedImages != 1 || blocked.Trackers != 4 {
+		t.Errorf("without consent: blocked %d trackers %d", blocked.BlockedImages, blocked.Trackers)
 	}
 }

@@ -17,8 +17,7 @@ var ErrNoIdle = errors.New("imap: server does not support IDLE")
 // RFC 2177 asks clients to re-issue IDLE at least every 29 minutes.
 const idleRestart = 25 * time.Minute
 
-// Watch keeps a dedicated connection in IDLE on folder and calls notify on every change
-// until ctx is cancelled. ready fires once IDLE is running. Both callbacks must not block.
+// Watch idles on folder until ctx ends, calling notify on changes and ready once; neither may block.
 func (d *Dialer) Watch(ctx context.Context, user, pass, folder string, notify, ready func()) error {
 	handler := &imapclient.UnilateralDataHandler{
 		Expunge: func(uint32) { notify() },

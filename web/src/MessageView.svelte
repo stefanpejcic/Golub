@@ -275,6 +275,12 @@
         <dt>{t('message.date')}</dt>
         <dd><time datetime={m.date}>{formatFullDate(i18n.locale, m.date)}</time></dd>
       </dl>
+      {#if m.trackers > 0}
+        <p class="trackers" data-testid="trackers">
+          <svg class="icon" viewBox="0 0 16 16" aria-hidden="true"><path d="M8 1.5 2.5 3.5v4c0 3.3 2.3 5.9 5.5 7 3.2-1.1 5.5-3.7 5.5-7v-4Z" /><path d="m5.5 8 2 2 3-3.5" /></svg>
+          {t('message.trackers_blocked', { count: m.trackers })}
+        </p>
+      {/if}
       {#if showHeaders}
         <pre class="raw-headers" data-testid="raw-headers">{headers}</pre>
       {/if}
@@ -385,6 +391,14 @@
   }
   header h1 {
     padding-inline-end: 5rem;
+  }
+  .trackers {
+    display: flex;
+    align-items: center;
+    gap: var(--space-1);
+    margin: var(--space-2) 0 0;
+    font-size: 0.8rem;
+    color: var(--color-text-muted);
   }
   .raw-headers {
     max-block-size: 16rem;

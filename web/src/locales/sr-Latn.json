@@ -288,5 +288,11 @@
   "shortcuts.archive": "Arhiviraj",
   "shortcuts.spam": "Premesti u neželjeno",
   "shortcuts.send": "Pošalji",
-  "shortcuts.save": "Sačuvaj nacrt"
+  "shortcuts.save": "Sačuvaj nacrt",
+  "login.project": "Golub Webmail",
+  "message.trackers_blocked": {
+    "one": "Blokiran {count} piksel za praćenje",
+    "few": "Blokirana {count} piksela za praćenje",
+    "other": "Blokirano {count} piksela za praćenje"
+  }
 }

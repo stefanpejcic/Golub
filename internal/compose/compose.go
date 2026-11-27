@@ -54,8 +54,8 @@ func newMessageID(from string) string {
 	return "<" + hex.EncodeToString(b) + "@" + domain + ">"
 }
 
-// Build renders the draft as RFC 5322 bytes and returns its Message-ID. Bcc never appears in headers.
-func Build(d Draft, userAgent string) ([]byte, string, error) {
+// Build renders the draft and returns its Message-ID; Bcc and the client name never reach the headers.
+func Build(d Draft) ([]byte, string, error) {
 	for _, h := range append([]string{d.Subject, d.InReplyTo, d.Organization, d.From.Name}, d.References...) {
 		if !clean(h) {
 			return nil, "", errHeader
@@ -73,8 +73,7 @@ func Build(d Draft, userAgent string) ([]byte, string, error) {
 		ToAddrs(d.To).
 		CCAddrs(d.Cc).
 		BCCAddrs(bcc).
-		Header("Message-Id", id).
-		Header("User-Agent", userAgent)
+		Header("Message-Id", id)
 	if len(d.ReplyTo) > 0 {
 		b = b.ReplyToAddrs(d.ReplyTo)
 	}

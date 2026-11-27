@@ -6,7 +6,6 @@ import { i18n } from './locale.svelte';
 import { mail, type Moved } from './mail.svelte';
 import { toast } from './toast.svelte';
 
-// Shared by the toolbar, the bulk bar, row hover buttons and swipes so they all report the same way.
 
 export function folderLabel(name: string): string {
   const f = mail.folders.find((x) => x.name === name);
@@ -26,7 +25,6 @@ function fail(e: unknown) {
   toast.show(errorMessage(i18n.t, e instanceof ApiError ? e.code : 'unknown'), true);
 }
 
-// Shows what happened with an Undo button that moves the messages back.
 async function moveWithUndo(work: () => Promise<Moved>, message: (m: Moved) => string) {
   const from = mail.folder;
   try {
