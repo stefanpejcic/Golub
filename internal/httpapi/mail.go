@@ -88,16 +88,20 @@ func (a *authAPI) messages(w http.ResponseWriter, r *http.Request, s auth.Sessio
 	q := r.URL.Query()
 	folder := q.Get("folder")
 	query := strings.TrimSpace(q.Get("q"))
+	order := imapx.Sort{Key: q.Get("sort"), Desc: q.Get("order") != "asc"}
+	if order.Key == "" {
+		order.Key = "date"
+	}
 	page, okPage := intParam(q.Get("page"), 1)
 	size, okSize := intParam(q.Get("size"), defaultPageSize)
-	if !validFolder(folder) || !okPage || !okSize || page < 1 || size < 1 || size > maxPageSize || !validQuery(query) {
+	if !validFolder(folder) || !okPage || !okSize || page < 1 || size < 1 || size > maxPageSize || !validQuery(query) || !imapx.ValidSort(order.Key) {
 		writeError(w, http.StatusBadRequest, "request.invalid")
 		return
 	}
 	var p imapx.Page
 	err := a.do(r, s, func(c *imapclient.Client) error {
 		var err error
-		p, err = imapx.ListMessages(c, folder, (page-1)*size, size, query)
+		p, err = imapx.ListMessages(c, folder, (page-1)*size, size, query, order)
 		return err
 	})
 	if err != nil {

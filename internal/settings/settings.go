@@ -45,6 +45,8 @@ type Response struct {
 // Settings are the user's preferences.
 type Settings struct {
 	PageSize           int               `json:"pageSize"`
+	SortBy             string            `json:"sortBy"`
+	SortDesc           bool              `json:"sortDesc"`
 	PrettyDates        bool              `json:"prettyDates"`
 	RefreshInterval    int               `json:"refreshInterval"`
 	MarkRead           string            `json:"markRead"`
@@ -71,6 +73,8 @@ var Specials = []string{"drafts", "sent", "junk", "trash", "archive"}
 func Defaults(email string) Settings {
 	return Settings{
 		PageSize:         50,
+		SortBy:           "date",
+		SortDesc:         true,
 		PrettyDates:      true,
 		RefreshInterval:  60,
 		MarkRead:         "immediately",
@@ -137,6 +141,8 @@ func (s Settings) Validate() error {
 	switch {
 	case !oneOf(s.PageSize, 25, 50, 100, 200):
 		return errors.New("pageSize")
+	case !oneOf(s.SortBy, "date", "arrival", "subject", "from", "size"):
+		return errors.New("sortBy")
 	case !oneOf(s.RefreshInterval, 0, 30, 60, 300, 600):
 		return errors.New("refreshInterval")
 	case !oneOf(s.MarkRead, "immediately", "delay", "never"):

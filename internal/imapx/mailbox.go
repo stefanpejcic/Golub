@@ -167,8 +167,26 @@ func searchCriteria(query string) *imap.SearchCriteria {
 	}}}
 }
 
-// ListMessages returns messages newest first, using server-side SORT when available.
-func ListMessages(c *imapclient.Client, folder string, offset, limit int, query string) (Page, error) {
+// Sort orders the message list.
+type Sort struct {
+	Key  string
+	Desc bool
+}
+
+var sortKeys = map[string]imapclient.SortKey{
+	"date": imapclient.SortKeyDate, "arrival": imapclient.SortKeyArrival, "subject": imapclient.SortKeySubject,
+	"from": imapclient.SortKeyFrom, "size": imapclient.SortKeySize,
+}
+
+// ValidSort reports whether key can be passed to ListMessages.
+func ValidSort(key string) bool { _, ok := sortKeys[key]; return ok }
+
+// ListMessages returns one page of a folder in the requested order, newest first by default.
+func ListMessages(c *imapclient.Client, folder string, offset, limit int, query string, sorting ...Sort) (Page, error) {
+	sortBy := Sort{Key: "date", Desc: true}
+	if len(sorting) > 0 && ValidSort(sorting[0].Key) {
+		sortBy = sorting[0]
+	}
 	sel, err := c.Select(folder, &imap.SelectOptions{ReadOnly: true}).Wait()
 	if err != nil {
 		return Page{}, err
@@ -187,7 +205,7 @@ func ListMessages(c *imapclient.Client, folder string, offset, limit int, query 
 	if c.Caps().Has(imap.CapSort) {
 		uids, err := c.UIDSort(&imapclient.SortOptions{
 			SearchCriteria: searchCriteria(query),
-			SortCriteria:   []imapclient.SortCriterion{{Key: imapclient.SortKeyDate, Reverse: true}},
+			SortCriteria:   []imapclient.SortCriterion{{Key: sortKeys[sortBy.Key], Reverse: sortBy.Desc}},
 		}).Wait()
 		if err != nil {
 			return Page{}, err
@@ -210,7 +228,9 @@ func ListMessages(c *imapclient.Client, folder string, offset, limit int, query 
 			return Page{}, err
 		}
 		all := res.AllUIDs()
-		slices.Reverse(all)
+		if sortBy.Desc {
+			slices.Reverse(all)
+		}
 		page.Total = len(all)
 		if offset >= len(all) {
 			return page, nil
@@ -226,13 +246,17 @@ func ListMessages(c *imapclient.Client, folder string, offset, limit int, query 
 			return Page{}, err
 		}
 	} else {
-		// Without SORT, arrival order is the best cheap approximation of date order.
+		// Without SORT, arrival order is the best cheap approximation of any other order.
+		lo, hi := total-end+1, total-offset
+		if !sortBy.Desc {
+			lo, hi = offset+1, end
+		}
 		var set imap.SeqSet
-		set.AddRange(uint32(total-end+1), uint32(total-offset)) //nolint:gosec // 0 <= offset < end <= total, which came from a uint32
+		set.AddRange(uint32(lo), uint32(hi)) //nolint:gosec // 1 <= lo <= hi <= total, which came from a uint32
 		if msgs, err = c.Fetch(set, fetch).Collect(); err != nil {
 			return Page{}, err
 		}
-		sort.Slice(msgs, func(i, j int) bool { return msgs[i].SeqNum > msgs[j].SeqNum })
+		sort.Slice(msgs, func(i, j int) bool { return (msgs[i].SeqNum > msgs[j].SeqNum) == sortBy.Desc })
 	}
 
 	byUID := make(map[uint32]Summary, len(msgs))

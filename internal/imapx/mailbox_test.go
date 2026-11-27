@@ -179,3 +179,18 @@ func TestListMessagesSearch(t *testing.T) {
 		t.Fatalf("no match: %+v", p)
 	}
 }
+
+func TestListMessagesAscending(t *testing.T) {
+	c := seededClient(t, 5)
+	p, err := ListMessages(c, "INBOX", 0, 2, "", Sort{Key: "arrival", Desc: false})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if p.Messages[0].Subject != "Message 001" || p.Messages[1].Subject != "Message 002" {
+		t.Fatalf("%+v", p.Messages)
+	}
+	p, _ = ListMessages(c, "INBOX", 4, 2, "", Sort{Key: "arrival", Desc: false})
+	if len(p.Messages) != 1 || p.Messages[0].Subject != "Message 005" {
+		t.Fatalf("last page %+v", p.Messages)
+	}
+}
