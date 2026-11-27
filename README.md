@@ -52,7 +52,7 @@ It runs as one small container: no PHP, no database, no cron jobs, no plugins to
 
 Webmail sees everything a person writes and reads, so Golub is built to keep as little as possible and to leak nothing.
 
-- **Nothing stored on the server.** No database and no files written at runtime. The session lives in an encrypted cookie; settings, contacts and signatures are kept in the user's own mailbox, in hidden IMAP folders that travel with the account.
+- **Nothing stored on the server.** No database and no files written at runtime. The session lives in an encrypted cookie; **settings, contacts and signatures are kept in the user's own mailbox**, in hidden IMAP folders that travel with the account.
 - **No tracking, no analytics, no third-party requests.** Fonts, icons and scripts are all served by Golub itself. There is no telemetry.
 - **Remote images are blocked by default.** When the user allows them, they load through Golub's image proxy, so senders never see the reader's IP address or browser. The proxy refuses private and internal addresses.
 - **Tracking pixels are removed**, even when remote images are allowed, and the message view says how many were blocked.
