@@ -24,8 +24,8 @@
 </script>
 
 <section class="list" aria-busy={mail.loading}>
-  <header>
-    <h1 data-testid="folder-title">{title}</h1>
+  <header class="page-header">
+    <h1 class="page-title" data-testid="folder-title">{title}</h1>
     <div class="pager">
       {#if mail.total > 0}
         <span data-testid="range">
@@ -34,21 +34,23 @@
       {/if}
       <button
         type="button"
+        class="btn btn-icon"
         disabled={!hasPrev || mail.loading}
         onclick={() => mail.open(mail.folder, mail.page - 1)}
         aria-label={t('list.prev')}
         data-testid="prev"
       >
-        <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M10 3 5 8l5 5" /></svg>
+        <svg class="icon" viewBox="0 0 16 16" aria-hidden="true"><path d="M10 3 5 8l5 5" /></svg>
       </button>
       <button
         type="button"
+        class="btn btn-icon"
         disabled={!hasNext || mail.loading}
         onclick={() => mail.open(mail.folder, mail.page + 1)}
         aria-label={t('list.next')}
         data-testid="next"
       >
-        <svg viewBox="0 0 16 16" aria-hidden="true"><path d="m6 3 5 5-5 5" /></svg>
+        <svg class="icon" viewBox="0 0 16 16" aria-hidden="true"><path d="m6 3 5 5-5 5" /></svg>
       </button>
     </div>
   </header>
@@ -66,7 +68,7 @@
           <span class="who">{who}</span>
           <span class="subject">
             {#if m.flagged}
-              <svg class="flag" viewBox="0 0 16 16" role="img" aria-label={t('list.flagged')}>
+              <svg class="icon flag" viewBox="0 0 16 16" role="img" aria-label={t('list.flagged')}>
                 <path d="M4 14V2h8l-2 3 2 3H4" />
               </svg>
             {/if}
@@ -74,7 +76,7 @@
           </span>
           <span class="meta">
             {#if m.attachments}
-              <svg class="clip" viewBox="0 0 16 16" role="img" aria-label={t('list.attachment')}>
+              <svg class="icon clip" viewBox="0 0 16 16" role="img" aria-label={t('list.attachment')}>
                 <path d="M11 5 6 10a1.5 1.5 0 0 0 2 2l5-5a3 3 0 0 0-4-4L4 8a4.5 4.5 0 0 0 6 6l4-4" />
               </svg>
             {/if}
@@ -95,49 +97,12 @@
     flex-direction: column;
     min-inline-size: 0;
   }
-  header {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: var(--space-3);
-    padding-block: var(--space-2);
-    padding-inline: var(--space-3);
-    border-block-end: 1px solid var(--color-border);
-  }
-  h1 {
-    margin: 0;
-    font-size: 1.1rem;
-  }
   .pager {
     display: flex;
     align-items: center;
     gap: var(--space-2);
     color: var(--color-text-muted);
     font-size: 0.9rem;
-  }
-  button {
-    display: inline-grid;
-    place-items: center;
-    inline-size: 2rem;
-    block-size: 2rem;
-    background: none;
-    color: var(--color-text);
-    border: 1px solid var(--color-border);
-    border-radius: var(--radius);
-    cursor: pointer;
-  }
-  button:disabled {
-    opacity: 0.4;
-    cursor: default;
-  }
-  svg {
-    inline-size: 1rem;
-    block-size: 1rem;
-    fill: none;
-    stroke: currentColor;
-    stroke-width: 1.5;
-    stroke-linecap: round;
-    stroke-linejoin: round;
   }
   ul {
     list-style: none;
@@ -153,13 +118,13 @@
     grid-template-columns: minmax(8rem, 14rem) 1fr auto;
     gap: var(--space-3);
     align-items: center;
-    padding-block: var(--space-2);
-    padding-inline: var(--space-3);
+    padding-block: 0.625rem;
+    padding-inline: var(--space-4);
     color: inherit;
     text-decoration: none;
   }
   .row:hover {
-    background: var(--color-surface);
+    background: var(--color-hover);
   }
   li.unread {
     color: var(--color-unread);
@@ -185,6 +150,11 @@
     color: var(--color-danger);
     fill: currentColor;
     vertical-align: -2px;
+  }
+  .subject {
+    display: flex;
+    align-items: center;
+    gap: var(--space-1);
   }
   .state {
     padding: var(--space-4);

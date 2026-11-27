@@ -24,8 +24,19 @@ for (const theme of ['light', 'dark'] as const) {
       await expect(page.getByRole('heading')).toHaveText(titles[lang]);
 
       const bg = await page.evaluate(() => getComputedStyle(document.body).backgroundColor);
-      expect(bg).toBe(theme === 'dark' ? 'rgb(21, 24, 28)' : 'rgb(255, 255, 255)');
+      expect(bg).toBe(theme === 'dark' ? 'rgb(3, 7, 18)' : 'rgb(255, 255, 255)');
       expect(errors).toEqual([]);
     });
   }
 }
+
+test('about dialog shows version, license and source link', async ({ page }) => {
+  await page.goto('/');
+  await page.getByTestId('about-open').click();
+  const about = page.getByTestId('about');
+  await expect(about).toBeVisible();
+  await expect(page.getByTestId('about-version')).toHaveText(/^(Version|Verzija) \S+/);
+  await expect(about.getByRole('link', { name: /Source code|Izvorni kod/ })).toHaveAttribute('href', 'https://github.com/stefanpejcic/Golub');
+  await page.getByTestId('about-close').click();
+  await expect(about).toBeHidden();
+});

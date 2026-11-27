@@ -6,7 +6,7 @@
   "settings.theme.dark": "Tamna",
   "settings.language": "Jezik",
   "language.en": "English",
-  "language.sr-Latn": "Srpski (latinica)",
+  "language.sr-Latn": "Srpski",
   "login.title": "Prijavite se na poštansko sanduče",
   "login.email": "Adresa e-pošte",
   "login.password": "Lozinka",
@@ -62,5 +62,13 @@
   "errors.message.not_found": "Ova poruka više ne postoji.",
   "errors.message.too_large": "Ova poruka je prevelika za prikaz.",
   "errors.message.unreadable": "Ova poruka ne može da se pročita.",
-  "errors.message.part_not_found": "Ovaj prilog više ne postoji."
+  "errors.message.part_not_found": "Ovaj prilog više ne postoji.",
+  "about.open": "O programu",
+  "about.version": "Verzija {version}",
+  "about.description": "Brz i lagan klijent za veb poštu. Jedna izvršna datoteka, bez baze podataka, radi sa svakim IMAP i SMTP serverom.",
+  "about.copyright": "© {year} Stefan Pejčić i saradnici.",
+  "about.license": "Slobodan softver pod licencom GNU GPL v3 ili novijom.",
+  "about.source": "Izvorni kod",
+  "about.credits": "Napravljeno pomoću",
+  "about.close": "Zatvori"
 }

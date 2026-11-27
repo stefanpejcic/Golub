@@ -23,9 +23,9 @@
 </script>
 
 <article class="message" aria-busy={mail.messageLoading} data-testid="message-view">
-  <div class="toolbar">
-    <button type="button" onclick={() => mail.closeMessage()} data-testid="back">
-      <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M10 3 5 8l5 5" /></svg>
+  <div class="page-header">
+    <button type="button" class="btn" onclick={() => mail.closeMessage()} data-testid="back">
+      <svg class="icon" viewBox="0 0 16 16" aria-hidden="true"><path d="M10 3 5 8l5 5" /></svg>
       {t('message.back')}
     </button>
   </div>
@@ -54,7 +54,7 @@
     {#if m.html && m.blockedImages > 0 && !showImages}
       <div class="notice" data-testid="images-blocked">
         <span>{t('message.images_blocked', { count: m.blockedImages })}</span>
-        <button type="button" onclick={() => (showImages = true)} data-testid="show-images">
+        <button type="button" class="btn" onclick={() => (showImages = true)} data-testid="show-images">
           {t('message.show_images')}
         </button>
       </div>
@@ -70,7 +70,7 @@
                 download={a.filename}
                 data-testid="attachment"
               >
-                <svg viewBox="0 0 16 16" aria-hidden="true">
+                <svg class="icon" viewBox="0 0 16 16" aria-hidden="true">
                   <path d="M11 5 6 10a1.5 1.5 0 0 0 2 2l5-5a3 3 0 0 0-4-4L4 8a4.5 4.5 0 0 0 6 6l4-4" />
                 </svg>
                 <span class="name">{a.filename}</span>
@@ -98,43 +98,15 @@
 
 <style>
   .message {
+    flex: 1;
     display: flex;
     flex-direction: column;
     min-inline-size: 0;
     min-block-size: 0;
   }
-  .toolbar {
-    display: flex;
-    gap: var(--space-2);
-    padding-block: var(--space-2);
-    padding-inline: var(--space-3);
-    border-block-end: 1px solid var(--color-border);
-  }
-  button {
-    display: inline-flex;
-    align-items: center;
-    gap: var(--space-1);
-    padding-block: var(--space-1);
-    padding-inline: var(--space-2);
-    background: none;
-    color: var(--color-text);
-    border: 1px solid var(--color-border);
-    border-radius: var(--radius);
-    font: inherit;
-    cursor: pointer;
-  }
-  svg {
-    inline-size: 1rem;
-    block-size: 1rem;
-    fill: none;
-    stroke: currentColor;
-    stroke-width: 1.5;
-    stroke-linecap: round;
-    stroke-linejoin: round;
-  }
   header {
-    padding-block: var(--space-3) var(--space-2);
-    padding-inline: var(--space-3);
+    padding-block: var(--space-4) var(--space-3);
+    padding-inline: var(--space-4);
   }
   h1 {
     margin-block: 0 var(--space-2);
@@ -160,11 +132,11 @@
     align-items: center;
     justify-content: space-between;
     gap: var(--space-3);
-    margin-inline: var(--space-3);
-    margin-block-end: var(--space-2);
+    margin-inline: var(--space-4);
+    margin-block-end: var(--space-3);
     padding: var(--space-2) var(--space-3);
-    background: var(--color-surface);
-    border: 1px solid var(--color-border);
+    background: var(--color-notice);
+    border: 1px solid var(--color-notice-border);
     border-radius: var(--radius);
     font-size: 0.9rem;
   }
@@ -174,8 +146,8 @@
     gap: var(--space-2);
     list-style: none;
     margin: 0;
-    padding-block: 0 var(--space-2);
-    padding-inline: var(--space-3);
+    padding-block: 0 var(--space-3);
+    padding-inline: var(--space-4);
   }
   .attachments a {
     display: inline-flex;
@@ -185,11 +157,12 @@
     padding-inline: var(--space-2);
     color: var(--color-text);
     text-decoration: none;
-    border: 1px solid var(--color-border);
+    border: 1px solid var(--color-input-border);
     border-radius: var(--radius);
+    box-shadow: var(--shadow-xs);
   }
   .attachments a:hover {
-    background: var(--color-surface);
+    background: var(--color-hover);
   }
   .size {
     color: var(--color-text-muted);
@@ -203,7 +176,7 @@
     background: var(--color-message-bg);
   }
   .text {
-    padding: var(--space-3);
+    padding: var(--space-4);
     border-block-start: 1px solid var(--color-border);
     white-space: pre-wrap;
     overflow-wrap: anywhere;

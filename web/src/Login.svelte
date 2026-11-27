@@ -4,6 +4,8 @@
   import { session } from './lib/session.svelte';
   import { ApiError } from './lib/api';
   import { errorMessage } from './lib/errors';
+  import Logo from './Logo.svelte';
+  import Prefs from './Prefs.svelte';
 
   const t = $derived(i18n.t);
 
@@ -38,68 +40,98 @@
   }
 </script>
 
-<form class="card" onsubmit={submit} data-testid="login-form">
-  <h1>{t('login.title')}</h1>
-  {#if error}
-    <p class="error" role="alert" data-testid="login-error">{errorMessage(t, error)}</p>
-  {/if}
-  <label>
-    <span>{t('login.email')}</span>
-    <input type="email" name="email" autocomplete="username" required bind:value={email} />
-  </label>
-  <label>
-    <span>{t('login.password')}</span>
-    <input type="password" name="password" autocomplete="current-password" required bind:value={password} />
-  </label>
-  <button type="submit" disabled={busy}>{busy ? t('login.submitting') : t('login.submit')}</button>
-</form>
+<div class="screen">
+  <main>
+    <div class="brand">
+      <Logo size={44} />
+      <span>{t('app.name')}</span>
+    </div>
+    <form class="card" onsubmit={submit} data-testid="login-form">
+      <h1>{t('login.title')}</h1>
+      {#if error}
+        <p class="error" role="alert" data-testid="login-error">{errorMessage(t, error)}</p>
+      {/if}
+      <label>
+        <span>{t('login.email')}</span>
+        <input class="input" type="email" name="email" autocomplete="username" required bind:value={email} />
+      </label>
+      <label>
+        <span>{t('login.password')}</span>
+        <input
+          class="input"
+          type="password"
+          name="password"
+          autocomplete="current-password"
+          required
+          bind:value={password}
+        />
+      </label>
+      <button class="btn btn-primary" type="submit" disabled={busy}>
+        {busy ? t('login.submitting') : t('login.submit')}
+      </button>
+    </form>
+  </main>
+  <footer>
+    <Prefs />
+  </footer>
+</div>
 
 <style>
+  .screen {
+    display: flex;
+    flex-direction: column;
+    min-block-size: 100vh;
+    background: var(--color-surface);
+  }
+  main {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: var(--space-4);
+    padding: var(--space-4);
+  }
+  .brand {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    font-size: 1.5rem;
+    font-weight: 600;
+  }
   .card {
-    inline-size: min(100%, 22rem);
-    margin-block: 10vh 0;
-    margin-inline: auto;
+    inline-size: min(100%, 24rem);
     padding: var(--space-4);
     display: flex;
     flex-direction: column;
     gap: var(--space-3);
     background: var(--color-surface-raised);
     border: 1px solid var(--color-border);
-    border-radius: var(--radius);
+    border-radius: 8px;
+    box-shadow: var(--shadow);
   }
   h1 {
     margin: 0;
-    font-size: 1.25rem;
+    font-size: 1.125rem;
+    font-weight: 600;
   }
   label {
     display: flex;
     flex-direction: column;
     gap: var(--space-1);
-    color: var(--color-text-muted);
+    font-weight: 500;
   }
-  input {
-    padding: var(--space-2);
-    background: var(--color-bg);
-    color: var(--color-text);
-    border: 1px solid var(--color-border);
-    border-radius: var(--radius);
-    font: inherit;
-  }
-  button {
-    padding: var(--space-2);
-    background: var(--color-accent);
-    color: var(--color-accent-text);
-    border: none;
-    border-radius: var(--radius);
-    font: inherit;
-    cursor: pointer;
-  }
-  button:disabled {
-    opacity: 0.7;
-    cursor: progress;
+  .btn-primary {
+    padding-block: 0.5rem;
   }
   .error {
     margin: 0;
     color: var(--color-danger);
+  }
+  footer {
+    inline-size: var(--sidebar-width);
+  }
+  footer :global(.prefs) {
+    border-block-start: none;
   }
 </style>

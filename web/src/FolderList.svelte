@@ -48,9 +48,6 @@
 </nav>
 
 <style>
-  nav {
-    padding-block: var(--space-2);
-  }
   ul {
     list-style: none;
     margin: 0;
@@ -68,27 +65,34 @@
   li[data-depth='4'] {
     padding-inline-start: calc(4 * var(--space-3));
   }
+  ul {
+    display: flex;
+    flex-direction: column;
+    gap: 1px;
+  }
   a,
   .group {
     display: flex;
     align-items: center;
     justify-content: space-between;
     gap: var(--space-2);
-    padding-block: var(--space-2);
-    padding-inline: var(--space-3);
+    padding: var(--space-2);
     color: var(--color-text);
     text-decoration: none;
-    border-radius: var(--radius);
+    border-radius: 4px;
+    transition: background-color 0.1s ease-in-out;
   }
   .group {
     color: var(--color-text-muted);
   }
   a:hover {
-    background: var(--color-surface-raised);
+    background: var(--color-hover);
   }
   a[aria-current='page'] {
+    color: var(--color-accent);
+    font-weight: 500;
     background: var(--color-selected);
-    font-weight: 600;
+    box-shadow: var(--shadow), 0 0 0 1px var(--color-selected-ring);
   }
   .name {
     overflow: hidden;
@@ -97,10 +101,11 @@
   }
   .badge {
     min-inline-size: 1.5rem;
-    padding-inline: var(--space-1);
+    padding-inline: 0.4rem;
     text-align: center;
-    font-size: 0.8rem;
+    font-size: 0.75rem;
     font-weight: 600;
+    line-height: 1.25rem;
     color: var(--color-accent-text);
     background: var(--color-accent);
     border-radius: 999px;
