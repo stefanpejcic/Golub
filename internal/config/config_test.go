@@ -6,6 +6,8 @@ import (
 	"encoding/base64"
 	"errors"
 	"net/netip"
+	"os"
+	"path/filepath"
 	"strings"
 	"testing"
 	"time"
@@ -175,5 +177,43 @@ func TestErrorsAreJoined(t *testing.T) {
 		if !strings.Contains(err.Error(), v) {
 			t.Errorf("missing %s in %q", v, err)
 		}
+	}
+}
+
+func TestBranding(t *testing.T) {
+	dir := t.TempDir()
+	logo := filepath.Join(dir, "logo.svg")
+	if err := os.WriteFile(logo, []byte(`<svg xmlns="http://www.w3.org/2000/svg"/>`), 0o600); err != nil {
+		t.Fatal(err)
+	}
+	c, err := Load(env(with("GOLUB_BRAND_NAME", "Host Mail", "GOLUB_BRAND_ACCENT", "#FF6600", "GOLUB_BRAND_LOGO", logo)), publicLookup)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if c.BrandName != "Host Mail" || c.BrandAccent != "#ff6600" || c.BrandLogoType != "image/svg+xml" || len(c.BrandLogo) == 0 {
+		t.Fatalf("%+v", c)
+	}
+	d, _ := Load(env(base()), publicLookup)
+	if d.BrandName != "Golub" || d.BrandLogo != nil || d.BrandAccent != "" {
+		t.Fatalf("defaults %+v", d)
+	}
+
+	big := filepath.Join(dir, "big.png")
+	_ = os.WriteFile(big, make([]byte, 600<<10), 0o600)
+	txt := filepath.Join(dir, "logo.txt")
+	_ = os.WriteFile(txt, []byte("x"), 0o600)
+	for name, kv := range map[string][]string{
+		"accent":       {"GOLUB_BRAND_ACCENT", "orange"},
+		"name control": {"GOLUB_BRAND_NAME", "a\nb"},
+		"name long":    {"GOLUB_BRAND_NAME", strings.Repeat("x", 65)},
+		"logo missing": {"GOLUB_BRAND_LOGO", filepath.Join(dir, "nope.png")},
+		"logo big":     {"GOLUB_BRAND_LOGO", big},
+		"logo type":    {"GOLUB_BRAND_LOGO", txt},
+	} {
+		t.Run(name, func(t *testing.T) {
+			if _, err := Load(env(with(kv...)), publicLookup); err == nil || !strings.Contains(err.Error(), kv[0]) {
+				t.Fatalf("err = %v", err)
+			}
+		})
 	}
 }

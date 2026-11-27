@@ -10,9 +10,13 @@ import (
 	"fmt"
 	"net"
 	"net/netip"
+	"os"
+	"path/filepath"
+	"regexp"
 	"strconv"
 	"strings"
 	"time"
+	"unicode"
 )
 
 // TLSMode is the transport security used towards a mail server.
@@ -54,6 +58,10 @@ type Config struct {
 	DefaultLocale  string
 	DefaultTheme   string
 	LogLevel       string
+	BrandName      string
+	BrandAccent    string
+	BrandLogo      []byte
+	BrandLogoType  string
 }
 
 // HTTPS reports whether Golub terminates TLS itself.
@@ -189,11 +197,44 @@ func Load(getenv func(string) string, lookup LookupFunc) (*Config, error) {
 		bad("GOLUB_LOG_LEVEL", "must be one of debug, info, warn, error")
 	}
 
+	c.BrandName = get("GOLUB_BRAND_NAME", "Golub")
+	if len(c.BrandName) > 64 || strings.ContainsFunc(c.BrandName, unicode.IsControl) {
+		bad("GOLUB_BRAND_NAME", "must be at most 64 printable characters")
+	}
+	if v := get("GOLUB_BRAND_ACCENT", ""); v != "" {
+		if !accentRe.MatchString(v) {
+			bad("GOLUB_BRAND_ACCENT", "must be a colour like #2563eb")
+		} else {
+			c.BrandAccent = strings.ToLower(v)
+		}
+	}
+	if path := get("GOLUB_BRAND_LOGO", ""); path != "" {
+		ct, ok := logoTypes[strings.ToLower(filepath.Ext(path))]
+		data, err := os.ReadFile(path)
+		switch {
+		case !ok:
+			bad("GOLUB_BRAND_LOGO", "must be a .png, .jpg, .svg or .webp file")
+		case err != nil:
+			bad("GOLUB_BRAND_LOGO", "%v", err)
+		case len(data) > maxLogo:
+			bad("GOLUB_BRAND_LOGO", "must be at most %d KB", maxLogo>>10)
+		default:
+			c.BrandLogo, c.BrandLogoType = data, ct
+		}
+	}
+
 	if len(errs) > 0 {
 		return nil, errors.Join(errs...)
 	}
 	return c, nil
 }
+
+const maxLogo = 512 << 10
+
+var (
+	accentRe  = regexp.MustCompile(`^#[0-9a-fA-F]{6}$`)
+	logoTypes = map[string]string{".png": "image/png", ".jpg": "image/jpeg", ".jpeg": "image/jpeg", ".svg": "image/svg+xml", ".webp": "image/webp"}
+)
 
 func endpoint(get func(string, string) string, bad func(string, string, ...any), proto, host string, implicitPort, plainPort int) Endpoint {
 	e := Endpoint{Host: host, TLS: TLSMode(get("GOLUB_"+proto+"_TLS", string(TLSStartTLS)))}

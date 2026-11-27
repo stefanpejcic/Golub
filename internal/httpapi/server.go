@@ -34,6 +34,10 @@ type Options struct {
 	Proxy          ImageProxy
 	SMTP           MailSender
 	Watcher        Watcher
+	BrandName      string
+	BrandAccent    string
+	BrandLogo      []byte
+	BrandLogoType  string
 	SSO            *auth.SSOVerifier
 	MasterUser     string
 	MasterPassword string
@@ -49,6 +53,25 @@ const appCSP = "default-src 'self'; script-src 'self'; style-src 'self'; img-src
 // New returns the root handler.
 func New(o Options) http.Handler {
 	mux := http.NewServeMux()
+	brandName := o.BrandName
+	if brandName == "" {
+		brandName = "Golub"
+	}
+	mux.HandleFunc("GET /api/brand", func(w http.ResponseWriter, _ *http.Request) {
+		w.Header().Set("Cache-Control", "public, max-age=300")
+		writeJSON(w, http.StatusOK, map[string]any{"name": brandName, "accent": o.BrandAccent, "logo": len(o.BrandLogo) > 0})
+	})
+	mux.HandleFunc("GET /brand/logo", func(w http.ResponseWriter, r *http.Request) {
+		if len(o.BrandLogo) == 0 {
+			http.NotFound(w, r)
+			return
+		}
+		h := w.Header()
+		h.Set("Content-Type", o.BrandLogoType)
+		h.Set("Content-Security-Policy", "default-src 'none'; style-src 'unsafe-inline'; sandbox")
+		h.Set("Cache-Control", "public, max-age=3600")
+		_, _ = w.Write(o.BrandLogo) //nolint:gosec // admin-supplied file, served with a sandbox CSP and shown only through <img>
+	})
 	mux.HandleFunc("GET /healthz", func(w http.ResponseWriter, _ *http.Request) {
 		w.Header().Set("Cache-Control", "no-store")
 		writeJSON(w, http.StatusOK, map[string]string{"status": "ok", "version": o.Version})

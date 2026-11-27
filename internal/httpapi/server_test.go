@@ -127,3 +127,28 @@ func TestServerTiming(t *testing.T) {
 		t.Error("static files should not carry Server-Timing")
 	}
 }
+
+func TestBrand(t *testing.T) {
+	h := New(Options{Static: testFS, BrandName: "Host Mail", BrandAccent: "#ff6600", BrandLogo: []byte("<svg/>"), BrandLogoType: "image/svg+xml"})
+	rec := do(h, http.MethodGet, "/api/brand")
+	var b struct {
+		Name, Accent string
+		Logo         bool
+	}
+	_ = json.Unmarshal(rec.Body.Bytes(), &b)
+	if rec.Code != 200 || b.Name != "Host Mail" || b.Accent != "#ff6600" || !b.Logo {
+		t.Fatalf("%d %s", rec.Code, rec.Body)
+	}
+	rec = do(h, http.MethodGet, "/brand/logo")
+	if rec.Code != 200 || rec.Header().Get("Content-Type") != "image/svg+xml" || !strings.Contains(rec.Header().Get("Content-Security-Policy"), "sandbox") {
+		t.Fatalf("%d %v", rec.Code, rec.Header())
+	}
+	plain := New(Options{Static: testFS})
+	_ = json.Unmarshal(do(plain, http.MethodGet, "/api/brand").Body.Bytes(), &b)
+	if b.Name != "Golub" || b.Logo {
+		t.Fatalf("default brand %+v", b)
+	}
+	if rec := do(plain, http.MethodGet, "/brand/logo"); rec.Code != 404 {
+		t.Fatalf("no logo: %d", rec.Code)
+	}
+}
