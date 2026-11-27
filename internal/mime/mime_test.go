@@ -55,9 +55,9 @@ func TestHeaders(t *testing.T) {
 
 func TestLegacyCharsets(t *testing.T) {
 	cases := map[string][2]string{
-		"06-windows-1250.eml":   {"Pozdrav šefče", "Šta ima, čika Đorđe? Žuta ćurka."},
-		"07-iso-8859-2.eml":     {"Čestitka", "Srećan rođendan, Željko!"},
-		"08-koi8-r.eml":         {"Привет", "Привет, как дела?"},
+		"06-windows-1250.eml":    {"Pozdrav šefče", "Šta ima, čika Đorđe? Žuta ćurka."},
+		"07-iso-8859-2.eml":      {"Čestitka", "Srećan rođendan, Željko!"},
+		"08-koi8-r.eml":          {"Привет", "Привет, как дела?"},
 		"09-missing-charset.eml": {"Missing charset", "Body without charset"},
 	}
 	for f, want := range cases {

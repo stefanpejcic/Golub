@@ -19,6 +19,7 @@ import (
 	"github.com/stefanpejcic/golub/internal/config"
 	"github.com/stefanpejcic/golub/internal/httpapi"
 	"github.com/stefanpejcic/golub/internal/imapx"
+	"github.com/stefanpejcic/golub/internal/proxy"
 	"github.com/stefanpejcic/golub/internal/tlsx"
 	"github.com/stefanpejcic/golub/internal/ui"
 )
@@ -69,6 +70,7 @@ func run(ctx context.Context, getenv func(string) string, logOut io.Writer) erro
 		Codec:          codec,
 		Mail:           pool,
 		Pool:           pool,
+		Proxy:          proxy.New(cfg.SecretKey),
 		MasterUser:     cfg.MasterUser,
 		MasterPassword: cfg.MasterPassword,
 		SessionTTL:     cfg.SessionTTL,

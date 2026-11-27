@@ -31,6 +31,7 @@ type Options struct {
 	Codec          *auth.Codec
 	Mail           MailAuth
 	Pool           MailPool
+	Proxy          ImageProxy
 	SSO            *auth.SSOVerifier
 	MasterUser     string
 	MasterPassword string
@@ -59,12 +60,18 @@ func New(o Options) http.Handler {
 		if o.Pool != nil {
 			mux.HandleFunc("GET /api/folders", a.withSession(a.folders))
 			mux.HandleFunc("GET /api/messages", a.withSession(a.messages))
+			mux.HandleFunc("GET /api/message", a.withSession(a.message))
+			mux.HandleFunc("GET /api/message/body", a.withSession(a.messageBody))
+			mux.HandleFunc("GET /api/message/part", a.withSession(a.messagePart))
 		}
 		if o.SSO != nil {
 			mux.HandleFunc("GET /sso", a.sso)
 		} else {
 			mux.HandleFunc("GET /sso", http.NotFound)
 		}
+	}
+	if o.Proxy != nil {
+		mux.Handle("GET /proxy", o.Proxy)
 	}
 	mux.Handle("/", fallback(spa(o.Static)))
 	return securityHeaders(o.HTTPS, http.NewCrossOriginProtection().Handler(mux))
