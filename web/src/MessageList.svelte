@@ -360,6 +360,11 @@
   {#if mail.quota}
     {@const pct = Math.min(100, Math.round((mail.quota.used / mail.quota.limit) * 100))}
     <footer class="quota" data-testid="quota" title={t('quota.title', { percent: pct })}>
+      <svg class="icon disk" viewBox="0 0 16 16" aria-hidden="true">
+        <ellipse cx="8" cy="4" rx="5.5" ry="2" /><path d="M2.5 4v8c0 1.1 2.5 2 5.5 2s5.5-.9 5.5-2V4" /><path
+          d="M2.5 8c0 1.1 2.5 2 5.5 2s5.5-.9 5.5-2"
+        />
+      </svg>
       <div
         class="bar"
         role="meter"
@@ -501,6 +506,11 @@
     font-size: 0.8rem;
     color: var(--color-text-muted);
     border-block-start: 1px solid var(--color-border);
+  }
+  .disk {
+    inline-size: 1.1rem;
+    block-size: 1.1rem;
+    color: var(--color-text);
   }
   .bar {
     flex: 1;
