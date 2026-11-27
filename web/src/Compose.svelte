@@ -727,8 +727,8 @@
     resize: none;
   }
   .leave {
-    inline-size: min(100% - 2rem, 26rem);
-    padding: var(--space-4);
+    inline-size: min(100% - 2rem, 34rem);
+    padding: var(--space-5, 1.5rem);
     color: var(--color-text);
     background: var(--color-surface-raised);
     border: 1px solid var(--color-border);
@@ -748,8 +748,15 @@
   }
   .leave-buttons {
     display: flex;
+    flex-wrap: wrap;
     justify-content: flex-end;
     gap: var(--space-2);
+  }
+  .leave-buttons .btn {
+    white-space: nowrap;
+  }
+  .leave-buttons .btn:first-child {
+    margin-inline-end: auto;
   }
   .danger {
     color: var(--color-danger);
