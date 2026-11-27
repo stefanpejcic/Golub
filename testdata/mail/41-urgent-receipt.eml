@@ -1,0 +1,12 @@
+From: Bob Sender <bob@golub.test>
+To: Alice <alice@golub.test>
+Date: Mon, 02 Nov 2026 10:00:00 +0100
+Message-ID: <urgent-receipt@golub.test>
+Subject: Urgent with receipt
+X-Priority: 1 (Highest)
+Importance: high
+Disposition-Notification-To: Bob Sender <bob@golub.test>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+
+Please confirm you read this.

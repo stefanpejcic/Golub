@@ -111,6 +111,8 @@ func (a *authAPI) folderOp(op string) func(http.ResponseWriter, *http.Request, a
 				return imapx.DeleteFolder(c, req.Name)
 			case "empty":
 				return imapx.EmptyFolder(c, req.Name)
+			case "markread":
+				return imapx.MarkAllRead(c, req.Name)
 			default:
 				return imapx.SetSubscribed(c, req.Name, req.Value)
 			}

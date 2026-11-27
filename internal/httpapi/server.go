@@ -79,11 +79,13 @@ func New(o Options) http.Handler {
 			if o.Watcher != nil {
 				mux.HandleFunc("GET /api/events", a.withSession(a.events))
 			}
+			mux.HandleFunc("POST /api/message/unsubscribe", a.withSession(a.unsubscribe))
 			if o.SMTP != nil {
+				mux.HandleFunc("POST /api/message/receipt", a.withSession(a.receipt))
 				mux.HandleFunc("POST /api/compose/send", a.withSession(a.composeSend))
 			}
 			mux.HandleFunc("PUT /api/settings", a.withSession(a.putSettings))
-			for _, op := range []string{"create", "rename", "delete", "empty", "subscribe"} {
+			for _, op := range []string{"create", "rename", "delete", "empty", "subscribe", "markread"} {
 				mux.HandleFunc("POST /api/folders/"+op, a.withSession(a.folderOp(op)))
 			}
 		}

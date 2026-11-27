@@ -132,3 +132,39 @@ func TestTNEFIsDownloadable(t *testing.T) {
 		t.Errorf("%+v", m.Attachments)
 	}
 }
+
+func TestListUnsubscribe(t *testing.T) {
+	m := load(t, "40-newsletter.eml")
+	u := m.Unsubscribe
+	if u.Mailto != "mailto:unsubscribe@lists.golub.test?subject=unsubscribe%20alice" || u.URL != "https://lists.golub.test/u/abc123" || !u.OneClick {
+		t.Fatalf("%+v", u)
+	}
+	if m.Priority != 5 {
+		t.Errorf("priority %d", m.Priority)
+	}
+	if load(t, "01-plain.eml").Unsubscribe.Mailto != "" {
+		t.Error("plain message has no unsubscribe")
+	}
+}
+
+func TestPriorityAndReceipt(t *testing.T) {
+	m := load(t, "41-urgent-receipt.eml")
+	if m.Priority != 1 || m.ReceiptTo != "bob@golub.test" {
+		t.Fatalf("priority %d receipt %q", m.Priority, m.ReceiptTo)
+	}
+	if p := load(t, "01-plain.eml"); p.Priority != 3 || p.ReceiptTo != "" {
+		t.Errorf("defaults: %d %q", p.Priority, p.ReceiptTo)
+	}
+}
+
+func TestParsePriority(t *testing.T) {
+	cases := map[[2]string]int{
+		{"1 (Highest)", ""}: 1, {"2", ""}: 1, {"3", ""}: 3, {"4 (Low)", ""}: 5, {"5", ""}: 5,
+		{"", "high"}: 1, {"", "Low"}: 5, {"", ""}: 3, {"bogus", ""}: 3,
+	}
+	for in, want := range cases {
+		if got := ParsePriority(in[0], in[1]); got != want {
+			t.Errorf("%v -> %d", in, got)
+		}
+	}
+}

@@ -6,6 +6,7 @@ package mime
 import (
 	"bytes"
 	"errors"
+	"net/mail"
 	"strings"
 	"time"
 
@@ -27,6 +28,13 @@ type Attachment struct {
 	Inline      bool   `json:"inline"`
 }
 
+// Unsubscribe holds the List-Unsubscribe targets (RFC 2369) and whether one-click works (RFC 8058).
+type Unsubscribe struct {
+	Mailto   string `json:"mailto,omitempty"`
+	URL      string `json:"url,omitempty"`
+	OneClick bool   `json:"oneClick,omitempty"`
+}
+
 // Message is a parsed message ready for display.
 type Message struct {
 	Subject     string
@@ -37,6 +45,9 @@ type Message struct {
 	Date        time.Time
 	MessageID   string
 	References  string
+	Unsubscribe Unsubscribe
+	Priority    int
+	ReceiptTo   string
 	Text        string
 	HTML        string
 	Attachments []Attachment
@@ -74,6 +85,11 @@ func Parse(raw []byte) (*Message, error) {
 	}
 	if d, err := env.Date(); err == nil {
 		m.Date = d
+	}
+	m.Unsubscribe = parseUnsubscribe(env.GetHeader("List-Unsubscribe"), env.GetHeader("List-Unsubscribe-Post"))
+	m.Priority = ParsePriority(env.GetHeader("X-Priority"), env.GetHeader("Importance"))
+	if a, err := mail.ParseAddress(env.GetHeader("Disposition-Notification-To")); err == nil {
+		m.ReceiptTo = a.Address
 	}
 	if m.Text == "" && m.HTML == "" && len(env.Attachments)+len(env.Inlines) == 0 {
 		m.Text = rawBody(raw)
@@ -118,6 +134,41 @@ func (m *Message) Part(id string) *enmime.Part {
 // CID returns the part with the given Content-ID.
 func (m *Message) CID(id string) *enmime.Part {
 	return m.cids[strings.Trim(id, "<>")]
+}
+
+func parseUnsubscribe(header, post string) Unsubscribe {
+	var u Unsubscribe
+	for _, part := range strings.Split(header, ",") {
+		v := strings.Trim(strings.TrimSpace(part), "<>")
+		lower := strings.ToLower(v)
+		switch {
+		case strings.HasPrefix(lower, "mailto:") && u.Mailto == "":
+			u.Mailto = v
+		case strings.HasPrefix(lower, "https://") && u.URL == "":
+			u.URL = v
+		}
+	}
+	u.OneClick = u.URL != "" && strings.EqualFold(strings.TrimSpace(post), "List-Unsubscribe=One-Click")
+	return u
+}
+
+// ParsePriority maps X-Priority and Importance to 1 (high), 3 (normal) or 5 (low).
+func ParsePriority(xPriority, importance string) int {
+	if f := strings.Fields(xPriority); len(f) > 0 {
+		switch f[0] {
+		case "1", "2":
+			return 1
+		case "4", "5":
+			return 5
+		}
+	}
+	switch strings.ToLower(strings.TrimSpace(importance)) {
+	case "high":
+		return 1
+	case "low":
+		return 5
+	}
+	return 3
 }
 
 // rawBody shows something useful when the structure is too broken to parse, e.g. a wrong boundary.

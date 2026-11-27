@@ -3,9 +3,12 @@
 package imapx
 
 import (
+	"bufio"
+	"bytes"
 	"fmt"
 	"io"
-	"mime"
+	stdmime "mime"
+	"net/textproto"
 	"slices"
 	"sort"
 	"strings"
@@ -14,6 +17,8 @@ import (
 	"github.com/emersion/go-imap/v2"
 	"github.com/emersion/go-imap/v2/imapclient"
 	"golang.org/x/text/encoding/htmlindex"
+
+	"github.com/stefanpejcic/golub/internal/mime"
 )
 
 // Folder is a mailbox with its counters and special-use role.
@@ -46,6 +51,7 @@ type Summary struct {
 	Answered    bool      `json:"answered"`
 	Attachments bool      `json:"attachments"`
 	Size        int64     `json:"size"`
+	Priority    int       `json:"priority"`
 }
 
 // Page is a slice of a sorted folder.
@@ -65,8 +71,8 @@ var specialAttrs = map[imap.MailboxAttr]string{
 }
 
 // wordDecoder decodes RFC 2047 headers in any charset the htmlindex knows.
-func wordDecoder() *mime.WordDecoder {
-	return &mime.WordDecoder{CharsetReader: func(charset string, r io.Reader) (io.Reader, error) {
+func wordDecoder() *stdmime.WordDecoder {
+	return &stdmime.WordDecoder{CharsetReader: func(charset string, r io.Reader) (io.Reader, error) {
 		enc, err := htmlindex.Get(charset)
 		if err != nil {
 			return nil, fmt.Errorf("unknown charset %q", charset)
@@ -200,7 +206,11 @@ func ListMessages(c *imapclient.Client, folder string, offset, limit int, query 
 	}
 	end := min(offset+limit, total)
 
-	fetch := &imap.FetchOptions{UID: true, Envelope: true, Flags: true, InternalDate: true, RFC822Size: true, BodyStructure: &imap.FetchItemBodyStructure{}}
+	fetch := &imap.FetchOptions{
+		UID: true, Envelope: true, Flags: true, InternalDate: true, RFC822Size: true,
+		BodyStructure: &imap.FetchItemBodyStructure{},
+		BodySection:   []*imap.FetchItemBodySection{prioritySection},
+	}
 	var msgs []*imapclient.FetchMessageBuffer
 	var order []uint32
 
@@ -278,8 +288,19 @@ func ListMessages(c *imapclient.Client, folder string, offset, limit int, query 
 	return page, nil
 }
 
+var prioritySection = &imap.FetchItemBodySection{
+	Specifier:    imap.PartSpecifierHeader,
+	HeaderFields: []string{"X-Priority", "Importance"},
+	Peek:         true,
+}
+
 func summarize(m *imapclient.FetchMessageBuffer) Summary {
-	s := Summary{UID: uint32(m.UID), Size: m.RFC822Size, Date: m.InternalDate, From: []Address{}, To: []Address{}}
+	s := Summary{UID: uint32(m.UID), Size: m.RFC822Size, Date: m.InternalDate, From: []Address{}, To: []Address{}, Priority: 3}
+	if raw := m.FindBodySection(prioritySection); len(raw) > 0 {
+		if h, err := textproto.NewReader(bufio.NewReader(bytes.NewReader(raw))).ReadMIMEHeader(); err == nil || len(h) > 0 {
+			s.Priority = mime.ParsePriority(h.Get("X-Priority"), h.Get("Importance"))
+		}
+	}
 	if e := m.Envelope; e != nil {
 		s.Subject = e.Subject
 		s.From = addresses(e.From)

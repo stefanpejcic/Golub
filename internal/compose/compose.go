@@ -8,6 +8,8 @@ import (
 	"crypto/rand"
 	"encoding/hex"
 	"errors"
+	"fmt"
+	stdmime "mime"
 	"net/mail"
 	"strings"
 	"time"
@@ -38,6 +40,9 @@ type Draft struct {
 	References   []string
 	Attachments  []Attachment
 	Date         time.Time
+	// Priority is 1 (high), 3 (normal) or 5 (low).
+	Priority       int
+	RequestReceipt bool
 }
 
 var errHeader = errors.New("compose: control characters in a header")
@@ -89,6 +94,15 @@ func Build(d Draft) ([]byte, string, error) {
 	if len(d.References) > 0 {
 		b = b.Header("References", strings.Join(d.References, " "))
 	}
+	switch d.Priority {
+	case 1:
+		b = b.Header("X-Priority", "1 (Highest)").Header("Importance", "high")
+	case 5:
+		b = b.Header("X-Priority", "5 (Lowest)").Header("Importance", "low")
+	}
+	if d.RequestReceipt {
+		b = b.Header("Disposition-Notification-To", (&mail.Address{Name: d.From.Name, Address: d.From.Address}).String())
+	}
 	b = b.Text([]byte(d.Text))
 	if d.HTML != "" {
 		b = b.HTML([]byte(d.HTML))
@@ -139,3 +153,42 @@ func ReplySubject(s string) string { return prefixed(s, "Re: ") }
 
 // ForwardSubject adds "Fwd: " unless it is already there.
 func ForwardSubject(s string) string { return prefixed(s, "Fwd: ") }
+
+// MDN is a read receipt for a message that asked for one.
+type MDN struct {
+	From              mail.Address
+	To                mail.Address
+	OriginalSubject   string
+	OriginalMessageID string
+	Text              string
+	Date              time.Time
+}
+
+// BuildMDN renders a message disposition notification (RFC 8098) for a manually sent receipt.
+func BuildMDN(r MDN) ([]byte, error) {
+	for _, h := range []string{r.OriginalSubject, r.OriginalMessageID, r.From.Name} {
+		if !clean(h) {
+			return nil, errHeader
+		}
+	}
+	date := r.Date
+	if date.IsZero() {
+		date = time.Now()
+	}
+	boundary := strings.TrimSuffix(strings.TrimPrefix(newMessageID(r.From.Address), "<"), ">")
+	boundary = "mdn-" + strings.SplitN(boundary, "@", 2)[0]
+	subject := stdmime.QEncoding.Encode("utf-8", "Read: "+r.OriginalSubject)
+	var b bytes.Buffer
+	fmt.Fprintf(&b, "From: %s\r\nTo: %s\r\nSubject: %s\r\nDate: %s\r\nMessage-Id: %s\r\nMIME-Version: 1.0\r\n",
+		(&mail.Address{Name: r.From.Name, Address: r.From.Address}).String(), (&mail.Address{Address: r.To.Address}).String(),
+		subject, date.Format(time.RFC1123Z), newMessageID(r.From.Address))
+	fmt.Fprintf(&b, "Content-Type: multipart/report; report-type=disposition-notification; boundary=\"%s\"\r\n\r\n", boundary)
+	fmt.Fprintf(&b, "--%s\r\nContent-Type: text/plain; charset=utf-8\r\nContent-Transfer-Encoding: 8bit\r\n\r\n%s\r\n", boundary, r.Text)
+	fmt.Fprintf(&b, "--%s\r\nContent-Type: message/disposition-notification\r\n\r\n", boundary)
+	fmt.Fprintf(&b, "Final-Recipient: rfc822; %s\r\n", r.From.Address)
+	if r.OriginalMessageID != "" {
+		fmt.Fprintf(&b, "Original-Message-ID: %s\r\n", r.OriginalMessageID)
+	}
+	fmt.Fprintf(&b, "Disposition: manual-action/MDN-sent-manually; displayed\r\n\r\n--%s--\r\n", boundary)
+	return b.Bytes(), nil
+}

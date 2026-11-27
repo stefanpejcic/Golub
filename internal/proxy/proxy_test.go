@@ -4,6 +4,8 @@ package proxy
 
 import (
 	"bytes"
+	"context"
+	"io"
 	"net/http"
 	"net/http/httptest"
 	"net/netip"
@@ -138,5 +140,29 @@ func TestRejects(t *testing.T) {
 		if rec := get(p, bad, true); rec.Code != http.StatusBadRequest {
 			t.Errorf("%q: %d", bad, rec.Code)
 		}
+	}
+}
+
+func TestOneClickUnsubscribe(t *testing.T) {
+	p := newProxy(true)
+	var got string
+	u := origin(t, func(_ http.ResponseWriter, r *http.Request) {
+		b, _ := io.ReadAll(r.Body)
+		got = r.Method + " " + r.Header.Get("Content-Type") + " " + string(b)
+		if r.Header.Get("Cookie") != "" || r.Header.Get("Referer") != "" {
+			got = "leaked identity"
+		}
+	})
+	if err := p.Unsubscribe(context.Background(), u+"/u/abc"); err != nil {
+		t.Fatal(err)
+	}
+	if got != "POST application/x-www-form-urlencoded List-Unsubscribe=One-Click" {
+		t.Fatalf("got %q", got)
+	}
+	if err := newProxy(false).Unsubscribe(context.Background(), u+"/u/abc"); err == nil {
+		t.Error("loopback target must be refused")
+	}
+	if err := p.Unsubscribe(context.Background(), "ftp://x/y"); err == nil {
+		t.Error("non-http target must be refused")
 	}
 }

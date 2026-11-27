@@ -235,3 +235,62 @@ func TestSaveDraftReplacesPrevious(t *testing.T) {
 		t.Fatalf("draft not removed after send: %d", n)
 	}
 }
+
+func TestReceiptSendAndIgnore(t *testing.T) {
+	h, c, srv := newComposeServer(t, "41-urgent-receipt.eml", "01-plain.eml")
+	r := httptest.NewRequest("GET", "/api/message?folder=INBOX&uid=1&seen=0", nil)
+	r.AddCookie(c)
+	var v struct {
+		ReceiptTo string
+		Priority  int
+	}
+	_ = json.Unmarshal(serve(h, r).Body.Bytes(), &v)
+	if v.ReceiptTo != "bob@golub.test" || v.Priority != 1 {
+		t.Fatalf("%+v", v)
+	}
+	if rec := sendJSON(t, h, c, "/api/message/receipt", map[string]any{"folder": "INBOX", "uid": 1, "send": true}); rec.Code != 204 {
+		t.Fatalf("%d %s", rec.Code, rec.Body)
+	}
+	msgs := srv.Messages()
+	if len(msgs) != 1 || msgs[0].To[0] != "bob@golub.test" || !strings.Contains(msgs[0].Data, "disposition-notification") {
+		t.Fatalf("%+v", msgs)
+	}
+	r = httptest.NewRequest("GET", "/api/message?folder=INBOX&uid=1&seen=0", nil)
+	r.AddCookie(c)
+	var again struct{ ReceiptTo string }
+	_ = json.Unmarshal(serve(h, r).Body.Bytes(), &again)
+	if again.ReceiptTo != "" {
+		t.Fatal("receipt must not be asked again after it was sent")
+	}
+	if rec := sendJSON(t, h, c, "/api/message/receipt", map[string]any{"folder": "INBOX", "uid": 2, "send": true}); rec.Code != 400 {
+		t.Fatalf("message without receipt request: %d", rec.Code)
+	}
+}
+
+func TestComposePriorityAndReceipt(t *testing.T) {
+	h, c, srv := newComposeServer(t)
+	sendJSON(t, h, c, "/api/compose/send", map[string]any{"identity": "default", "to": []string{"b@golub.test"}, "subject": "p", "text": "x", "priority": "high", "receipt": true})
+	data := srv.Messages()[0].Data
+	if !strings.Contains(data, "X-Priority: 1") || !strings.Contains(data, "Disposition-Notification-To") {
+		t.Fatalf("%s", data)
+	}
+}
+
+func TestMarkReadFolderOp(t *testing.T) {
+	h, c, _ := newComposeServer(t, "01-plain.eml", "02-html.eml")
+	if rec := post(t, h, c, "/api/folders/markread", `{"name":"INBOX"}`); rec.Code != 204 {
+		t.Fatalf("%d %s", rec.Code, rec.Body)
+	}
+	for _, m := range list(t, h, c, "INBOX") {
+		if !m.Seen {
+			t.Fatalf("%+v", m)
+		}
+	}
+}
+
+func TestUnsubscribeNeedsOneClick(t *testing.T) {
+	h, c, _ := newComposeServer(t, "01-plain.eml")
+	if rec := sendJSON(t, h, c, "/api/message/unsubscribe", map[string]any{"folder": "INBOX", "uid": 1}); rec.Code != 400 {
+		t.Fatalf("%d %s", rec.Code, rec.Body)
+	}
+}

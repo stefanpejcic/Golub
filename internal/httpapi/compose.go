@@ -63,6 +63,8 @@ type composeRequest struct {
 	Attach     []partRef    `json:"attach"`
 	Answered   *answeredRef `json:"answered"`
 	DraftUID   uint32       `json:"draftUid"`
+	Priority   string       `json:"priority"`
+	Receipt    bool         `json:"receipt"`
 }
 
 type composeError struct {
@@ -197,17 +199,19 @@ func (a *authAPI) draftFrom(c *imapclient.Client, req composeRequest, files []co
 		}
 	}
 	d = compose.Draft{
-		From:         mail.Address{Name: id.Name, Address: id.Email},
-		To:           to,
-		Cc:           cc,
-		Bcc:          bcc,
-		Organization: id.Organization,
-		Subject:      req.Subject,
-		Text:         req.Text,
-		InReplyTo:    req.InReplyTo,
-		References:   req.References,
-		Attachments:  files,
-		Date:         time.Now(),
+		From:           mail.Address{Name: id.Name, Address: id.Email},
+		To:             to,
+		Cc:             cc,
+		Bcc:            bcc,
+		Organization:   id.Organization,
+		Subject:        req.Subject,
+		Text:           req.Text,
+		InReplyTo:      req.InReplyTo,
+		References:     req.References,
+		Attachments:    files,
+		Date:           time.Now(),
+		Priority:       map[string]int{"high": 1, "low": 5}[req.Priority],
+		RequestReceipt: req.Receipt,
 	}
 	if id.ReplyTo != "" {
 		if rt, err := mail.ParseAddress(id.ReplyTo); err == nil {

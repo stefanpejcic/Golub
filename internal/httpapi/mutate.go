@@ -4,13 +4,20 @@ package httpapi
 
 import (
 	"errors"
+	"fmt"
+	"log/slog"
 	"net/http"
+	"net/mail"
+	"strings"
 
 	"github.com/emersion/go-imap/v2"
 	"github.com/emersion/go-imap/v2/imapclient"
 
 	"github.com/stefanpejcic/golub/internal/auth"
+	"github.com/stefanpejcic/golub/internal/compose"
 	"github.com/stefanpejcic/golub/internal/imapx"
+	"github.com/stefanpejcic/golub/internal/mime"
+	"github.com/stefanpejcic/golub/internal/settings"
 )
 
 const maxBatch = 1000
@@ -199,3 +206,115 @@ func (a *authAPI) toSpecial(role, fallback string) func(http.ResponseWriter, *ht
 }
 
 var errSameFolder = errors.New("source and destination are the same folder")
+
+type messageRequest struct {
+	Folder string `json:"folder"`
+	UID    uint32 `json:"uid"`
+	Send   bool   `json:"send"`
+}
+
+func (q messageRequest) ref() (messageRef, bool) {
+	return messageRef{folder: q.Folder, uid: q.UID}, q.UID != 0 && validFolder(q.Folder)
+}
+
+// unsubscribe runs the one-click unsubscribe the message offers; other kinds are handled in the browser.
+func (a *authAPI) unsubscribe(w http.ResponseWriter, r *http.Request, s auth.Session) {
+	var req messageRequest
+	if !decodeJSON(w, r, &req) {
+		return
+	}
+	ref, ok := req.ref()
+	if !ok || a.o.Proxy == nil {
+		writeError(w, http.StatusBadRequest, "request.invalid")
+		return
+	}
+	m, _, ok := a.load(w, r, s, ref, false)
+	if !ok {
+		return
+	}
+	if !m.Unsubscribe.OneClick {
+		writeError(w, http.StatusBadRequest, "unsubscribe.not_one_click")
+		return
+	}
+	if err := a.o.Proxy.Unsubscribe(r.Context(), m.Unsubscribe.URL); err != nil {
+		slog.Warn("one-click unsubscribe failed", "err", err)
+		writeError(w, http.StatusBadGateway, "unsubscribe.failed")
+		return
+	}
+	w.WriteHeader(http.StatusNoContent)
+}
+
+// receipt sends or declines a requested read receipt; either way it is not asked again.
+func (a *authAPI) receipt(w http.ResponseWriter, r *http.Request, s auth.Session) {
+	var req messageRequest
+	if !decodeJSON(w, r, &req) {
+		return
+	}
+	ref, ok := req.ref()
+	if !ok {
+		writeError(w, http.StatusBadRequest, "request.invalid")
+		return
+	}
+	m, _, ok := a.load(w, r, s, ref, false)
+	if !ok {
+		return
+	}
+	if m.ReceiptTo == "" {
+		writeError(w, http.StatusBadRequest, "receipt.not_requested")
+		return
+	}
+	if req.Send {
+		var from mail.Address
+		err := a.do(r, s, func(c *imapclient.Client) error {
+			st, err := loadSettings(c, s.Email)
+			if err != nil {
+				return err
+			}
+			from = receiptIdentity(st, m, s.Email)
+			return nil
+		})
+		if err != nil {
+			a.mailError(w, r, err)
+			return
+		}
+		raw, err := compose.BuildMDN(compose.MDN{
+			From: from, To: mail.Address{Address: m.ReceiptTo},
+			OriginalSubject: m.Subject, OriginalMessageID: m.MessageID,
+			Text: fmt.Sprintf("Your message %q was displayed.", m.Subject),
+		})
+		if err != nil {
+			writeError(w, http.StatusBadRequest, "request.invalid")
+			return
+		}
+		user, pass := a.imapCreds(s)
+		if err := a.o.SMTP.Send(r.Context(), user, pass, from.Address, []string{m.ReceiptTo}, raw); err != nil {
+			a.writeComposeError(w, r, err)
+			return
+		}
+	}
+	err := a.do(r, s, func(c *imapclient.Client) error {
+		return imapx.SetFlag(c, ref.folder, ref.uid, imapx.FlagMDNSent, true)
+	})
+	if err != nil {
+		a.mailError(w, r, err)
+		return
+	}
+	w.WriteHeader(http.StatusNoContent)
+}
+
+// receiptIdentity answers from the identity the message was addressed to.
+func receiptIdentity(st settings.Settings, m *mime.Message, fallback string) mail.Address {
+	for _, id := range st.Identities {
+		for _, to := range append(append([]mime.Address{}, m.To...), m.Cc...) {
+			if strings.EqualFold(id.Email, to.Address) {
+				return mail.Address{Name: id.Name, Address: id.Email}
+			}
+		}
+	}
+	for _, id := range st.Identities {
+		if id.Default {
+			return mail.Address{Name: id.Name, Address: id.Email}
+		}
+	}
+	return mail.Address{Address: fallback}
+}

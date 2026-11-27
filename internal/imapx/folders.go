@@ -54,3 +54,14 @@ func SetSubscribed(c *imapclient.Client, name string, on bool) error {
 	}
 	return c.Unsubscribe(name).Wait()
 }
+
+// MarkAllRead sets \Seen on every message in folder.
+func MarkAllRead(c *imapclient.Client, name string) error {
+	sel, err := c.Select(name, nil).Wait()
+	if err != nil || sel.NumMessages == 0 {
+		return err
+	}
+	var all imap.SeqSet
+	all.AddRange(1, 0)
+	return c.Store(all, &imap.StoreFlags{Op: imap.StoreFlagsAdd, Silent: true, Flags: []imap.Flag{imap.FlagSeen}}, nil).Close()
+}

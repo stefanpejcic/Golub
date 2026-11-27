@@ -122,3 +122,53 @@ func TestBuildWithoutRecipients(t *testing.T) {
 		t.Fatalf("%s", raw)
 	}
 }
+
+func TestPriorityAndReceiptHeaders(t *testing.T) {
+	d := Draft{From: mail.Address{Address: "a@golub.test"}, To: []mail.Address{{Address: "b@golub.test"}}, Subject: "x", Text: "y", Priority: 1, RequestReceipt: true}
+	raw, _, err := Build(d)
+	if err != nil {
+		t.Fatal(err)
+	}
+	s := string(raw)
+	for _, want := range []string{"X-Priority: 1 (Highest)", "Importance: high", "Disposition-Notification-To: <a@golub.test>"} {
+		if !strings.Contains(s, want) {
+			t.Errorf("missing %q", want)
+		}
+	}
+	d.Priority, d.RequestReceipt = 3, false
+	raw, _, _ = Build(d)
+	if strings.Contains(string(raw), "X-Priority") || strings.Contains(string(raw), "Disposition-Notification-To") {
+		t.Error("normal priority without receipt adds no headers")
+	}
+}
+
+func TestBuildMDN(t *testing.T) {
+	raw, err := BuildMDN(MDN{
+		From:              mail.Address{Name: "Alice", Address: "alice@golub.test"},
+		To:                mail.Address{Address: "bob@golub.test"},
+		OriginalSubject:   "Urgent with receipt",
+		OriginalMessageID: "<urgent-receipt@golub.test>",
+		Text:              "Your message was read.",
+		Date:              time.Date(2026, 11, 27, 10, 0, 0, 0, time.UTC),
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	s := string(raw)
+	for _, want := range []string{
+		"Content-Type: multipart/report; report-type=disposition-notification",
+		"Content-Type: message/disposition-notification",
+		"Final-Recipient: rfc822; alice@golub.test",
+		"Original-Message-ID: <urgent-receipt@golub.test>",
+		"Disposition: manual-action/MDN-sent-manually; displayed",
+		"Subject: Read: Urgent with receipt",
+		"To: <bob@golub.test>",
+	} {
+		if !strings.Contains(s, want) {
+			t.Errorf("missing %q in\n%s", want, s)
+		}
+	}
+	if m, err := mime.Parse(raw); err != nil || !strings.Contains(m.Text, "Your message was read.") {
+		t.Fatalf("parse: %v %+v", err, m)
+	}
+}

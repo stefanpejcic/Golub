@@ -207,3 +207,34 @@ func TestFolderSizes(t *testing.T) {
 		}
 	}
 }
+
+func TestPriorityInList(t *testing.T) {
+	c := seededClient(t, 0)
+	for _, raw := range []string{"Subject: hi\r\nX-Priority: 1\r\n\r\nx\r\n", "Subject: lo\r\nImportance: low\r\n\r\nx\r\n", "Subject: plain\r\n\r\nx\r\n"} {
+		if _, err := AppendMessage(c, "Work", []byte(raw)); err != nil {
+			t.Fatal(err)
+		}
+	}
+	p, err := ListMessages(c, "Work", 0, 10, "", Sort{Key: "arrival"})
+	if err != nil {
+		t.Fatal(err)
+	}
+	got := map[string]int{}
+	for _, m := range p.Messages {
+		got[m.Subject] = m.Priority
+	}
+	if got["hi"] != 1 || got["lo"] != 5 || got["plain"] != 3 {
+		t.Fatalf("%v", got)
+	}
+}
+
+func TestMarkAllRead(t *testing.T) {
+	c := seededClient(t, 4)
+	if err := MarkAllRead(c, "INBOX"); err != nil {
+		t.Fatal(err)
+	}
+	folders, _ := ListFolders(c)
+	if folders[0].Unread != 0 {
+		t.Fatalf("%+v", folders[0])
+	}
+}

@@ -16,6 +16,7 @@ import (
 	"net/http"
 	"net/netip"
 	"net/url"
+	"strings"
 	"syscall"
 	"time"
 )
@@ -180,4 +181,28 @@ func (p *Proxy) fetch(ctx context.Context, target string) ([]byte, error) {
 		return nil, errors.New("too large")
 	}
 	return body, nil
+}
+
+// Unsubscribe performs an RFC 8058 one-click unsubscribe from the server, so the sender never sees the user's IP.
+func (p *Proxy) Unsubscribe(ctx context.Context, target string) error {
+	u, err := url.Parse(target)
+	if err != nil || (u.Scheme != "https" && u.Scheme != "http") || u.Hostname() == "" {
+		return errors.New("proxy: bad unsubscribe url")
+	}
+	req, err := http.NewRequestWithContext(ctx, http.MethodPost, u.String(), strings.NewReader("List-Unsubscribe=One-Click")) //nolint:gosec // the dialer rejects non-public addresses
+	if err != nil {
+		return err
+	}
+	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+	req.Header.Set("User-Agent", "Mozilla/5.0")
+	resp, err := p.client.Do(req) //nolint:gosec // see above
+	if err != nil {
+		return err
+	}
+	defer resp.Body.Close()
+	_, _ = io.Copy(io.Discard, io.LimitReader(resp.Body, 64<<10))
+	if resp.StatusCode >= 400 {
+		return fmt.Errorf("proxy: unsubscribe returned %d", resp.StatusCode)
+	}
+	return nil
 }

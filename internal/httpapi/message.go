@@ -4,6 +4,7 @@ package httpapi
 
 import (
 	"bytes"
+	"context"
 	"errors"
 	"fmt"
 	stdmime "mime"
@@ -20,10 +21,11 @@ import (
 	"github.com/stefanpejcic/golub/internal/sanitize"
 )
 
-// ImageProxy serves and signs remote image URLs.
+// ImageProxy serves and signs remote image URLs and performs one-click unsubscribes.
 type ImageProxy interface {
 	http.Handler
 	URL(target string) string
+	Unsubscribe(ctx context.Context, target string) error
 }
 
 // MaxMessageSize caps what is downloaded and parsed for one message.
@@ -48,6 +50,9 @@ type messageView struct {
 	HTML          bool              `json:"html"`
 	BlockedImages int               `json:"blockedImages"`
 	Trackers      int               `json:"trackers"`
+	Priority      int               `json:"priority"`
+	Unsubscribe   mime.Unsubscribe  `json:"unsubscribe"`
+	ReceiptTo     string            `json:"receiptTo,omitempty"`
 	Attachments   []mime.Attachment `json:"attachments"`
 }
 
@@ -115,7 +120,10 @@ func (a *authAPI) message(w http.ResponseWriter, r *http.Request, s auth.Session
 		UID: ref.uid, Folder: ref.folder, Subject: m.Subject,
 		From: m.From, To: m.To, Cc: m.Cc, ReplyTo: m.ReplyTo, Date: m.Date, MessageID: m.MessageID,
 		Seen: raw.Seen, Flagged: raw.Flagged, Text: m.Text, HTML: m.HTML != "",
-		Attachments: m.Attachments,
+		Attachments: m.Attachments, Priority: m.Priority, Unsubscribe: m.Unsubscribe,
+	}
+	if !raw.MDNSent {
+		v.ReceiptTo = m.ReceiptTo
 	}
 	if v.Attachments == nil {
 		v.Attachments = []mime.Attachment{}

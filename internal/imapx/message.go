@@ -5,6 +5,7 @@ package imapx
 import (
 	"errors"
 	"fmt"
+	"strings"
 
 	"github.com/emersion/go-imap/v2"
 	"github.com/emersion/go-imap/v2/imapclient"
@@ -16,10 +17,11 @@ var (
 	ErrTooLarge = errors.New("imap: message too large")
 )
 
-// Flags the UI can toggle.
+// Flags the UI can toggle, plus $MDNSent (RFC 3503) for read receipts already answered.
 const (
 	FlagSeen    = imap.FlagSeen
 	FlagFlagged = imap.FlagFlagged
+	FlagMDNSent = imap.Flag("$MDNSent")
 )
 
 // Raw is a full message with its state.
@@ -28,6 +30,7 @@ type Raw struct {
 	Data    []byte
 	Seen    bool
 	Flagged bool
+	MDNSent bool
 }
 
 // FetchRaw downloads a message without touching its \Seen flag.
@@ -56,11 +59,13 @@ func FetchRaw(c *imapclient.Client, folder string, uid uint32, maxSize int64) (R
 	}
 	r := Raw{UID: uid, Data: msgs[0].FindBodySection(section)}
 	for _, f := range meta[0].Flags {
-		switch f {
-		case imap.FlagSeen:
+		switch {
+		case f == imap.FlagSeen:
 			r.Seen = true
-		case imap.FlagFlagged:
+		case f == imap.FlagFlagged:
 			r.Flagged = true
+		case strings.EqualFold(string(f), string(FlagMDNSent)):
+			r.MDNSent = true
 		}
 	}
 	return r, nil
