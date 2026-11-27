@@ -194,3 +194,16 @@ func TestListMessagesAscending(t *testing.T) {
 		t.Fatalf("last page %+v", p.Messages)
 	}
 }
+
+func TestFolderSizes(t *testing.T) {
+	c := seededClient(t, 3)
+	folders, err := ListFolders(c)
+	if err != nil {
+		t.Fatal(err)
+	}
+	for _, f := range folders {
+		if f.Name == "INBOX" && (f.Size == nil || *f.Size <= 0) {
+			t.Fatalf("INBOX size missing: %+v", f)
+		}
+	}
+}

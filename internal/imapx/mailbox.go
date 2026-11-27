@@ -25,6 +25,7 @@ type Folder struct {
 	Total      uint32 `json:"total"`
 	Selectable bool   `json:"selectable"`
 	Subscribed bool   `json:"subscribed"`
+	Size       *int64 `json:"size,omitempty"`
 }
 
 // Address is a display name and email.
@@ -77,7 +78,7 @@ func wordDecoder() *mime.WordDecoder {
 // ListFolders returns all folders, special ones first, with message counts.
 func ListFolders(c *imapclient.Client) ([]Folder, error) {
 	caps := c.Caps()
-	status := &imap.StatusOptions{NumMessages: true, NumUnseen: true}
+	status := &imap.StatusOptions{NumMessages: true, NumUnseen: true, Size: caps.Has(imap.CapStatusSize) || caps.Has(imap.CapIMAP4rev2)}
 	opts := &imap.ListOptions{ReturnSpecialUse: caps.Has(imap.CapSpecialUse), ReturnSubscribed: true}
 	listStatus := caps.Has(imap.CapListStatus) || caps.Has(imap.CapIMAP4rev2)
 	if listStatus {
@@ -103,6 +104,7 @@ func ListFolders(c *imapclient.Client) ([]Folder, error) {
 		if st != nil {
 			f.Total = deref(st.NumMessages)
 			f.Unread = deref(st.NumUnseen)
+			f.Size = st.Size
 		}
 		folders = append(folders, f)
 	}
