@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
-# Golub and Roundcube for the README benchmark, both reading the same e2e mailserver over plain IMAP on its private network.
+# Webmail clients for the README benchmark, all reading the same e2e mailserver over plain IMAP on its private network.
 # Start the e2e stack first, then: BENCH_GOLUB_SECRET=$(openssl rand -base64 32) podman-compose -f bench/compose.yml up -d
 # Versions are pinned so the README numbers can be reproduced.
 
@@ -10,7 +10,7 @@ networks:
 
 services:
   golub:
-    image: ghcr.io/stefanpejcic/golub:0.1.0
+    image: ghcr.io/stefanpejcic/golub:0.2.0
     container_name: bench-golub
     environment:
       GOLUB_IMAP_HOST: mailserver
@@ -34,3 +34,65 @@ services:
     ports:
       - "127.0.0.1:18082:80"
     networks: [e2e]
+
+  snappymail:
+    image: docker.io/djmaze/snappymail:v3.1.4-1
+    container_name: bench-snappymail
+    environment:
+      # the benchmark runs over plain HTTP on localhost, where secure cookies would never be sent back
+      SECURE_COOKIES: "false"
+    volumes:
+      # snappymail only logs into domains it has a config for; writable because its entrypoint chowns the data folder
+      - ./snappymail/golub.test.json:/var/lib/snappymail/_data_/_default_/domains/golub.test.json
+    ports:
+      - "127.0.0.1:18084:8888"
+    networks: [e2e]
+
+  cypht:
+    image: docker.io/cypht/cypht:2.15.0
+    container_name: bench-cypht
+    environment:
+      # log in straight against IMAP, settings in files and its small database in SQLite, so no extra containers
+      AUTH_TYPE: IMAP
+      IMAP_AUTH_NAME: golub
+      IMAP_AUTH_SERVER: mailserver
+      IMAP_AUTH_PORT: "143"
+      IMAP_AUTH_TLS: "false"
+      SMTP_AUTH_SERVER: mailserver
+      SMTP_AUTH_PORT: "587"
+      SMTP_AUTH_TLS: "false"
+      SESSION_TYPE: PHP
+      USER_CONFIG_TYPE: file
+      DB_DRIVER: sqlite
+      # /var/lib/hm3 only exists after the database step of its entrypoint
+      DB_NAME: /tmp/cypht.sqlite
+      ENABLE_REDIS: "false"
+      ENABLE_MEMCACHED: "false"
+    ports:
+      - "127.0.0.1:18085:80"
+    networks: [e2e]
+
+  afterlogic:
+    # nginx and php-fpm, with MySQL in its own container as in Afterlogic's compose; the mail server is added in its admin panel
+    image: docker.io/afterlogic/docker-webmail-lite:9.8.7
+    container_name: bench-afterlogic
+    depends_on: [afterlogic-db]
+    # nginx runs unprivileged on port 80, which Docker allows by default and podman does not
+    sysctls:
+      net.ipv4.ip_unprivileged_port_start: "0"
+    ports:
+      - "127.0.0.1:18086:80"
+    networks: [e2e]
+
+  afterlogic-db:
+    image: docker.io/library/mysql:8.4
+    container_name: bench-afterlogic-db
+    command: --mysql-native-password=ON
+    environment:
+      MYSQL_ROOT_PASSWORD: bench-root
+      MYSQL_DATABASE: afterlogic
+      MYSQL_USER: afterlogic
+      MYSQL_PASSWORD: bench-afterlogic
+    networks:
+      e2e:
+        aliases: [db]

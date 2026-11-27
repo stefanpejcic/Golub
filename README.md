@@ -110,29 +110,32 @@ Webmail sees everything a person writes and reads, so Golub is built to keep as 
 
 ## Benchmarks
 
-### Golub and Roundcube
+### Golub and other webmail clients
 
-**42× smaller image, 9× less memory, 9× faster message list and 200× fewer IMAP connections than Roundcube.**
+**Smallest image, least memory, fastest message list, and one IMAP connection per user instead of one per request.**
 
-Both clients read the same mailbox on the same server: an INBOX of 21 messages and a folder of 50,000.
+All four clients read the same mailbox on the same server: an INBOX of 21 messages and a folder of 50,000. The best value in each row is in bold.
 
-| | Golub 0.1.0 | Roundcube 1.7.7 | Difference |
-|---|---|---|---|
-| Image download (amd64) | **6.6 MB** | 281 MB | **42× smaller** |
-| Image unpacked | **16.9 MB** | 795 MB | **47× smaller** |
-| RAM at idle | **4.6 MB** | 35.5 MB | **8× less** |
-| Peak RAM, 10 users | **15.8 MB** | 149.7 MB | **9× less** |
-| Message list, INBOX, 10 users | **484 req/s**, 20 ms | 51 req/s, 195 ms | **9× faster** |
-| Message list, 50,000 messages, 10 users | **64 req/s**, 148 ms | 23 req/s, 432 ms | **3× faster** |
-| IMAP connections for 2,000 requests | **10** | 2,000 | **200× fewer** |
-| Login page download | **39 KB**, 6 requests | 331 KB, 12 requests | **8× smaller** |
-| Sign in to inbox shown | **0.94 s** | 1.37 s | **1.5× faster** |
-| Open a message | **0.33 s** | 0.94 s | **3× faster** |
-| Whole session download | **245 KB**, 29 requests | 382 KB, 51 requests | **1.6× less** |
+| | Golub 0.2.0 | Roundcube 1.7.7 | SnappyMail 3.1.4 | Afterlogic WebMail Lite 9.8.7 |
+|---|---|---|---|---|
+| Image download (amd64) | **7.1 MB** | 281 MB | 95.5 MB | 392 MB¹ |
+| Image unpacked | **17.7 MB** | 795 MB | 252 MB | 1.3 GB¹ |
+| RAM at idle | **5.5 MB** | 47 MB | 72 MB | 478 MB¹ |
+| Peak RAM, 10 users | **17 MB** | 173 MB | 95 MB | 720 MB¹ |
+| Message list, INBOX, 10 users | **450 req/s**, 21 ms | 49 req/s, 205 ms | 44 req/s, 223 ms | 15 req/s, 655 ms |
+| Message list, 50,000 messages, 10 users | **63 req/s**, 149 ms | 23 req/s, 425 ms | 26 req/s, 382 ms | 6 req/s, 1,705 ms |
+| IMAP connections for 2,000 requests | **10** | 2,000 | 2,000 | 2,000 |
+| Login page download | **46 KB**, 6 requests | 331 KB, 12 requests | 170 KB, 7 requests | 3,460 KB, 24 requests |
+| Sign in to inbox shown | 0.87 s | 1.24 s | **0.86 s** | 1.83 s |
+| Open the 50,000-message folder | **0.23 s** | 0.31 s | 0.31 s | 1.35 s |
+| Open a message | **0.34 s** | 0.88 s | 0.83 s | 0.82 s |
+| Whole session download | **258 KB**, 29 requests | 382 KB, 51 requests | 363 KB, **19 requests** | 5,799 KB, 69 requests |
 
-Golub **keeps one IMAP connection per user open and reuses it**, where Roundcube connects and logs in to IMAP again on every request. That is less work and fewer connections for the mail server, and no "maximum number of connections" errors when one user has several tabs open.
+¹ Includes MySQL 8.4, which Afterlogic needs; its own container is 161 MB to download and 480 MB unpacked.
 
-How it was measured, on 27 November 2026: a 4-core VPS that also runs OpenPanel, docker-mailserver 17, and the official Roundcube image with its defaults (Apache and SQLite). The load rows come from ten different accounts, each sending 200 requests one after another with ApacheBench; peak RAM is the container's cgroup peak. The page rows are medians of five runs in Chromium over a link with about 120 ms latency, so they include the network. The setup is in [`e2e/bench`](e2e/bench).
+Golub **keeps one IMAP connection per user open and reuses it**, where the other clients connect and log in to IMAP again on every request. That is less work and fewer connections for the mail server, and no "maximum number of connections" errors when one user has several tabs open.
+
+How it was measured, on 27 November 2026: a 4-core VPS that also runs OpenPanel, docker-mailserver 17, and each client's official image. Roundcube runs with its defaults (Apache and SQLite), SnappyMail with a domain file pointing at the mail server, and Afterlogic with MySQL as in its own compose file. The load rows come from ten different accounts, each sending 200 requests one after another with ApacheBench; every client asks for the same page of 50 messages without threads, and peak RAM is the cgroup peak of every container the client needs. The page rows are medians of five runs in Chromium over a link with about 120 ms latency, so they include the network. Cypht 2.15.0 was tried too, but its Docker image could not open any folder on the test server, so it is left out. The setup and scripts are in [`e2e/bench`](e2e/bench).
 
 ## Quick start
 
