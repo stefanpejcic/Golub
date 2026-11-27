@@ -1,6 +1,6 @@
 <!-- SPDX-License-Identifier: GPL-3.0-or-later -->
 <script lang="ts">
-  import { i18n } from './lib/locale.svelte';
+  import { i18n, LOCALES } from './lib/locale.svelte';
   import { session } from './lib/session.svelte';
   import { ApiError } from './lib/api';
   import { errorMessage } from './lib/errors';
@@ -70,6 +70,17 @@
         {busy ? t('login.submitting') : t('login.submit')}
       </button>
     </form>
+    <select
+      class="input language"
+      value={i18n.locale}
+      onchange={(e) => i18n.set(e.currentTarget.value)}
+      aria-label={t('settings.language')}
+      data-testid="lang-select"
+    >
+      {#each LOCALES as l (l)}
+        <option value={l}>{t(`language.${l}`)}</option>
+      {/each}
+    </select>
   </main>
   <footer>
     <Prefs />
@@ -123,6 +134,16 @@
   }
   .btn-primary {
     padding-block: 0.5rem;
+  }
+  .language {
+    inline-size: auto;
+    margin-block-start: calc(-1 * var(--space-2));
+    padding-block: 0.3rem;
+    color: var(--color-text-muted);
+    background: transparent;
+    border-color: transparent;
+    box-shadow: none;
+    cursor: pointer;
   }
   .error {
     margin: 0;

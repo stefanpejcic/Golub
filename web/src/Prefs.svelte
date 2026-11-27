@@ -1,6 +1,6 @@
 <!-- SPDX-License-Identifier: GPL-3.0-or-later -->
 <script lang="ts">
-  import { i18n, LOCALES } from './lib/locale.svelte';
+  import { i18n } from './lib/locale.svelte';
   import { theme } from './lib/theme.svelte';
   import { session } from './lib/session.svelte';
   import { THEMES, type Theme } from './lib/prefs';
@@ -14,33 +14,20 @@
     session.savePrefs({ theme: v });
   }
 
-  function setLocale(v: string) {
-    i18n.set(v);
-    session.savePrefs({ locale: i18n.locale });
-  }
 </script>
 
 <div class="prefs">
-  {#if session.status === 'authenticated' && session.info}
-    <div class="account">
-      <span class="email" data-testid="user-email" title={session.info.email}>{session.info.email}</span>
+  <div class="row">
+    <button type="button" class="link about" onclick={() => about.open()} data-testid="about-open">
+      <svg class="icon" viewBox="0 0 16 16" aria-hidden="true"><circle cx="8" cy="8" r="6.5" /><path d="M8 7.5V11M8 5v.01" /></svg>
+      {t('about.open')}
+    </button>
+    {#if session.status === 'authenticated'}
       <button type="button" class="link" onclick={() => session.logout()} data-testid="logout">
+        <svg class="icon" viewBox="0 0 16 16" aria-hidden="true"><path d="M6 2.5H3.5v11H6M10 5l3 3-3 3M13 8H6" /></svg>
         {t('auth.logout')}
       </button>
-    </div>
-  {/if}
-  <div class="row">
-    <select
-      class="input select"
-      value={i18n.locale}
-      onchange={(e) => setLocale(e.currentTarget.value)}
-      aria-label={t('settings.language')}
-      data-testid="lang-select"
-    >
-      {#each LOCALES as l (l)}
-        <option value={l}>{t(`language.${l}`)}</option>
-      {/each}
-    </select>
+    {/if}
     <div class="themes" role="radiogroup" aria-label={t('settings.theme')} data-testid="theme-select">
       {#each THEMES as v (v)}
         <button
@@ -67,10 +54,6 @@
       {/each}
     </div>
   </div>
-  <button type="button" class="link about" onclick={() => about.open()} data-testid="about-open">
-    <svg class="icon" viewBox="0 0 16 16" aria-hidden="true"><circle cx="8" cy="8" r="6.5" /><path d="M8 7.5V11M8 5v.01" /></svg>
-    {t('about.open')}
-  </button>
 </div>
 
 <About bind:this={about} />
@@ -83,26 +66,14 @@
     padding: var(--space-3);
     border-block-start: 1px solid var(--color-border);
   }
-  .account {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: var(--space-2);
-  }
-  .email {
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-    font-weight: 500;
-  }
   .row {
     display: flex;
-    gap: var(--space-2);
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--space-2) var(--space-3);
   }
-  .select {
-    flex: 1;
-    min-inline-size: 0;
-    padding-block: 0.3rem;
+  .themes {
+    margin-inline-start: auto;
   }
   .themes {
     display: flex;
@@ -141,8 +112,5 @@
   }
   .link:hover {
     color: var(--color-text);
-  }
-  .about {
-    align-self: flex-start;
   }
 </style>

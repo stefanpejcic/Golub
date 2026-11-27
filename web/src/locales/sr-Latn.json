@@ -70,5 +70,6 @@
   "about.license": "Slobodan softver pod licencom GNU GPL v3 ili novijom.",
   "about.source": "Izvorni kod",
   "about.credits": "Napravljeno pomoću",
-  "about.close": "Zatvori"
+  "about.close": "Zatvori",
+  "message.none_selected": "Izaberite poruku da biste je pročitali."
 }

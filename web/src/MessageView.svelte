@@ -24,9 +24,17 @@
 
 <article class="message" aria-busy={mail.messageLoading} data-testid="message-view">
   <div class="page-header">
-    <button type="button" class="btn" onclick={() => mail.closeMessage()} data-testid="back">
-      <svg class="icon" viewBox="0 0 16 16" aria-hidden="true"><path d="M10 3 5 8l5 5" /></svg>
-      {t('message.back')}
+    <button
+      type="button"
+      class="btn back"
+      onclick={() => mail.closeMessage()}
+      aria-label={t('message.back')}
+      title={t('message.back')}
+      data-testid="back"
+    >
+      <svg class="icon narrow" viewBox="0 0 16 16" aria-hidden="true"><path d="M10 3 5 8l5 5" /></svg>
+      <span class="narrow">{t('message.back')}</span>
+      <svg class="icon wide" viewBox="0 0 16 16" aria-hidden="true"><path d="m4 4 8 8M12 4l-8 8" /></svg>
     </button>
   </div>
 
@@ -97,6 +105,23 @@
 </article>
 
 <style>
+  .page-header {
+    justify-content: flex-end;
+  }
+  .back .narrow {
+    display: none;
+  }
+  @media (max-width: 64rem) {
+    .page-header {
+      justify-content: flex-start;
+    }
+    .back .narrow {
+      display: inline;
+    }
+    .back .wide {
+      display: none;
+    }
+  }
   .message {
     flex: 1;
     display: flex;

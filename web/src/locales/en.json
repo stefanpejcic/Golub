@@ -67,5 +67,6 @@
   "about.license": "Free software under the GNU GPL v3 or later.",
   "about.source": "Source code",
   "about.credits": "Built with",
-  "about.close": "Close"
+  "about.close": "Close",
+  "message.none_selected": "Select a message to read it."
 }
