@@ -96,7 +96,6 @@
     "few": "{count} izabrane",
     "other": "{count} izabranih"
   },
-  "list.clear_selection": "Poništi izbor",
   "search.label": "Pretraga poruka",
   "search.placeholder": "Pretraži naslov, pošiljaoca, primaoca…",
   "search.no_results": "Nijedna poruka ne odgovara pretrazi.",

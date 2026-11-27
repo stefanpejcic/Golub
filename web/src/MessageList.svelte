@@ -205,16 +205,6 @@
             <option value={f.name}>{folderLabel(f.name)}</option>
           {/each}
         </select>
-        <button
-          type="button"
-          class="btn btn-icon"
-          title={t('list.clear_selection')}
-          aria-label={t('list.clear_selection')}
-          onclick={() => mail.clearSelection()}
-          data-testid="bulk-clear"
-        >
-          <svg class="icon" viewBox="0 0 16 16" aria-hidden="true"><path d="m4 4 8 8M12 4l-8 8" /></svg>
-        </button>
       </div>
     </div>
   {/if}

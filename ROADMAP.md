@@ -55,7 +55,6 @@ Stored per user in an unsubscribed IMAP folder `golub-settings` (one JSON messag
 - [x] Folder management: create, rename, delete, subscribe, empty
 - [x] Apply preferences: page size, mark-as-read timing, prefer plain text, remote images, show addresses, pretty dates, delete mode, special folder overrides
 - [x] Quota usage bar under the message list (IMAP QUOTA)
-- [ ] Filters and out-of-office via ManageSieve (needs ManageSieve enabled on the mail server)
 
 ## UI backlog (requested)
 - [ ] Message header: icons on the right for all headers and plain text / HTML view
@@ -63,4 +62,4 @@ Stored per user in an unsubscribed IMAP folder `golub-settings` (one JSON messag
 - [ ] Resizable folder / list / preview columns, widths remembered in the browser
 
 ## Later
-Search, threading, Sieve filters, contacts, multiple identities, drag and drop, PGP, dark message view for HTML mail, RTL locales.
+Search, threading, contacts, multiple identities, drag and drop, PGP, dark message view for HTML mail, RTL locales.

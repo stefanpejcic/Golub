@@ -90,7 +90,6 @@
     "one": "{count} selected",
     "other": "{count} selected"
   },
-  "list.clear_selection": "Clear selection",
   "search.label": "Search messages",
   "search.placeholder": "Search subject, sender, recipient…",
   "search.no_results": "No messages match your search.",
