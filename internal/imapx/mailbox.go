@@ -146,8 +146,22 @@ func deref(p *uint32) uint32 {
 	return *p
 }
 
+// searchCriteria matches query against subject, sender and recipients; empty matches all.
+func searchCriteria(query string) *imap.SearchCriteria {
+	if query == "" {
+		return &imap.SearchCriteria{}
+	}
+	h := func(key string) imap.SearchCriteria {
+		return imap.SearchCriteria{Header: []imap.SearchCriteriaHeaderField{{Key: key, Value: query}}}
+	}
+	return &imap.SearchCriteria{Or: [][2]imap.SearchCriteria{{
+		h("Subject"),
+		{Or: [][2]imap.SearchCriteria{{h("From"), {Or: [][2]imap.SearchCriteria{{h("To"), h("Cc")}}}}}},
+	}}}
+}
+
 // ListMessages returns messages newest first, using server-side SORT when available.
-func ListMessages(c *imapclient.Client, folder string, offset, limit int) (Page, error) {
+func ListMessages(c *imapclient.Client, folder string, offset, limit int, query string) (Page, error) {
 	sel, err := c.Select(folder, &imap.SelectOptions{ReadOnly: true}).Wait()
 	if err != nil {
 		return Page{}, err
@@ -165,7 +179,7 @@ func ListMessages(c *imapclient.Client, folder string, offset, limit int) (Page,
 
 	if c.Caps().Has(imap.CapSort) {
 		uids, err := c.UIDSort(&imapclient.SortOptions{
-			SearchCriteria: &imap.SearchCriteria{},
+			SearchCriteria: searchCriteria(query),
 			SortCriteria:   []imapclient.SortCriterion{{Key: imapclient.SortKeyDate, Reverse: true}},
 		}).Wait()
 		if err != nil {
@@ -176,6 +190,27 @@ func ListMessages(c *imapclient.Client, folder string, offset, limit int) (Page,
 			return page, nil
 		}
 		order = uids[offset:min(end, len(uids))]
+		var set imap.UIDSet
+		for _, u := range order {
+			set.AddNum(imap.UID(u))
+		}
+		if msgs, err = c.Fetch(set, fetch).Collect(); err != nil {
+			return Page{}, err
+		}
+	} else if query != "" {
+		res, err := c.UIDSearch(searchCriteria(query), nil).Wait()
+		if err != nil {
+			return Page{}, err
+		}
+		all := res.AllUIDs()
+		slices.Reverse(all)
+		page.Total = len(all)
+		if offset >= len(all) {
+			return page, nil
+		}
+		for _, u := range all[offset:min(offset+limit, len(all))] {
+			order = append(order, uint32(u))
+		}
 		var set imap.UIDSet
 		for _, u := range order {
 			set.AddNum(imap.UID(u))

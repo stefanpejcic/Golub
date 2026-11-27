@@ -155,3 +155,19 @@ func TestMailPasswordChangedLogsOut(t *testing.T) {
 		t.Error("stale session cookie not cleared")
 	}
 }
+
+func TestMessagesSearch(t *testing.T) {
+	h, _ := newMailServer(t, 12)
+	rec := authed(t, h, "/api/messages?folder=INBOX&q="+url.QueryEscape("Message 01"))
+	var body struct {
+		Total    int
+		Messages []imapx.Summary
+	}
+	_ = json.Unmarshal(rec.Body.Bytes(), &body)
+	if rec.Code != 200 || body.Total != 3 {
+		t.Fatalf("%d %s", rec.Code, rec.Body)
+	}
+	if rec := authed(t, h, "/api/messages?folder=INBOX&q="+url.QueryEscape("a\x00b")); rec.Code != 400 {
+		t.Errorf("control char query: %d", rec.Code)
+	}
+}

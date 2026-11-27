@@ -10,7 +10,7 @@ import (
 
 func TestFetchAndMarkSeen(t *testing.T) {
 	c := seededClient(t, 3)
-	p, err := ListMessages(c, "INBOX", 0, 3)
+	p, err := ListMessages(c, "INBOX", 0, 3, "")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -42,7 +42,7 @@ func TestFetchErrors(t *testing.T) {
 	if _, err := FetchRaw(c, "INBOX", 9999, 1<<20); !errors.Is(err, ErrNotFound) {
 		t.Errorf("missing uid: %v", err)
 	}
-	p, _ := ListMessages(c, "INBOX", 0, 1)
+	p, _ := ListMessages(c, "INBOX", 0, 1, "")
 	if _, err := FetchRaw(c, "INBOX", p.Messages[0].UID, 10); !errors.Is(err, ErrTooLarge) {
 		t.Errorf("size cap: %v", err)
 	}

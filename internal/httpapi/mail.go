@@ -8,6 +8,7 @@ import (
 	"log/slog"
 	"net/http"
 	"strconv"
+	"strings"
 	"unicode"
 	"unicode/utf8"
 
@@ -86,16 +87,17 @@ func (a *authAPI) folders(w http.ResponseWriter, r *http.Request, s auth.Session
 func (a *authAPI) messages(w http.ResponseWriter, r *http.Request, s auth.Session) {
 	q := r.URL.Query()
 	folder := q.Get("folder")
+	query := strings.TrimSpace(q.Get("q"))
 	page, okPage := intParam(q.Get("page"), 1)
 	size, okSize := intParam(q.Get("size"), defaultPageSize)
-	if !validFolder(folder) || !okPage || !okSize || page < 1 || size < 1 || size > maxPageSize {
+	if !validFolder(folder) || !okPage || !okSize || page < 1 || size < 1 || size > maxPageSize || !validQuery(query) {
 		writeError(w, http.StatusBadRequest, "request.invalid")
 		return
 	}
 	var p imapx.Page
 	err := a.do(r, s, func(c *imapclient.Client) error {
 		var err error
-		p, err = imapx.ListMessages(c, folder, (page-1)*size, size)
+		p, err = imapx.ListMessages(c, folder, (page-1)*size, size, query)
 		return err
 	})
 	if err != nil {
@@ -111,6 +113,18 @@ func intParam(v string, def int) (int, bool) {
 	}
 	n, err := strconv.Atoi(v)
 	return n, err == nil
+}
+
+func validQuery(q string) bool {
+	if len(q) > 256 || !utf8.ValidString(q) {
+		return false
+	}
+	for _, r := range q {
+		if unicode.IsControl(r) {
+			return false
+		}
+	}
+	return true
 }
 
 func validFolder(name string) bool {
