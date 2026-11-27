@@ -184,3 +184,20 @@ test('columns resize by dragging, persist across reloads and reset on double-cli
   await expect(page.getByTestId('message').first()).toBeVisible();
   expect(Math.abs((await list.boundingBox())!.width - before)).toBeLessThan(3);
 });
+
+test('arrow keys open the next and previous message', async ({ page }) => {
+  await signIn(page);
+  await page.locator('[data-testid=folder][data-folder=Paging]').click();
+  await expect(page.getByTestId('message').first()).toContainText('Paging message 120');
+  await page.keyboard.press('ArrowDown');
+  await expect(page.getByTestId('message-subject')).toHaveText('Paging message 120');
+  await page.keyboard.press('ArrowDown');
+  await expect(page.getByTestId('message-subject')).toHaveText('Paging message 119');
+  await page.keyboard.press('ArrowDown');
+  await expect(page.getByTestId('message-subject')).toHaveText('Paging message 118');
+  await page.keyboard.press('ArrowUp');
+  await expect(page.getByTestId('message-subject')).toHaveText('Paging message 119');
+  await page.getByTestId('search').focus();
+  await page.keyboard.press('ArrowDown');
+  await expect(page.getByTestId('message-subject')).toHaveText('Paging message 119');
+});

@@ -157,3 +157,57 @@ test('space turns a finished address into a chip', async ({ page }) => {
   await input.press('Enter');
   await expect(page.getByTestId('recipient')).toHaveText(['one@golub.test', 'two@golub.test', 'Carol Doe <carol@golub.test>']);
 });
+
+test('leaving compose with changes offers to save, discard or keep writing', async ({ page }) => {
+  const subject = `Leave ${Date.now()}`;
+  await signIn(page);
+  await page.getByTestId('compose-open').click();
+  await page.getByTestId('compose-subject').fill(subject);
+
+  await page.locator('[data-testid=folder][data-folder=INBOX]').click();
+  await expect(page.getByTestId('leave-dialog')).toBeVisible();
+  await page.getByTestId('leave-cancel').click();
+  await expect(page).toHaveURL(/\/compose$/);
+  await expect(page.getByTestId('compose-subject')).toHaveValue(subject);
+
+  await page.locator('[data-testid=folder][data-folder=Drafts]').click();
+  await page.getByTestId('leave-save').click();
+  await expect(page).toHaveURL(/\/mail\/Drafts$/);
+  await expect(page.getByTestId('message').filter({ hasText: subject })).toHaveCount(1);
+
+  await page.getByTestId('compose-open').click();
+  await page.getByTestId('compose-subject').fill('thrown away');
+  await page.locator('[data-testid=folder][data-folder=INBOX]').click();
+  await page.getByTestId('leave-discard').click();
+  await expect(page).toHaveURL(/\/mail\/INBOX$/);
+
+  await page.getByTestId('compose-open').click();
+  await page.locator('[data-testid=folder][data-folder=Sent]').click();
+  await expect(page).toHaveURL(/\/mail\/Sent$/);
+});
+
+test('switching to plain text and back keeps formatting', async ({ page }) => {
+  await signIn(page);
+  await page.getByTestId('compose-open').click();
+  await page.getByTestId('compose-editor').locator('p').first().click();
+  await page.keyboard.press('ControlOrMeta+b');
+  await page.keyboard.type('bold words');
+  await expect(page.getByTestId('compose-editor').locator('b, strong')).toHaveText('bold words');
+  await page.getByTestId('compose-format').click();
+  await expect(page.getByTestId('compose-text')).toHaveValue(/bold words/);
+  await page.getByTestId('compose-format').click();
+  await expect(page.getByTestId('compose-editor').locator('b, strong')).toHaveText('bold words');
+});
+
+test('login refuses an address without a dot in the domain and the bird hides its eyes', async ({ browser, baseURL }) => {
+  const page = await (await browser.newContext({ locale: 'en-US' })).newPage();
+  await page.goto(baseURL!);
+  await page.getByLabel('Email address').fill('alice@golub');
+  await page.getByLabel('Password').fill('x');
+  await expect(page.getByTestId('login-bird')).toHaveClass(/covering/);
+  await page.getByRole('button', { name: 'Sign in' }).click();
+  await expect(page.getByTestId('login-error')).toHaveText('Enter a full email address, for example name@example.com.');
+  await page.getByLabel('Email address').click();
+  await expect(page.getByTestId('login-bird')).not.toHaveClass(/covering/);
+  await page.context().close();
+});

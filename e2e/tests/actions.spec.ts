@@ -75,3 +75,37 @@ test('delete moves to Trash, deleting in Trash is permanent, next message opens'
   await expect(page.getByTestId('toast')).toHaveText('Deleted permanently.');
   await expect(row(page, 'Action 5')).toHaveCount(0);
 });
+
+test('A archives, S moves to spam, and Undo puts messages back', async ({ page }) => {
+  await signIn(page);
+  await page.locator('[data-testid=folder][data-folder=Actions]').click();
+  await row(page, 'Action 4').getByRole('link').click();
+  await expect(page.getByTestId('message-subject')).toHaveText('Action 4');
+
+  await page.keyboard.press('a');
+  await expect(page.getByTestId('toast')).toHaveText('Archived to Archive.');
+  await expect(row(page, 'Action 4')).toHaveCount(0);
+  await page.getByTestId('toast-action').click();
+  await expect(row(page, 'Action 4')).toHaveCount(1);
+
+  await row(page, 'Action 4').getByRole('link').click();
+  await page.keyboard.press('s');
+  await expect(page.getByTestId('toast')).toHaveText('Moved to Spam.');
+  await expect(row(page, 'Action 4')).toHaveCount(0);
+  await page.getByTestId('toast-action').click();
+  await expect(row(page, 'Action 4')).toHaveCount(1);
+
+  await row(page, 'Action 4').getByRole('link').click();
+  await page.getByTestId('action-delete').click();
+  await expect(page.getByTestId('toast')).toHaveText('Moved to Trash.');
+  await page.getByTestId('toast-action').click();
+  await expect(row(page, 'Action 4')).toHaveCount(1);
+});
+
+test('shortcuts are listed in settings', async ({ page }) => {
+  await signIn(page);
+  await page.getByTestId('settings-open').click();
+  await page.locator('[data-testid=settings-nav][data-section=shortcuts]').click();
+  await expect(page.getByTestId('shortcuts')).toContainText('Move to Spam');
+  await expect(page.getByTestId('shortcuts')).toContainText('Open the next message');
+});
