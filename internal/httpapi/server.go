@@ -30,6 +30,7 @@ type Options struct {
 
 	Codec          *auth.Codec
 	Mail           MailAuth
+	Pool           MailPool
 	SSO            *auth.SSOVerifier
 	MasterUser     string
 	MasterPassword string
@@ -55,6 +56,10 @@ func New(o Options) http.Handler {
 		mux.HandleFunc("POST /api/login", a.login)
 		mux.HandleFunc("POST /api/logout", a.logout)
 		mux.HandleFunc("POST /api/prefs", a.prefs)
+		if o.Pool != nil {
+			mux.HandleFunc("GET /api/folders", a.withSession(a.folders))
+			mux.HandleFunc("GET /api/messages", a.withSession(a.messages))
+		}
 		if o.SSO != nil {
 			mux.HandleFunc("GET /sso", a.sso)
 		} else {

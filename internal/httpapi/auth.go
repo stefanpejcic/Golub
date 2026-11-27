@@ -131,11 +131,15 @@ func (a *authAPI) login(w http.ResponseWriter, r *http.Request) {
 }
 
 func (a *authAPI) logout(w http.ResponseWriter, r *http.Request) {
+	a.clearSession(w, r)
+	w.WriteHeader(http.StatusNoContent)
+}
+
+func (a *authAPI) clearSession(w http.ResponseWriter, r *http.Request) {
 	http.SetCookie(w, &http.Cookie{ //nolint:gosec // Secure follows the request scheme so plain-HTTP setups behind a proxy still work
 		Name: SessionCookie, Value: "", Path: "/", MaxAge: -1,
 		HttpOnly: true, SameSite: http.SameSiteLaxMode, Secure: isSecure(r, a.o.HTTPS, a.o.TrustProxy),
 	})
-	w.WriteHeader(http.StatusNoContent)
 }
 
 type prefsRequest struct {

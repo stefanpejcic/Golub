@@ -59,12 +59,16 @@ func run(ctx context.Context, getenv func(string) string, logOut io.Writer) erro
 	if err != nil {
 		return err
 	}
+	pool := imapx.NewPool(&imapx.Dialer{Endpoint: cfg.IMAP, TLS: imapTLS}, 5*time.Minute)
+	defer pool.Close()
+
 	opts := httpapi.Options{
 		Version:        version,
 		Static:         ui.FS(),
 		HTTPS:          cfg.HTTPS(),
 		Codec:          codec,
-		Mail:           &imapx.Dialer{Endpoint: cfg.IMAP, TLS: imapTLS},
+		Mail:           pool,
+		Pool:           pool,
 		MasterUser:     cfg.MasterUser,
 		MasterPassword: cfg.MasterPassword,
 		SessionTTL:     cfg.SessionTTL,

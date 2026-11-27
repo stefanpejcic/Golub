@@ -6,6 +6,7 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"net/http/httptest"
 	"net/netip"
@@ -39,10 +40,7 @@ func (f *fakeMail) Check(_ context.Context, user, pass string) error {
 
 func newAuthServer(t *testing.T, mutate ...func(*Options)) (http.Handler, *fakeMail) {
 	t.Helper()
-	codec, err := auth.NewCodec(bytes.Repeat([]byte{1}, 32))
-	if err != nil {
-		t.Fatal(err)
-	}
+	codec := testCodec(t)
 	fm := &fakeMail{users: map[string]string{
 		"alice@golub.test":             "secret",
 		"alice@golub.test*golubmaster": "masterpw",
@@ -63,6 +61,20 @@ func newAuthServer(t *testing.T, mutate ...func(*Options)) (http.Handler, *fakeM
 		m(&o)
 	}
 	return New(o), fm
+}
+
+func testCodec(t *testing.T) *auth.Codec {
+	t.Helper()
+	c, err := auth.NewCodec(bytes.Repeat([]byte{1}, 32))
+	if err != nil {
+		t.Fatal(err)
+	}
+	return c
+}
+
+func ssoToken(t *testing.T) string {
+	t.Helper()
+	return auth.SignSSO(testSSOSecret, auth.SSOClaims{Email: "alice@golub.test", Expires: time.Now().Add(30 * time.Second).Unix(), Nonce: fmt.Sprintf("nonce-%d", time.Now().UnixNano())})
 }
 
 func jsonReq(method, path, body string) *http.Request {
