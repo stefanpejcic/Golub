@@ -72,6 +72,9 @@ const state = $state({
   message: null as MessageView | null,
   messageLoading: false,
   messageError: '',
+  query: '',
+  selected: [] as number[],
+  anchor: null as number | null,
 });
 
 let seq = 0;
@@ -86,15 +89,19 @@ function fail(e: unknown): string {
 
 let messageSeq = 0;
 
-function readLocation(): { folder: string; page: number; uid: number | null } {
+function readLocation(): { folder: string; page: number; uid: number | null; query: string } {
   const parsed = parseMailPath(location.pathname);
-  const page = Math.max(1, Number(new URLSearchParams(location.search).get('page')) || 1);
-  return { folder: parsed?.folder ?? 'INBOX', uid: parsed?.uid ?? null, page };
+  const params = new URLSearchParams(location.search);
+  const page = Math.max(1, Number(params.get('page')) || 1);
+  return { folder: parsed?.folder ?? 'INBOX', uid: parsed?.uid ?? null, page, query: params.get('q') ?? '' };
 }
 
 function writeLocation(folder: string, page: number, replace: boolean, uid: number | null = null) {
   const base = uid === null ? folderPath(folder) : messagePath(folder, uid);
-  const url = base + (page > 1 ? `?page=${page}` : '');
+  const params = [page > 1 ? `page=${page}` : '', state.query ? `q=${encodeURIComponent(state.query)}` : '']
+    .filter(Boolean)
+    .join('&');
+  const url = base + (params ? `?${params}` : '');
   if (url === location.pathname + location.search) return;
   if (replace) history.replaceState(null, '', url);
   else history.pushState(null, '', url);
@@ -125,6 +132,15 @@ export const mail = {
   get error() {
     return state.error;
   },
+  get query() {
+    return state.query;
+  },
+  search(query: string) {
+    const q = query.trim();
+    if (q === state.query) return;
+    state.query = q;
+    this.open(state.folder, 1);
+  },
   get uid() {
     return state.uid;
   },
@@ -136,6 +152,35 @@ export const mail = {
   },
   get messageError() {
     return state.messageError;
+  },
+  get selected() {
+    return state.selected;
+  },
+  isSelected(uid: number) {
+    return state.selected.includes(uid);
+  },
+  // Ctrl/Cmd toggles one row, Shift extends from the last clicked row, like a desktop mail client.
+  select(uid: number, mode: 'single' | 'toggle' | 'range') {
+    if (mode === 'range' && state.anchor !== null) {
+      const uids = state.messages.map((m) => m.uid);
+      const [a, b] = [uids.indexOf(state.anchor), uids.indexOf(uid)].sort((x, y) => x - y);
+      if (a >= 0) {
+        state.selected = uids.slice(a, b + 1);
+        return;
+      }
+    }
+    if (mode === 'toggle') {
+      state.selected = state.selected.includes(uid) ? state.selected.filter((u) => u !== uid) : [...state.selected, uid];
+    } else {
+      state.selected = [uid];
+    }
+    state.anchor = uid;
+  },
+  selectAll() {
+    state.selected = state.messages.map((m) => m.uid);
+  },
+  clearSelection() {
+    state.selected = state.uid !== null ? [state.uid] : [];
   },
   get current(): Folder | undefined {
     return state.folders.find((f) => f.name === state.folder);
@@ -151,18 +196,22 @@ export const mail = {
 
   async open(folder: string, page = 1, opts: { replace?: boolean; history?: boolean } = {}) {
     const mine = ++seq;
+    if (folder !== state.folder) state.query = '';
     if (opts.history !== false) {
       messageSeq++;
       state.uid = null;
       state.message = null;
     }
+    state.selected = [];
+    state.anchor = null;
     state.folder = folder;
     state.page = page;
     state.loading = true;
     state.error = '';
     if (opts.history !== false) writeLocation(folder, page, opts.replace ?? false);
     try {
-      const q = `folder=${encodeURIComponent(folder)}&page=${page}&size=${PAGE_SIZE}`;
+      const search = state.query ? `&q=${encodeURIComponent(state.query)}` : '';
+      const q = `folder=${encodeURIComponent(folder)}&page=${page}&size=${PAGE_SIZE}${search}`;
       const res = await api<MessagePage>('GET', `/api/messages?${q}`);
       if (mine !== seq) return;
       state.total = res.total;
@@ -181,6 +230,8 @@ export const mail = {
     const mine = ++messageSeq;
     const folder = state.folder;
     state.uid = uid;
+    state.selected = [uid];
+    state.anchor = uid;
     state.message = null;
     state.messageError = '';
     state.messageLoading = true;
@@ -205,6 +256,7 @@ export const mail = {
   closeMessage(opts: { history?: boolean } = {}) {
     messageSeq++;
     state.uid = null;
+    state.selected = [];
     state.message = null;
     state.messageError = '';
     if (opts.history !== false) writeLocation(state.folder, state.page, false);
@@ -233,6 +285,7 @@ export const mail = {
   async removeRows(uids: number[]) {
     const idx = state.messages.findIndex((r) => uids.includes(r.uid));
     state.messages = state.messages.filter((r) => !uids.includes(r.uid));
+    state.selected = state.selected.filter((u) => !uids.includes(u));
     state.total = Math.max(0, state.total - uids.length);
     if (state.uid !== null && uids.includes(state.uid)) {
       const next = state.messages[Math.min(idx, state.messages.length - 1)];
@@ -247,6 +300,12 @@ export const mail = {
     await this.removeRows(uids);
   },
 
+  async archive(uids: number[]): Promise<string> {
+    const res = await api<{ folder: string }>('POST', '/api/messages/archive', { folder: state.folder, uids });
+    await this.removeRows(uids);
+    return res.folder;
+  },
+
   async remove(uids: number[]): Promise<boolean> {
     const res = await api<{ trashed: boolean }>('POST', '/api/messages/delete', { folder: state.folder, uids });
     await this.removeRows(uids);
@@ -254,13 +313,17 @@ export const mail = {
   },
 
   start() {
-    const { folder, page, uid } = readLocation();
+    const { folder, page, uid, query } = readLocation();
+    state.folder = folder;
+    state.query = query;
     this.loadFolders();
     this.open(folder, page, { replace: true, history: uid === null });
     if (uid !== null) this.openMessage(uid, { history: false });
     const onPop = () => {
       const loc = readLocation();
-      if (loc.folder !== state.folder || loc.page !== state.page) {
+      if (loc.folder !== state.folder || loc.page !== state.page || loc.query !== state.query) {
+        state.folder = loc.folder;
+        state.query = loc.query;
         this.open(loc.folder, loc.page, { history: false });
       }
       if (loc.uid === null) this.closeMessage({ history: false });

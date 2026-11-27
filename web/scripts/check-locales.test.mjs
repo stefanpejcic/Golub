@@ -15,8 +15,8 @@ describe('compareKeys', () => {
 
 describe('findUnused', () => {
   it('treats literals and dynamic prefixes as used', () => {
-    const sources = ["t('a.b')", 't(`theme.${v}`)', 'x = "c.d"'];
-    const unused = findUnused(['a.b', 'theme.dark', 'c.d', 'e.f'], sources);
+    const sources = ["t('a.b')", 't(`theme.${v}`)', 'x = "c.d"', 't(`mode.to_${next}`)'];
+    const unused = findUnused(['a.b', 'theme.dark', 'c.d', 'e.f', 'mode.to_dark'], sources);
     expect(unused).toEqual(['e.f']);
   });
 });

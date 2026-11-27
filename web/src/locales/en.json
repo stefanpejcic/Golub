@@ -1,9 +1,5 @@
 {
   "app.name": "Golub",
-  "settings.theme": "Theme",
-  "settings.theme.system": "System",
-  "settings.theme.light": "Light",
-  "settings.theme.dark": "Dark",
   "settings.language": "Language",
   "language.en": "English",
   "language.sr-Latn": "Srpski",
@@ -60,7 +56,6 @@
   "errors.message.too_large": "This message is too large to display.",
   "errors.message.unreadable": "This message could not be read.",
   "errors.message.part_not_found": "This attachment no longer exists.",
-  "about.open": "About",
   "about.version": "Version {version}",
   "about.description": "A fast, lightweight webmail client. Single binary, no database, works with any IMAP and SMTP server.",
   "about.copyright": "© {year} Stefan Pejčić and contributors.",
@@ -79,5 +74,25 @@
   "actions.move_to": "Move to…",
   "toast.trashed": "Moved to Trash.",
   "toast.deleted": "Deleted permanently.",
-  "toast.moved": "Moved to {folder}."
+  "toast.moved": "Moved to {folder}.",
+  "theme.to_dark": "Switch to dark mode",
+  "theme.to_light": "Switch to light mode",
+  "actions.archive": "Archive",
+  "toast.archived": "Archived to {folder}.",
+  "toast.trashed_many": {
+    "one": "{count} message moved to Trash.",
+    "other": "{count} messages moved to Trash."
+  },
+  "toast.deleted_many": {
+    "one": "{count} message deleted permanently.",
+    "other": "{count} messages deleted permanently."
+  },
+  "list.selected": {
+    "one": "{count} selected",
+    "other": "{count} selected"
+  },
+  "list.clear_selection": "Clear selection",
+  "search.label": "Search messages",
+  "search.placeholder": "Search subject, sender, recipient…",
+  "search.no_results": "No messages match your search."
 }

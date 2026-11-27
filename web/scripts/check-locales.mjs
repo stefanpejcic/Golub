@@ -22,7 +22,7 @@ export function compareKeys(catalogs) {
 
 export function findUnused(keys, sources) {
   const text = sources.join('\n');
-  const prefixes = [...text.matchAll(/`([\w.-]+\.)\$\{/g)].map((m) => m[1]);
+  const prefixes = [...text.matchAll(/`([\w.-]+[._])\$\{/g)].map((m) => m[1]);
   return keys.filter(
     (k) => !new RegExp(`['"\`]${k.replace(/[.-]/g, '\\$&')}['"\`]`).test(text) && !prefixes.some((p) => k.startsWith(p)),
   );

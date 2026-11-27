@@ -150,7 +150,7 @@
     color: var(--color-danger);
   }
   footer {
-    inline-size: var(--sidebar-width);
+    align-self: flex-start;
   }
   footer :global(.prefs) {
     border-block-start: none;

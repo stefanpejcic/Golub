@@ -4,8 +4,7 @@
   import { mail } from './lib/mail.svelte';
   import { formatFullDate, formatSize, type Address } from './lib/format';
   import { errorMessage } from './lib/errors';
-  import { ApiError } from './lib/api';
-  import { toast } from './lib/toast.svelte';
+  import { archiveMessages, flagMessages, folderLabel, moveMessages, removeMessages } from './lib/actions';
 
   const t = $derived(i18n.t);
   const m = $derived(mail.message);
@@ -23,38 +22,19 @@
     mail.folders.filter((f) => f.selectable && f.name !== mail.folder),
   );
 
-  function folderLabel(name: string): string {
-    const f = mail.folders.find((x) => x.name === name);
-    return f?.special ? t(`folder.${f.special}`) : name;
-  }
-
-  async function run(action: () => Promise<string | void>) {
-    try {
-      const msg = await action();
-      if (msg) toast.show(msg);
-    } catch (e) {
-      toast.show(errorMessage(t, e instanceof ApiError ? e.code : 'unknown'), true);
-    }
-  }
-
   function remove() {
-    if (!m) return;
-    const uid = m.uid;
-    run(async () => ((await mail.remove([uid])) ? t('toast.trashed') : t('toast.deleted')));
+    if (m) removeMessages([m.uid]);
   }
 
   function move(to: string) {
-    if (!m || !to) return;
-    const uid = m.uid;
-    run(async () => {
-      await mail.move([uid], to);
-      return t('toast.moved', { folder: folderLabel(to) });
-    });
+    if (m && to) moveMessages([m.uid], to);
   }
 
   function onKey(e: KeyboardEvent) {
     const target = e.target as HTMLElement;
-    if (e.key === 'Delete' && m && !['INPUT', 'TEXTAREA', 'SELECT'].includes(target.tagName)) remove();
+    if (e.key === 'Delete' && m && mail.selected.length <= 1 && !['INPUT', 'TEXTAREA', 'SELECT'].includes(target.tagName)) {
+      remove();
+    }
   }
 
   function people(list: Address[]): string {
@@ -74,10 +54,16 @@
           </svg>
           <span>{t('actions.delete')}</span>
         </button>
+        <button type="button" class="btn" onclick={() => archiveMessages([m!.uid])} data-testid="action-archive">
+          <svg class="icon" viewBox="0 0 16 16" aria-hidden="true">
+            <rect x="2" y="2.5" width="12" height="3" rx=".5" /><path d="M3 5.5V13h10V5.5M6.5 8.5h3" />
+          </svg>
+          <span>{t('actions.archive')}</span>
+        </button>
         <button
           type="button"
           class="btn"
-          onclick={() => run(() => mail.setFlag([m!.uid], 'seen', !m!.seen))}
+          onclick={() => flagMessages([m!.uid], 'seen', !m!.seen)}
           data-testid="action-seen"
         >
           <svg class="icon" viewBox="0 0 16 16" aria-hidden="true">
@@ -98,7 +84,7 @@
           type="button"
           class="btn"
           aria-pressed={m.flagged}
-          onclick={() => run(() => mail.setFlag([m!.uid], 'flagged', !m!.flagged))}
+          onclick={() => flagMessages([m!.uid], 'flagged', !m!.flagged)}
           data-testid="action-flag"
         >
           <svg class="icon" class:flagged={m.flagged} viewBox="0 0 16 16" aria-hidden="true">

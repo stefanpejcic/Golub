@@ -1,9 +1,5 @@
 {
   "app.name": "Golub",
-  "settings.theme": "Tema",
-  "settings.theme.system": "Sistemska",
-  "settings.theme.light": "Svetla",
-  "settings.theme.dark": "Tamna",
   "settings.language": "Jezik",
   "language.en": "English",
   "language.sr-Latn": "Srpski",
@@ -63,7 +59,6 @@
   "errors.message.too_large": "Ova poruka je prevelika za prikaz.",
   "errors.message.unreadable": "Ova poruka ne može da se pročita.",
   "errors.message.part_not_found": "Ovaj prilog više ne postoji.",
-  "about.open": "O programu",
   "about.version": "Verzija {version}",
   "about.description": "Brz i lagan klijent za veb poštu. Jedna izvršna datoteka, bez baze podataka, radi sa svakim IMAP i SMTP serverom.",
   "about.copyright": "© {year} Stefan Pejčić i saradnici.",
@@ -82,5 +77,28 @@
   "actions.move_to": "Premesti u…",
   "toast.trashed": "Premešteno u otpad.",
   "toast.deleted": "Trajno obrisano.",
-  "toast.moved": "Premešteno u {folder}."
+  "toast.moved": "Premešteno u {folder}.",
+  "theme.to_dark": "Uključi tamni režim",
+  "theme.to_light": "Uključi svetli režim",
+  "actions.archive": "Arhiviraj",
+  "toast.archived": "Arhivirano u {folder}.",
+  "toast.trashed_many": {
+    "one": "{count} poruka je premeštena u otpad.",
+    "few": "{count} poruke su premeštene u otpad.",
+    "other": "{count} poruka je premešteno u otpad."
+  },
+  "toast.deleted_many": {
+    "one": "{count} poruka je trajno obrisana.",
+    "few": "{count} poruke su trajno obrisane.",
+    "other": "{count} poruka je trajno obrisano."
+  },
+  "list.selected": {
+    "one": "{count} izabrana",
+    "few": "{count} izabrane",
+    "other": "{count} izabranih"
+  },
+  "list.clear_selection": "Poništi izbor",
+  "search.label": "Pretraga poruka",
+  "search.placeholder": "Pretraži naslov, pošiljaoca, primaoca…",
+  "search.no_results": "Nijedna poruka ne odgovara pretrazi."
 }

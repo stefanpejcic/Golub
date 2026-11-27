@@ -34,7 +34,12 @@
     <MessageList />
   </main>
   <section class="preview-pane">
-    {#if mail.uid !== null}
+    {#if mail.selected.length > 1}
+      <div class="placeholder" data-testid="multi-selected">
+        <Logo size={56} />
+        <p>{t('list.selected', { count: mail.selected.length })}</p>
+      </div>
+    {:else if mail.uid !== null}
       <MessageView />
     {:else}
       <div class="placeholder" data-testid="no-message">
@@ -50,13 +55,14 @@
 <style>
   .mailbox {
     display: grid;
-    grid-template-columns: var(--sidebar-width) minmax(20rem, 26rem) minmax(0, 1fr);
+    grid-template-columns: fit-content(28rem) minmax(20rem, 26rem) minmax(0, 1fr);
     block-size: 100vh;
   }
   aside {
     display: flex;
     flex-direction: column;
     min-block-size: 0;
+    min-inline-size: var(--sidebar-width);
     background: var(--color-surface);
     border-inline-end: 1px solid var(--color-border);
   }
@@ -81,8 +87,6 @@
     font-weight: 500;
   }
   .account span {
-    overflow: hidden;
-    text-overflow: ellipsis;
     white-space: nowrap;
   }
   .folders {
@@ -117,7 +121,7 @@
   /* Too narrow for three columns: show either the list or the open message. */
   @media (max-width: 64rem) {
     .mailbox {
-      grid-template-columns: var(--sidebar-width) minmax(0, 1fr);
+      grid-template-columns: fit-content(28rem) minmax(0, 1fr);
     }
     .list-pane {
       border-inline-end: none;
