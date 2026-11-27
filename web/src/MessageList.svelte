@@ -91,7 +91,10 @@
       step(e.key === 'ArrowDown' ? 1 : -1);
       return;
     }
-    if (e.key === 'Escape' && bulk) mail.clearSelection();
+    if (e.key === 'Escape' && !e.defaultPrevented && !document.querySelector('dialog[open]')) {
+      if (bulk) mail.clearSelection();
+      else if (mail.uid !== null) mail.closeMessage();
+    }
     if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'a' && mail.messages.length) {
       e.preventDefault();
       mail.selectAll();

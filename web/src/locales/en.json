@@ -322,5 +322,7 @@
   "shortcuts.group.settings": "Settings",
   "shortcuts.next_section": "Next section",
   "shortcuts.previous_section": "Previous section",
-  "shortcuts.close_settings": "Close settings and go back to mail"
+  "shortcuts.close_settings": "Close settings and go back to mail",
+  "shortcuts.close_message": "Close the open message",
+  "shortcuts.close_compose": "Close compose (asks to save unsaved changes)"
 }

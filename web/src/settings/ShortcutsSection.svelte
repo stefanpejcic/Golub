@@ -16,6 +16,7 @@
         { keys: ['Shift', t('shortcuts.click')], label: 'shortcuts.range_select' },
         { keys: [mod, 'A'], label: 'shortcuts.select_all' },
         { keys: ['Esc'], label: 'shortcuts.clear' },
+        { keys: ['Esc'], label: 'shortcuts.close_message' },
       ],
     },
     {
@@ -38,6 +39,7 @@
       title: 'shortcuts.group.compose',
       items: [
         { keys: [mod, 'Enter'], label: 'shortcuts.send' },
+        { keys: ['Esc'], label: 'shortcuts.close_compose' },
         { keys: [mod, 'S'], label: 'shortcuts.save' },
         { keys: [mod, 'B'], label: 'compose.bold' },
         { keys: [mod, 'I'], label: 'compose.italic' },

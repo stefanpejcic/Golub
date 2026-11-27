@@ -374,7 +374,13 @@
     route.setGuard(null);
   });
 
-  function onKey(e: KeyboardEvent) {
+  async function onKey(e: KeyboardEvent) {
+    // Esc leaves like any other navigation, so unsaved changes still get the save prompt.
+    if (e.key === 'Escape' && !e.defaultPrevented && !document.querySelector('dialog[open]')) {
+      e.preventDefault();
+      if (await route.go(folderPath(mail.folder))) mail.refresh();
+      return;
+    }
     if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
       e.preventDefault();
       send();

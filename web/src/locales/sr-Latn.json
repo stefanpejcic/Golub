@@ -331,5 +331,7 @@
   "shortcuts.group.settings": "Podešavanja",
   "shortcuts.next_section": "Sledeća sekcija",
   "shortcuts.previous_section": "Prethodna sekcija",
-  "shortcuts.close_settings": "Zatvori podešavanja i vrati se na poštu"
+  "shortcuts.close_settings": "Zatvori podešavanja i vrati se na poštu",
+  "shortcuts.close_message": "Zatvori otvorenu poruku",
+  "shortcuts.close_compose": "Zatvori pisanje (pita da sačuva nesačuvane izmene)"
 }

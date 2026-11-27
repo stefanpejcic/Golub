@@ -94,3 +94,29 @@ test('sending without a subject asks first, and Cancel keeps the draft open', as
   await expect(page.getByTestId('dialog')).toBeHidden();
   await expect(page).toHaveURL(/\/compose$/);
 });
+
+test('Esc closes the open message', async ({ page }) => {
+  await signIn(page);
+  await openBySubject(page, 'Plain text');
+  await expect(page).toHaveURL(/\/mail\/INBOX\/\d+$/);
+  await page.locator('body').press('Escape');
+  await expect(page).toHaveURL(/\/mail\/INBOX$/);
+  await expect(page.getByTestId('no-message')).toBeVisible();
+});
+
+test('Esc closes compose, asking first when there are changes', async ({ page }) => {
+  await signIn(page);
+  await page.getByTestId('compose-open').click();
+  await page.keyboard.press('Escape');
+  await expect(page).toHaveURL(/\/mail\/INBOX$/);
+
+  await page.getByTestId('compose-open').click();
+  await page.getByTestId('compose-subject').fill('half written');
+  await page.keyboard.press('Escape');
+  await expect(page.getByTestId('leave-dialog')).toBeVisible();
+  await page.getByTestId('leave-cancel').click();
+  await expect(page).toHaveURL(/\/compose$/);
+  await page.keyboard.press('Escape');
+  await page.getByTestId('leave-discard').click();
+  await expect(page).toHaveURL(/\/mail\/INBOX$/);
+});
