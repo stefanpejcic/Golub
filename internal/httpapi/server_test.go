@@ -115,3 +115,14 @@ func TestHSTS(t *testing.T) {
 		t.Errorf("HSTS = %q", got)
 	}
 }
+
+func TestServerTiming(t *testing.T) {
+	h := New(Options{Version: "1", Static: testFS})
+	rec := do(h, http.MethodGet, "/api/nope")
+	if !strings.HasPrefix(rec.Header().Get("Server-Timing"), "app;dur=") {
+		t.Fatalf("missing Server-Timing: %v", rec.Header())
+	}
+	if do(h, http.MethodGet, "/").Header().Get("Server-Timing") != "" {
+		t.Error("static files should not carry Server-Timing")
+	}
+}

@@ -97,7 +97,7 @@ func New(o Options) http.Handler {
 		mux.Handle("GET /proxy", o.Proxy)
 	}
 	mux.Handle("/", fallback(spa(o.Static)))
-	return securityHeaders(o.HTTPS, http.NewCrossOriginProtection().Handler(mux))
+	return securityHeaders(o.HTTPS, http.NewCrossOriginProtection().Handler(timed(mux)))
 }
 
 func securityHeaders(https bool, next http.Handler) http.Handler {
