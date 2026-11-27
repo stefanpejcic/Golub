@@ -17,7 +17,7 @@ afterEach(() => vi.unstubAllGlobals());
 
 describe('columns', () => {
   it('clamps to limits', () => {
-    expect(clamp('sidebar', 10)).toBe(208);
+    expect(clamp('sidebar', 10)).toBe(180);
     expect(clamp('list', 9999)).toBe(720);
     expect(clamp('list', 400.4)).toBe(400);
   });
@@ -34,6 +34,6 @@ describe('columns', () => {
     m.set('golub.columns', '{bad');
     expect(loadColumns()).toBeNull();
     m.set('golub.columns', JSON.stringify({ sidebar: 5, list: 99999 }));
-    expect(loadColumns()).toEqual({ sidebar: 208, list: 720 });
+    expect(loadColumns()).toEqual({ sidebar: 180, list: 720 });
   });
 });

@@ -67,7 +67,7 @@
   });
 </script>
 
-<div bind:this={root} class="mailbox" class:has-message={mail.uid !== null} class:in-settings={route.settingsSection !== null}>
+<div bind:this={root} class="mailbox" class:custom={columns !== null} class:has-message={mail.uid !== null} class:in-settings={route.settingsSection !== null}>
   <aside bind:this={aside}>
     <Resizer
       label={t('layout.resize_sidebar')}
@@ -102,11 +102,13 @@
         }}
         data-testid="settings-open"
       >
-        <svg class="icon" viewBox="0 0 24 24" aria-hidden="true">
+        <svg class="gear" viewBox="0 0 24 24" aria-hidden="true">
           <path
-            d="M10.3 2.6a1.7 1.7 0 0 1 3.4 0l.2 1.3a7.6 7.6 0 0 1 1.9 1.1l1.2-.5a1.7 1.7 0 0 1 2.1.8l.1.2a1.7 1.7 0 0 1-.4 2.1l-1 .8a7.7 7.7 0 0 1 0 2.2l1 .8a1.7 1.7 0 0 1 .4 2.1l-.1.2a1.7 1.7 0 0 1-2.1.8l-1.2-.5a7.6 7.6 0 0 1-1.9 1.1l-.2 1.3a1.7 1.7 0 0 1-3.4 0l-.2-1.3a7.6 7.6 0 0 1-1.9-1.1l-1.2.5a1.7 1.7 0 0 1-2.1-.8l-.1-.2a1.7 1.7 0 0 1 .4-2.1l1-.8a7.7 7.7 0 0 1 0-2.2l-1-.8a1.7 1.7 0 0 1-.4-2.1l.1-.2a1.7 1.7 0 0 1 2.1-.8l1.2.5a7.6 7.6 0 0 1 1.9-1.1Z"
+            class="teeth"
+            d="M19 12h2.6M16.95 16.95l1.84 1.84M12 19v2.6M7.05 16.95l-1.84 1.84M5 12H2.4M7.05 7.05 5.21 5.21M12 5V2.4M16.95 7.05l1.84-1.84"
           />
-          <circle cx="12" cy="10" r="3" />
+          <circle cx="12" cy="12" r="6.2" />
+          <circle cx="12" cy="12" r="2.2" />
         </svg>
       </a>
     </div>
@@ -190,10 +192,15 @@
     display: flex;
     flex-direction: column;
     min-block-size: 0;
-    min-inline-size: var(--sidebar-width);
+    min-inline-size: 0;
     background: var(--color-surface);
   }
+  /* The default width fits the address; once the user drags, their width wins and content shrinks. */
+  .mailbox:not(.custom) aside {
+    min-inline-size: var(--sidebar-width);
+  }
   .brand {
+    overflow: hidden;
     display: flex;
     align-items: center;
     gap: var(--space-2);
@@ -214,7 +221,10 @@
   }
   .email {
     flex: 1;
+    min-inline-size: 0;
     padding: 0.6rem var(--space-3);
+    overflow: hidden;
+    text-overflow: ellipsis;
     white-space: nowrap;
   }
   .cog {
@@ -222,7 +232,7 @@
     place-items: center;
     flex: none;
     inline-size: 2.75rem;
-    color: var(--color-text-muted);
+    color: var(--color-text);
     border-inline-start: 1px solid var(--color-border);
     border-start-end-radius: var(--radius);
     border-end-end-radius: var(--radius);
@@ -232,16 +242,24 @@
     color: var(--color-accent);
     background: var(--color-hover);
   }
-  .cog .icon {
-    inline-size: 1.15rem;
-    block-size: 1.15rem;
+  .gear {
+    inline-size: 1.25rem;
+    block-size: 1.25rem;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 2.2;
+  }
+  .gear .teeth {
+    stroke-width: 3.2;
   }
   .compose-btn {
     padding: var(--space-3) var(--space-2) 0;
   }
   .compose-btn .btn {
     inline-size: 100%;
+    min-inline-size: 0;
     padding-block: 0.5rem;
+    overflow: hidden;
     text-decoration: none;
   }
   .folders {

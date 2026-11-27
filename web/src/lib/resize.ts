@@ -8,7 +8,7 @@ export interface Columns {
   list: number;
 }
 
-export const LIMITS = { sidebar: [208, 480], list: [280, 720] } as const;
+export const LIMITS = { sidebar: [180, 480], list: [280, 720] } as const;
 
 export function clamp(which: keyof Columns, px: number): number {
   const [min, max] = LIMITS[which];
