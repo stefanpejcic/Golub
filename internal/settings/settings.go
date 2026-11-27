@@ -76,6 +76,7 @@ func Defaults(email string) Settings {
 		MarkRead:         "immediately",
 		MarkReadDelay:    3,
 		RemoteImages:     "ask",
+		ShowAddresses:    true,
 		ComposeHTML:      true,
 		ReplyPosition:    "above",
 		ForwardMode:      "inline",

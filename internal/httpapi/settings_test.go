@@ -136,3 +136,13 @@ func TestFolderEndpoints(t *testing.T) {
 		}
 	}
 }
+
+func TestQuotaUnsupported(t *testing.T) {
+	h, c := newMutateServer(t)
+	r := httptest.NewRequest("GET", "/api/quota", nil)
+	r.AddCookie(c)
+	rec := serve(h, r)
+	if rec.Code != 200 || !strings.Contains(rec.Body.String(), `"supported":false`) {
+		t.Fatalf("%d %s", rec.Code, rec.Body)
+	}
+}

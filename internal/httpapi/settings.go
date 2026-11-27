@@ -122,3 +122,21 @@ func (a *authAPI) folderOp(op string) func(http.ResponseWriter, *http.Request, a
 		w.WriteHeader(http.StatusNoContent)
 	}
 }
+
+func (a *authAPI) quota(w http.ResponseWriter, r *http.Request, s auth.Session) {
+	var q *imapx.QuotaInfo
+	err := a.do(r, s, func(c *imapclient.Client) error {
+		var err error
+		q, err = imapx.Quota(c)
+		return err
+	})
+	if err != nil {
+		a.mailError(w, r, err)
+		return
+	}
+	if q == nil {
+		writeJSON(w, http.StatusOK, map[string]bool{"supported": false})
+		return
+	}
+	writeJSON(w, http.StatusOK, map[string]any{"supported": true, "used": q.Used, "limit": q.Limit})
+}

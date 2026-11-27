@@ -68,6 +68,7 @@ func New(o Options) http.Handler {
 			mux.HandleFunc("POST /api/messages/delete", a.withSession(a.remove))
 			mux.HandleFunc("POST /api/messages/archive", a.withSession(a.archive))
 			mux.HandleFunc("GET /api/settings", a.withSession(a.getSettings))
+			mux.HandleFunc("GET /api/quota", a.withSession(a.quota))
 			mux.HandleFunc("PUT /api/settings", a.withSession(a.putSettings))
 			for _, op := range []string{"create", "rename", "delete", "empty", "subscribe"} {
 				mux.HandleFunc("POST /api/folders/"+op, a.withSession(a.folderOp(op)))
