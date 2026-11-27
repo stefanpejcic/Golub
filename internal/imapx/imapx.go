@@ -35,7 +35,7 @@ func (d *Dialer) dial() (*imapclient.Client, error) {
 	if timeout == 0 {
 		timeout = 10 * time.Second
 	}
-	opts := &imapclient.Options{TLSConfig: d.TLS, Dialer: &net.Dialer{Timeout: timeout}}
+	opts := &imapclient.Options{TLSConfig: d.TLS, Dialer: &net.Dialer{Timeout: timeout}, WordDecoder: wordDecoder()}
 	addr := d.Endpoint.Addr()
 	switch d.Endpoint.TLS {
 	case config.TLSImplicit:

@@ -4,7 +4,10 @@ go 1.27.0
 
 toolchain go1.27.4
 
-require github.com/emersion/go-imap/v2 v2.0.0-beta.9
+require (
+	github.com/emersion/go-imap/v2 v2.0.0-beta.9
+	golang.org/x/text v0.44.0
+)
 
 require (
 	github.com/emersion/go-message v0.18.2 // indirect

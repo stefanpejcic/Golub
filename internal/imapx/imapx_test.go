@@ -6,37 +6,25 @@ import (
 	"context"
 	"errors"
 	"net"
-	"strconv"
 	"testing"
 	"time"
 
-	"github.com/emersion/go-imap/v2"
-	"github.com/emersion/go-imap/v2/imapserver"
 	"github.com/emersion/go-imap/v2/imapserver/imapmemserver"
 
 	"github.com/stefanpejcic/golub/internal/config"
+	"github.com/stefanpejcic/golub/internal/imaptest"
 )
 
 func startServer(t *testing.T) config.Endpoint {
 	t.Helper()
 	mem := imapmemserver.New()
 	mem.AddUser(imapmemserver.NewUser("alice@golub.test", "secret"))
-	srv := imapserver.New(&imapserver.Options{
-		NewSession: func(*imapserver.Conn) (imapserver.Session, *imapserver.GreetingData, error) {
-			return mem.NewSession(), nil, nil
-		},
-		Caps:         imap.CapSet{imap.CapIMAP4rev1: {}},
-		InsecureAuth: true,
-	})
-	l, err := net.Listen("tcp", "127.0.0.1:0")
-	if err != nil {
-		t.Fatal(err)
-	}
-	go func() { _ = srv.Serve(l) }()
-	t.Cleanup(func() { _ = srv.Close() })
-	host, port, _ := net.SplitHostPort(l.Addr().String())
-	p, _ := strconv.Atoi(port)
-	return config.Endpoint{Host: host, Port: p, TLS: config.TLSNone}
+	return listen(t, mem)
+}
+
+func listen(t *testing.T, mem *imapmemserver.Server) config.Endpoint {
+	t.Helper()
+	return imaptest.Listen(t, mem)
 }
 
 func TestCheck(t *testing.T) {
