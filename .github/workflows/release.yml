@@ -48,7 +48,7 @@ jobs:
           build-args: VERSION=${{ steps.meta.outputs.version }}
           sbom: true
           provenance: mode=max
-      - uses: sigstore/cosign-installer@v4
+      - uses: sigstore/cosign-installer@v4.1.4
       - name: sign
         run: cosign sign --yes "${IMAGE}@${{ steps.build.outputs.digest }}"
       - name: changelog
