@@ -15,6 +15,7 @@
   import { route } from './lib/route.svelte';
   import { folderPath } from './lib/format';
   import { ui } from './lib/ui.svelte';
+  import FolderSelect from './FolderSelect.svelte';
   import { folderLabel } from './lib/actions';
   import SettingsNav from './settings/SettingsNav.svelte';
   import SettingsPage from './settings/SettingsPage.svelte';
@@ -95,7 +96,11 @@
     >
       <svg class="icon" viewBox="0 0 16 16" aria-hidden="true"><path d="M2.5 4h11M2.5 8h11M2.5 12h11" /></svg>
     </button>
-    <span class="mobile-title">{mobileTitle}</span>
+    {#if route.settingsSection || route.compose}
+      <span class="mobile-title">{mobileTitle}</span>
+    {:else}
+      <FolderSelect />
+    {/if}
   </div>
   {#if ui.drawer}
     <button type="button" class="backdrop" aria-label={t('layout.close_menu')} onclick={() => ui.close()} data-testid="drawer-backdrop"></button>
@@ -157,7 +162,7 @@
         </a>
       </div>
     {/if}
-    <div class="folders">
+    <div class="folders" class:mobile-hidden={!route.settingsSection}>
       {#if route.settingsSection}
         <SettingsNav />
       {:else}
@@ -369,6 +374,9 @@
     }
     .drawer-open aside {
       transform: none;
+    }
+    .mobile-hidden {
+      visibility: hidden;
     }
     .backdrop {
       display: block;

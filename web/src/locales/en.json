@@ -309,5 +309,6 @@
   },
   "errors.compose.utf8_unsupported": "The mail server cannot deliver to addresses with non-Latin characters before the @.",
   "layout.menu": "Folders and menu",
-  "layout.close_menu": "Close menu"
+  "layout.close_menu": "Close menu",
+  "layout.folders": "Folder"
 }

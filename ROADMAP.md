@@ -96,3 +96,9 @@ Off unless the admin configures an endpoint (`GOLUB_AI_URL`, `GOLUB_AI_MODEL`, `
 
 ## Later
 Search, threading, contacts, multiple identities, drag and drop, PGP, dark message view for HTML mail, RTL locales.
+
+## Project
+
+- [ ] Documentation: install, configuration reference, SSO integration, reverse proxy examples
+- [ ] Project website
+- [ ] Public live demo with throwaway accounts, reset on a schedule

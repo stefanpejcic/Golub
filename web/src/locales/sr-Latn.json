@@ -318,5 +318,6 @@
   },
   "errors.compose.utf8_unsupported": "Server za poštu ne može da isporuči poruku na adresu sa nelatiničnim znakovima pre @.",
   "layout.menu": "Fascikle i meni",
-  "layout.close_menu": "Zatvori meni"
+  "layout.close_menu": "Zatvori meni",
+  "layout.folders": "Fascikla"
 }
