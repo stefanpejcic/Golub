@@ -1,25 +1,11 @@
 <!-- SPDX-License-Identifier: GPL-3.0-or-later -->
 <script lang="ts">
-  // The mark is the pigeon head on a tile that follows the theme; the mascot is the full carrier pigeon.
+  // The mark is the pigeon head used as the favicon; the mascot is the full carrier pigeon.
   let { size = 32, variant = 'mark' }: { size?: number; variant?: 'mark' | 'mascot' } = $props();
 </script>
 
 {#if variant === 'mark'}
-  <svg class="logo" width={size} height={size} viewBox="0 0 64 64" aria-hidden="true">
-    <rect class="bg" width="64" height="64" rx="14" />
-    <path
-      d="M10 62c0-14 6-22 14-26-4-6-4-14 2-20 8-8 22-6 26 4 3 7 0 13-4 16 6 4 10 12 10 26Z"
-      fill="#fff"
-      opacity=".18"
-    />
-    <path d="M14 46c8 6 26 6 36-2" fill="none" stroke="#34D399" stroke-width="5" stroke-linecap="round" />
-    <path d="M16 54c8 5 24 5 32-2" fill="none" stroke="#A78BFA" stroke-width="4.5" stroke-linecap="round" />
-    <circle cx="34" cy="26" r="9" fill="#fff" />
-    <circle cx="36" cy="26.5" r="5" fill="#0b1220" />
-    <circle cx="38" cy="24.5" r="1.6" fill="#fff" />
-    <ellipse cx="47" cy="27" rx="3.4" ry="2.6" fill="#fff" />
-    <path d="M49.5 29.5l9 3.5-9 2.5Z" fill="#334155" stroke="#334155" stroke-width="2.5" stroke-linejoin="round" />
-  </svg>
+  <img class="logo" src="/favicon.svg" width={size} height={size} alt="" aria-hidden="true" draggable="false" />
 {:else}
   <img class="logo" src="/golub.svg" width={size} height={size} alt="" aria-hidden="true" draggable="false" />
 {/if}
@@ -28,8 +14,5 @@
   .logo {
     flex: none;
     display: block;
-  }
-  .bg {
-    fill: var(--color-logo-bg);
   }
 </style>
