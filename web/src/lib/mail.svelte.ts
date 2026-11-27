@@ -335,6 +335,17 @@ export const mail = {
     await this.removeRows(uids);
   },
 
+  async copy(uids: number[], to: string) {
+    await api('POST', '/api/messages/copy', { folder: state.folder, uids, to });
+    await this.loadFolders();
+  },
+
+  // Opens one message outside the mailbox layout, for new windows and printing.
+  async openStandalone(folder: string, uid: number) {
+    state.folder = folder;
+    await Promise.all([this.loadFolders(), this.openMessage(uid, { history: false })]);
+  },
+
   async archive(uids: number[]): Promise<string> {
     const res = await api<{ folder: string }>('POST', '/api/messages/archive', { folder: state.folder, uids });
     await this.removeRows(uids);

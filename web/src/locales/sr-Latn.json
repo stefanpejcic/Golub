@@ -253,5 +253,16 @@
   "errors.compose.too_large": "Prilozi su veći od 25 MB.",
   "errors.compose.too_many_recipients": "Previše primalaca.",
   "errors.compose.unknown_identity": "Ovaj identitet više ne postoji. Izaberite drugog pošiljaoca.",
-  "errors.compose.send_failed": "Poruka nije poslata. Pokušajte kasnije."
+  "errors.compose.send_failed": "Poruka nije poslata. Pokušajte kasnije.",
+  "actions.more": "Više",
+  "actions.print": "Štampaj",
+  "actions.download": "Preuzmi (.eml)",
+  "actions.source": "Prikaži izvor",
+  "actions.edit_as_new": "Uredi kao novu",
+  "actions.new_window": "Otvori u novom prozoru",
+  "actions.copy_to": "Kopiraj u…",
+  "toast.copied": "Kopirano u {folder}.",
+  "message.all_headers": "Sva zaglavlja",
+  "message.view_plain": "Prikaži kao običan tekst",
+  "message.view_html": "Prikaži kao HTML"
 }

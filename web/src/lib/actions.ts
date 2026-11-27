@@ -47,3 +47,10 @@ export function moveMessages(uids: number[], to: string) {
 export function flagMessages(uids: number[], flag: 'seen' | 'flagged', value: boolean) {
   return run(() => mail.setFlag(uids, flag, value));
 }
+
+export function copyMessages(uids: number[], to: string) {
+  return run(async () => {
+    await mail.copy(uids, to);
+    return i18n.t('toast.copied', { folder: folderLabel(to) });
+  });
+}

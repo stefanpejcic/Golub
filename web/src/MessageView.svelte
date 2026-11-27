@@ -6,9 +6,13 @@
   import { errorMessage } from './lib/errors';
   import { settings } from './lib/settings.svelte';
   import { route } from './lib/route.svelte';
-  import { archiveMessages, flagMessages, folderLabel, moveMessages, removeMessages } from './lib/actions';
+  import { archiveMessages, copyMessages, flagMessages, folderLabel, moveMessages, removeMessages } from './lib/actions';
+  import Menu from './Menu.svelte';
 
+  let { standalone = false, onloaded }: { standalone?: boolean; onloaded?: () => void } = $props();
   const t = $derived(i18n.t);
+  let headers = $state('');
+  let showHeaders = $state(false);
   const m = $derived(mail.message);
 
   let showImages = $state(false);
@@ -17,7 +21,21 @@
     void mail.uid;
     showImages = settings.value.remoteImages === 'always';
     plain = settings.value.preferPlain;
+    showHeaders = false;
+    headers = '';
   });
+
+  async function toggleHeaders() {
+    showHeaders = !showHeaders;
+    if (showHeaders && !headers && m) {
+      const res = await fetch(`/api/message/raw?${query}&headers=1`, { credentials: 'same-origin' });
+      headers = res.ok ? await res.text() : '';
+    }
+  }
+
+  function openWindow(path: string) {
+    window.open(path, '_blank', 'noopener');
+  }
   const asHtml = $derived(!!m?.html && !(plain && m.text.trim() !== ''));
 
   const query = $derived(m ? `folder=${encodeURIComponent(m.folder)}&uid=${m.uid}` : '');
@@ -125,22 +143,62 @@
           </svg>
           <span>{m.flagged ? t('actions.unflag') : t('actions.flag')}</span>
         </button>
-        <select
-          class="input move"
-          aria-label={t('actions.move')}
-          onchange={(e) => {
-            move(e.currentTarget.value);
-            e.currentTarget.value = '';
-          }}
-          data-testid="action-move"
-        >
-          <option value="">{t('actions.move_to')}</option>
-          {#each targets as f (f.name)}
-            <option value={f.name}>{folderLabel(f.name)}</option>
-          {/each}
-        </select>
+        <Menu testid="action-more">
+          {#snippet label()}{t('actions.more')}{/snippet}
+          {#snippet children(close)}
+            <button class="item" role="menuitem" onclick={() => (openWindow(`/message?${query}&print=1`), close())} data-testid="more-print">
+              {t('actions.print')}
+            </button>
+            <a class="item" role="menuitem" href={`/api/message/raw?${query}&download=1`} download onclick={close} data-testid="more-download">
+              {t('actions.download')}
+            </a>
+            <button class="item" role="menuitem" onclick={() => (openWindow(`/api/message/raw?${query}`), close())} data-testid="more-source">
+              {t('actions.source')}
+            </button>
+            <button class="item" role="menuitem" onclick={() => (compose('edit'), close())} data-testid="more-edit">
+              {t('actions.edit_as_new')}
+            </button>
+            <button class="item" role="menuitem" onclick={() => (openWindow(`/message?${query}`), close())} data-testid="more-window">
+              {t('actions.new_window')}
+            </button>
+            <div class="sep"></div>
+            <label class="item pick">
+              <span>{t('actions.move_to')}</span>
+              <select
+                class="input"
+                onchange={(e) => {
+                  move(e.currentTarget.value);
+                  close();
+                }}
+                data-testid="action-move"
+              >
+                <option value=""></option>
+                {#each targets as f (f.name)}
+                  <option value={f.name}>{folderLabel(f.name)}</option>
+                {/each}
+              </select>
+            </label>
+            <label class="item pick">
+              <span>{t('actions.copy_to')}</span>
+              <select
+                class="input"
+                onchange={(e) => {
+                  if (m && e.currentTarget.value) copyMessages([m.uid], e.currentTarget.value);
+                  close();
+                }}
+                data-testid="action-copy"
+              >
+                <option value=""></option>
+                {#each targets as f (f.name)}
+                  <option value={f.name}>{folderLabel(f.name)}</option>
+                {/each}
+              </select>
+            </label>
+          {/snippet}
+        </Menu>
       </div>
     {/if}
+    {#if !standalone}
     <button
       type="button"
       class="btn back"
@@ -153,12 +211,41 @@
       <span class="narrow">{t('message.back')}</span>
       <svg class="icon wide" viewBox="0 0 16 16" aria-hidden="true"><path d="m4 4 8 8M12 4l-8 8" /></svg>
     </button>
+    {/if}
   </div>
 
   {#if mail.messageError}
     <p class="state error" role="alert">{errorMessage(t, mail.messageError)}</p>
   {:else if m}
     <header>
+      <div class="head-icons">
+        {#if m.html && m.text.trim()}
+          <button
+            type="button"
+            class="btn btn-icon"
+            aria-pressed={!asHtml}
+            title={asHtml ? t('message.view_plain') : t('message.view_html')}
+            aria-label={asHtml ? t('message.view_plain') : t('message.view_html')}
+            onclick={() => (plain = asHtml)}
+            data-testid="toggle-plain"
+          >
+            <svg class="icon" viewBox="0 0 16 16" aria-hidden="true">
+              {#if asHtml}<path d="M3 4h10M3 8h10M3 12h6" />{:else}<path d="M5.5 4 2 8l3.5 4M10.5 4 14 8l-3.5 4" />{/if}
+            </svg>
+          </button>
+        {/if}
+        <button
+          type="button"
+          class="btn btn-icon"
+          aria-pressed={showHeaders}
+          title={t('message.all_headers')}
+          aria-label={t('message.all_headers')}
+          onclick={toggleHeaders}
+          data-testid="toggle-headers"
+        >
+          <svg class="icon" viewBox="0 0 16 16" aria-hidden="true"><rect x="2.5" y="2.5" width="11" height="11" rx="1.5" /><path d="M5 6h6M5 8.5h6M5 11h3" /></svg>
+        </button>
+      </div>
       <h1 data-testid="message-subject">{m.subject || t('list.no_subject')}</h1>
       <dl>
         <dt>{t('message.from')}</dt>
@@ -174,6 +261,9 @@
         <dt>{t('message.date')}</dt>
         <dd><time datetime={m.date}>{formatFullDate(i18n.locale, m.date)}</time></dd>
       </dl>
+      {#if showHeaders}
+        <pre class="raw-headers" data-testid="raw-headers">{headers}</pre>
+      {/if}
     </header>
 
     {#if asHtml && m.blockedImages > 0 && !showImages}
@@ -209,6 +299,7 @@
 
     {#if asHtml}
       <iframe
+        onload={() => onloaded?.()}
         title={t('message.body')}
         src={bodyUrl}
         sandbox="allow-popups allow-popups-to-escape-sandbox"
@@ -231,11 +322,6 @@
     flex-wrap: wrap;
     align-items: center;
     gap: var(--space-2);
-  }
-  .move {
-    inline-size: auto;
-    padding-block: 0.375rem;
-    cursor: pointer;
   }
   .flagged {
     color: var(--color-danger);
@@ -268,8 +354,51 @@
     min-block-size: 0;
   }
   header {
+    position: relative;
     padding-block: var(--space-4) var(--space-3);
     padding-inline: var(--space-4);
+  }
+  .head-icons {
+    position: absolute;
+    inset-block-start: var(--space-3);
+    inset-inline-end: var(--space-4);
+    display: flex;
+    gap: var(--space-1);
+  }
+  .head-icons .btn[aria-pressed='true'] {
+    color: var(--color-accent);
+    background: var(--color-hover);
+  }
+  header h1 {
+    padding-inline-end: 5rem;
+  }
+  .raw-headers {
+    max-block-size: 16rem;
+    overflow: auto;
+    margin-block: var(--space-3) 0;
+    padding: var(--space-3);
+    font-size: 0.8rem;
+    white-space: pre-wrap;
+    overflow-wrap: anywhere;
+    background: var(--color-surface);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius);
+  }
+  .pick {
+    flex-direction: column;
+    align-items: stretch;
+    gap: var(--space-1);
+    cursor: default;
+  }
+  .pick .input {
+    padding-block: 0.3rem;
+  }
+  @media print {
+    .page-header,
+    .head-icons,
+    .notice {
+      display: none;
+    }
   }
   h1 {
     margin-block: 0 var(--space-2);

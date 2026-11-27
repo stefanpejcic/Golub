@@ -92,6 +92,9 @@
     border-radius: 4px;
     cursor: pointer;
   }
+  .panel :global(a.item) {
+    text-decoration: none;
+  }
   .panel :global(.item:hover) {
     background: var(--color-hover);
   }

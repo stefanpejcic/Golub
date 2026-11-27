@@ -246,5 +246,16 @@
   "errors.compose.too_large": "Attachments are larger than 25 MB.",
   "errors.compose.too_many_recipients": "Too many recipients.",
   "errors.compose.unknown_identity": "This identity no longer exists. Pick another sender.",
-  "errors.compose.send_failed": "The message could not be sent. Try again later."
+  "errors.compose.send_failed": "The message could not be sent. Try again later.",
+  "actions.more": "More",
+  "actions.print": "Print",
+  "actions.download": "Download (.eml)",
+  "actions.source": "Show source",
+  "actions.edit_as_new": "Edit as new",
+  "actions.new_window": "Open in new window",
+  "actions.copy_to": "Copy to…",
+  "toast.copied": "Copied to {folder}.",
+  "message.all_headers": "All headers",
+  "message.view_plain": "Show as plain text",
+  "message.view_html": "Show as HTML"
 }
