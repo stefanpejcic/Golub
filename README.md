@@ -117,12 +117,6 @@ Put Golub behind your reverse proxy for HTTPS, and set `GOLUB_TRUST_PROXY` to th
 
 Images are published for `linux/amd64` and `linux/arm64`:
 
-| Tag | Meaning |
-|---|---|
-| `X.Y.Z`, `X.Y` | A specific release |
-| `stable` | The latest release |
-| `beta` | The latest beta or release candidate |
-
 Images are signed with cosign and carry an SBOM and build provenance. `GET /healthz` reports the running version.
 
 | Image | |
