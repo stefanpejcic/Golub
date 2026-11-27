@@ -42,7 +42,7 @@
 - [x] IDLE with polling fallback
 
 ### 9. Hardening
-- [ ] Perf budgets in CI
+- [x] Perf budgets in CI (Server-Timing, 50k folder: first page, deep page, open)
 - [ ] Benchmark against Roundcube and other webmail clients on the test server (latency, memory, page weight), publish results
 - [ ] README rewrite for release: drop "early development", position as a Roundcube alternative, clear feature list and quick start
 - [x] Logo: carrier pigeon mascot in Go cyan with speed lines, plus a head mark for small sizes
@@ -67,6 +67,9 @@ Stored per user in an unsubscribed IMAP folder `golub-settings` (one JSON messag
 - [ ] Avatars: initials in a stable colour by default, no network requests
 - [ ] BIMI logos for senders whose mail passed DMARC (checked from the server's Authentication-Results), loaded through the proxy as images only
 - [ ] Optional Gravatar (off by default, through the proxy), in-memory cache
+
+## Performance follow-ups
+- [ ] Cache sorted UIDs per connection so paging and search on very large folders skip the full SORT
 
 ## Proposed for 1.0 (awaiting review)
 - [ ] Address book with groups, autocomplete, addresses collected from Sent, vCard import/export (stored in a hidden IMAP folder)

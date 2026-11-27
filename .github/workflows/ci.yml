@@ -92,6 +92,8 @@ jobs:
         run: docker compose -f e2e/docker-compose.yml up -d --build --wait
       - name: seed
         run: ./e2e/seed.sh
+      - name: seed 50k folder for performance budgets
+        run: EXEC="docker compose -f e2e/docker-compose.yml exec -T mailserver" ./e2e/perf-seed.sh
       - name: healthz
         run: curl -fsS localhost:8080/healthz
       - uses: actions/setup-node@v7
