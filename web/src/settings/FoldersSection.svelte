@@ -187,6 +187,9 @@
     padding-inline: var(--space-2);
     border-block-end: 1px solid var(--color-border);
   }
+  tbody tr:last-child td {
+    border-block-end: none;
+  }
   .num {
     text-align: end;
   }

@@ -63,15 +63,13 @@
     justify-content: space-between;
     gap: var(--space-3);
     padding: var(--space-3);
-    border-block-start: 1px solid var(--color-border);
   }
   .themes {
     display: flex;
     margin-inline-start: auto;
     padding: 2px;
-    border: 1px solid var(--color-input-border);
-    border-radius: var(--radius);
-    background: var(--color-surface-raised);
+    border-radius: 999px;
+    background: var(--color-hover);
   }
   .themes button {
     display: grid;
@@ -82,12 +80,13 @@
     color: var(--color-text-muted);
     background: none;
     border: none;
-    border-radius: 4px;
+    border-radius: 999px;
     cursor: pointer;
   }
   .themes button[aria-checked='true'] {
     color: var(--color-text);
-    background: var(--color-hover);
+    background: var(--color-bg);
+    box-shadow: 0 1px 2px rgb(0 0 0 / 0.12);
   }
   .link {
     text-decoration: none;

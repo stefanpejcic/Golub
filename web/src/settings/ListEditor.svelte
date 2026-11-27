@@ -135,7 +135,8 @@
     margin: 0;
     padding: 0;
     border: 1px solid var(--color-border);
-    border-radius: var(--radius);
+    border-radius: var(--radius-lg);
+    overflow: hidden;
   }
   li + li {
     border-block-start: 1px solid var(--color-border);

@@ -93,9 +93,8 @@
     align-items: center;
     gap: var(--space-1);
     flex: none;
-    padding-block: var(--space-1);
+    padding-block: var(--space-2) var(--space-1);
     padding-inline: var(--space-2);
-    border-block-end: 1px solid var(--color-border);
   }
   .refresh {
     display: inline-flex;

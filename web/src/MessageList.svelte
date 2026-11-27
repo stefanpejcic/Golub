@@ -421,16 +421,18 @@
     overflow-y: auto;
     list-style: none;
     margin: 0;
-    padding: 0;
+    padding: 0 var(--space-2) var(--space-2);
   }
   li {
     position: relative;
     overflow: hidden;
-    border-block-end: 1px solid var(--color-border);
+    margin-block-end: 2px;
+    border-radius: var(--radius);
   }
   .slide {
     position: relative;
     background: var(--color-bg);
+    border-radius: var(--radius);
     touch-action: pan-y;
   }
   .swipe-bg {
@@ -493,9 +495,7 @@
   li.selected .hover {
     background: var(--color-selected);
   }
-  li.selected .row {
-    border-inline-start-color: var(--color-accent);
-  }
+
   .hidden {
     display: none;
   }
@@ -598,8 +598,7 @@
   .search {
     position: relative;
     flex: none;
-    padding: var(--space-2) var(--space-3);
-    border-block-end: 1px solid var(--color-border);
+    padding: var(--space-1) var(--space-3) var(--space-2);
   }
   .search .icon {
     position: absolute;
@@ -642,15 +641,12 @@
     padding-inline: var(--space-2) var(--space-3);
     color: var(--color-text-muted);
     text-decoration: none;
-    border-inline-start: 3px solid transparent;
   }
   .row:hover {
     background: var(--color-hover);
   }
   .row[aria-current='true'] {
     background: var(--color-selected);
-    border-inline-start-color: var(--color-accent);
-    box-shadow: inset 0 0 0 1px var(--color-selected-ring);
   }
   .dot-space {
     grid-area: dot;
@@ -703,7 +699,7 @@
     white-space: nowrap;
   }
   .unread time {
-    color: var(--color-accent);
+    color: var(--color-text);
     font-weight: 600;
   }
   .subject {

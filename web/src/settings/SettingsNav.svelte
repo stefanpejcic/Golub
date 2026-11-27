@@ -79,16 +79,14 @@
     padding: var(--space-2);
     color: var(--color-text);
     text-decoration: none;
-    border-radius: 4px;
+    border-radius: var(--radius);
   }
   a:hover {
     background: var(--color-hover);
   }
   a[aria-current='page'] {
-    color: var(--color-accent);
-    font-weight: 500;
+    font-weight: 600;
     background: var(--color-selected);
-    box-shadow: var(--shadow), 0 0 0 1px var(--color-selected-ring);
   }
   .back {
     color: var(--color-text-muted);

@@ -430,6 +430,7 @@
     background: var(--color-notice);
     border: 1px solid var(--color-notice-border);
     border-radius: var(--radius);
+    border-radius: var(--radius);
     font-size: 0.9rem;
   }
   .attachments ul {
@@ -463,13 +464,13 @@
   iframe {
     flex: 1;
     min-block-size: 60vh;
-    border: none;
-    border-block-start: 1px solid var(--color-border);
+    margin: 0 var(--space-3) var(--space-3);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-lg);
     background: var(--color-message-bg);
   }
   .text {
     padding: var(--space-4);
-    border-block-start: 1px solid var(--color-border);
     white-space: pre-wrap;
     overflow-wrap: anywhere;
     font-family: var(--font-sans);

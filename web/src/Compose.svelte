@@ -602,7 +602,7 @@
     padding-block: 2px;
     padding-inline: var(--space-2) 2px;
     border: 1px solid var(--color-input-border);
-    border-radius: var(--radius);
+    border-radius: 999px;
   }
   .files small,
   .files .total {

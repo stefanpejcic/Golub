@@ -75,8 +75,8 @@
     padding: var(--space-1);
     background: var(--color-surface-raised);
     border: 1px solid var(--color-border);
-    border-radius: var(--radius);
-    box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow);
   }
   .panel :global(.item) {
     display: flex;
@@ -89,7 +89,7 @@
     color: var(--color-text);
     background: none;
     border: none;
-    border-radius: 4px;
+    border-radius: var(--radius);
     cursor: pointer;
   }
   .panel :global(a.item) {

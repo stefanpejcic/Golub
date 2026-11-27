@@ -99,10 +99,10 @@
     display: flex;
     align-items: center;
     gap: var(--space-2);
-    padding: var(--space-2);
+    padding: 0.45rem var(--space-2);
     color: var(--color-text);
     text-decoration: none;
-    border-radius: 4px;
+    border-radius: var(--radius);
     transition: background-color 0.1s ease-in-out;
   }
   .group {
@@ -112,17 +112,15 @@
     background: var(--color-hover);
   }
   a[aria-current='page'] {
-    color: var(--color-accent);
-    font-weight: 500;
+    font-weight: 600;
     background: var(--color-selected);
-    box-shadow: var(--shadow), 0 0 0 1px var(--color-selected-ring);
   }
   a .icon,
   .group .icon {
     color: var(--color-text-muted);
   }
   a[aria-current='page'] .icon {
-    color: var(--color-accent);
+    color: var(--color-text);
   }
   .name {
     flex: 1;
@@ -137,8 +135,8 @@
     font-size: 0.75rem;
     font-weight: 600;
     line-height: 1.25rem;
-    color: var(--color-accent-text);
-    background: var(--color-accent);
+    color: var(--color-badge-text);
+    background: var(--color-badge);
     border-radius: 999px;
   }
 </style>
