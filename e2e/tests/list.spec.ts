@@ -160,3 +160,27 @@ test('the row dot toggles read and unread', async ({ page }) => {
   if (wasUnread) await expect(r).toHaveClass(/unread/);
   else await expect(r).not.toHaveClass(/unread/);
 });
+
+test('columns resize by dragging, persist across reloads and reset on double-click', async ({ page }) => {
+  await signIn(page);
+  const list = page.locator('main.list-pane');
+  const before = (await list.boundingBox())!.width;
+  const handle = page.getByTestId('resize-list');
+  const box = (await handle.boundingBox())!;
+  await page.mouse.move(box.x + box.width / 2, box.y + 200);
+  await page.mouse.down();
+  await page.mouse.move(box.x + box.width / 2 + 150, box.y + 200, { steps: 5 });
+  await page.mouse.up();
+  const after = (await list.boundingBox())!.width;
+  expect(after).toBeGreaterThan(before + 100);
+
+  await page.reload();
+  await expect(page.getByTestId('message').first()).toBeVisible();
+  expect(Math.abs((await list.boundingBox())!.width - after)).toBeLessThan(3);
+
+  await page.getByTestId('resize-list').dblclick();
+  await expect.poll(async () => Math.round((await list.boundingBox())!.width)).toBe(Math.round(before));
+  await page.reload();
+  await expect(page.getByTestId('message').first()).toBeVisible();
+  expect(Math.abs((await list.boundingBox())!.width - before)).toBeLessThan(3);
+});
