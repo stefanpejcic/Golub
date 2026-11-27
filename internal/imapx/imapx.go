@@ -51,7 +51,7 @@ func (d *Dialer) dial() (*imapclient.Client, error) {
 func (d *Dialer) Login(ctx context.Context, user, pass string) (*imapclient.Client, error) {
 	c, err := d.dial()
 	if err != nil {
-		return nil, fmt.Errorf("%w: %v", ErrUnavailable, err)
+		return nil, fmt.Errorf("%w: %w", ErrUnavailable, err)
 	}
 	stop := context.AfterFunc(ctx, func() { _ = c.Close() })
 	defer stop()
@@ -61,7 +61,7 @@ func (d *Dialer) Login(ctx context.Context, user, pass string) (*imapclient.Clie
 		if errors.As(err, &imapErr) && imapErr.Type == imap.StatusResponseTypeNo {
 			return nil, ErrInvalidCredentials
 		}
-		return nil, fmt.Errorf("%w: %v", ErrUnavailable, err)
+		return nil, fmt.Errorf("%w: %w", ErrUnavailable, err)
 	}
 	return c, nil
 }

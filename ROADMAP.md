@@ -43,6 +43,8 @@
 
 ### 9. Hardening
 - [ ] Perf budgets in CI
+- [ ] Benchmark against Roundcube and other webmail clients on the test server (latency, memory, page weight), publish results
+- [ ] README rewrite for release: drop "early development", position as a Roundcube alternative, clear feature list and quick start
 - [ ] Tag `v0.1.0`
 
 ## Later

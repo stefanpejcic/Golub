@@ -57,7 +57,7 @@ func NewCodec(key []byte) (*Codec, error) {
 
 // Encode returns the cookie value for s.
 func (c *Codec) Encode(s Session) (string, error) {
-	plain, err := json.Marshal(s)
+	plain, err := json.Marshal(s) //nolint:gosec // sealed with AES-GCM below, never stored in clear
 	if err != nil {
 		return "", err
 	}

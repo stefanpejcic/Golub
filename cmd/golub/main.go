@@ -15,8 +15,10 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/stefanpejcic/golub/internal/auth"
 	"github.com/stefanpejcic/golub/internal/config"
 	"github.com/stefanpejcic/golub/internal/httpapi"
+	"github.com/stefanpejcic/golub/internal/imapx"
 	"github.com/stefanpejcic/golub/internal/tlsx"
 	"github.com/stefanpejcic/golub/internal/ui"
 )
@@ -49,9 +51,34 @@ func run(ctx context.Context, getenv func(string) string, logOut io.Writer) erro
 	}
 	slog.SetDefault(slog.New(slog.NewJSONHandler(logOut, &slog.HandlerOptions{Level: level})))
 
+	codec, err := auth.NewCodec(cfg.SecretKey)
+	if err != nil {
+		return err
+	}
+	imapTLS, err := tlsx.ClientConfig(cfg.IMAP.Host, cfg.TLSCA)
+	if err != nil {
+		return err
+	}
+	opts := httpapi.Options{
+		Version:        version,
+		Static:         ui.FS(),
+		HTTPS:          cfg.HTTPS(),
+		Codec:          codec,
+		Mail:           &imapx.Dialer{Endpoint: cfg.IMAP, TLS: imapTLS},
+		MasterUser:     cfg.MasterUser,
+		MasterPassword: cfg.MasterPassword,
+		SessionTTL:     cfg.SessionTTL,
+		DefaultLocale:  cfg.DefaultLocale,
+		DefaultTheme:   cfg.DefaultTheme,
+		TrustProxy:     cfg.TrustProxy,
+	}
+	if cfg.SSOEnabled() {
+		opts.SSO = auth.NewSSOVerifier(cfg.SSOSecret)
+	}
+
 	srv := &http.Server{
 		Addr:              cfg.Listen,
-		Handler:           httpapi.New(httpapi.Options{Version: version, Static: ui.FS(), HTTPS: cfg.HTTPS()}),
+		Handler:           httpapi.New(opts),
 		ReadHeaderTimeout: 10 * time.Second,
 		ReadTimeout:       2 * time.Minute,
 		WriteTimeout:      5 * time.Minute,

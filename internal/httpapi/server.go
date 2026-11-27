@@ -4,19 +4,39 @@
 package httpapi
 
 import (
+	"context"
 	"encoding/json"
 	"errors"
 	"io/fs"
 	"net/http"
+	"net/netip"
 	"path"
 	"strings"
+	"time"
+
+	"github.com/stefanpejcic/golub/internal/auth"
 )
+
+// MailAuth verifies IMAP credentials.
+type MailAuth interface {
+	Check(ctx context.Context, user, pass string) error
+}
 
 // Options configures the HTTP handler.
 type Options struct {
 	Version string
 	Static  fs.FS
 	HTTPS   bool
+
+	Codec          *auth.Codec
+	Mail           MailAuth
+	SSO            *auth.SSOVerifier
+	MasterUser     string
+	MasterPassword string
+	SessionTTL     time.Duration
+	DefaultLocale  string
+	DefaultTheme   string
+	TrustProxy     []netip.Prefix
 }
 
 const appCSP = "default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; " +
@@ -29,8 +49,20 @@ func New(o Options) http.Handler {
 		w.Header().Set("Cache-Control", "no-store")
 		writeJSON(w, http.StatusOK, map[string]string{"status": "ok", "version": o.Version})
 	})
+	if o.Codec != nil {
+		a := newAuthAPI(o)
+		mux.HandleFunc("GET /api/session", a.session)
+		mux.HandleFunc("POST /api/login", a.login)
+		mux.HandleFunc("POST /api/logout", a.logout)
+		mux.HandleFunc("POST /api/prefs", a.prefs)
+		if o.SSO != nil {
+			mux.HandleFunc("GET /sso", a.sso)
+		} else {
+			mux.HandleFunc("GET /sso", http.NotFound)
+		}
+	}
 	mux.Handle("/", fallback(spa(o.Static)))
-	return securityHeaders(o.HTTPS, mux)
+	return securityHeaders(o.HTTPS, http.NewCrossOriginProtection().Handler(mux))
 }
 
 func securityHeaders(https bool, next http.Handler) http.Handler {
