@@ -24,8 +24,6 @@ Golub (Serbian for *pigeon*, as in carrier pigeon) is a webmail client for any I
 
 It runs as one small container: no PHP, no database, no cron jobs, no plugins to keep in sync. Restart it whenever you like; there is nothing to migrate.
 
-Golub was developed as the default webmail client for [OpenPanel](https://openpanel.com) and open-sourced so anyone can use it with their own mail stack.
-
 ![Golub inbox with a message open](assets/screenshots/inbox-light.png)
 
 <table>
