@@ -78,10 +78,6 @@
       onresize={(w, done) => resize('sidebar', w, done)}
       onreset={reset}
     />
-    <div class="brand">
-      <Logo size={28} />
-      <span>{t('app.name')}</span>
-    </div>
     <div class="account">
       <span class="email" data-testid="user-email" title={session.info?.email}>{session.info?.email}</span>
       <a
@@ -199,18 +195,8 @@
   .mailbox:not(.custom) aside {
     min-inline-size: var(--sidebar-width);
   }
-  .brand {
-    overflow: hidden;
-    display: flex;
-    align-items: center;
-    gap: var(--space-2);
-    flex: none;
-    block-size: var(--header-height);
-    padding-inline: var(--space-3);
-    font-size: 1.05rem;
-    font-weight: 600;
-  }
   .account {
+    margin-block-start: var(--space-3);
     display: flex;
     align-items: stretch;
     margin-inline: var(--space-2);
