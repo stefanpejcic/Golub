@@ -291,13 +291,23 @@
             </svg>
           </div>
           <div class="slide" use:swipe={m.uid}>
+            <button
+              type="button"
+              class="dot-btn"
+              aria-label={m.seen ? t('actions.mark_unread') : t('actions.mark_read')}
+              title={m.seen ? t('actions.mark_unread') : t('actions.mark_read')}
+              onclick={() => flagMessages([m.uid], 'seen', !m.seen)}
+              data-testid="row-dot"
+            >
+              <span class="dot" aria-hidden="true"></span>
+            </button>
             <a
               class="row"
               href={messagePath(mail.folder, m.uid)}
               aria-current={mail.uid === m.uid ? 'true' : undefined}
               onclick={(e) => open(e, m.uid)}
             >
-              <span class="dot" aria-hidden="true"></span>
+              <span class="dot-space" aria-hidden="true"></span>
               <span class="who">{who}</span>
               <time datetime={m.date} title={formatFullDate(i18n.locale, m.date)}>
                 {formatListDate(i18n.locale, m.date, undefined, settings.value.prettyDates)}
@@ -642,13 +652,38 @@
     border-inline-start-color: var(--color-accent);
     box-shadow: inset 0 0 0 1px var(--color-selected-ring);
   }
-  .dot {
+  .dot-space {
     grid-area: dot;
+  }
+  .dot-btn {
+    position: absolute;
+    z-index: 1;
+    inset-block-start: 0.55rem;
+    inset-inline-start: calc(var(--space-2) - 0.35rem);
+    display: grid;
+    place-items: center;
+    inline-size: 1.2rem;
+    block-size: 1.2rem;
+    padding: 0;
+    background: none;
+    border: none;
+    border-radius: 999px;
+    cursor: pointer;
+  }
+  .dot-btn:hover {
+    background: var(--color-hover);
+  }
+  .dot {
     inline-size: 0.5rem;
     block-size: 0.5rem;
     border-radius: 999px;
+    background: var(--color-border);
   }
-  .unread .dot {
+  .dot-btn:hover .dot {
+    background: var(--color-text-muted);
+  }
+  .unread .dot,
+  .unread .dot-btn:hover .dot {
     background: var(--color-accent);
   }
   .who {

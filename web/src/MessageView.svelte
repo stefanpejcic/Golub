@@ -5,6 +5,7 @@
   import { formatFullDate, formatSize, type Address } from './lib/format';
   import { errorMessage } from './lib/errors';
   import { settings } from './lib/settings.svelte';
+  import { route } from './lib/route.svelte';
   import { archiveMessages, flagMessages, folderLabel, moveMessages, removeMessages } from './lib/actions';
 
   const t = $derived(i18n.t);
@@ -25,6 +26,14 @@
   const targets = $derived(
     mail.folders.filter((f) => f.selectable && f.name !== mail.folder),
   );
+
+  const inDrafts = $derived(mail.current?.special === 'drafts');
+
+  function compose(mode: string) {
+    if (!m) return;
+    const draft = mode === 'edit' && inDrafts ? '&draft=1' : '';
+    route.go(`/compose?mode=${mode}&folder=${encodeURIComponent(m.folder)}&uid=${m.uid}${draft}`);
+  }
 
   function remove() {
     if (m) removeMessages([m.uid]);
@@ -53,6 +62,25 @@
   <div class="page-header">
     {#if m}
       <div class="actions" role="toolbar" aria-label={t('actions.label')}>
+        {#if inDrafts}
+          <button type="button" class="btn btn-primary" onclick={() => compose('edit')} data-testid="action-edit-draft">
+            <svg class="icon" viewBox="0 0 16 16" aria-hidden="true"><path d="M10.5 2.5 13.5 5.5 6 13H3v-3Z" /></svg>
+            <span>{t('actions.edit_draft')}</span>
+          </button>
+        {:else}
+          <button type="button" class="btn" onclick={() => compose('reply')} data-testid="action-reply">
+            <svg class="icon" viewBox="0 0 16 16" aria-hidden="true"><path d="M6.5 4 2.5 8l4 4M2.5 8h7a4 4 0 0 1 4 4v1" /></svg>
+            <span>{t('actions.reply')}</span>
+          </button>
+          <button type="button" class="btn" onclick={() => compose('replyAll')} data-testid="action-reply-all">
+            <svg class="icon" viewBox="0 0 16 16" aria-hidden="true"><path d="M8 4 4 8l4 4M4.5 4.5 1 8l3.5 3.5M4 8h6a4 4 0 0 1 4 4v1" /></svg>
+            <span>{t('actions.reply_all')}</span>
+          </button>
+          <button type="button" class="btn" onclick={() => compose('forward')} data-testid="action-forward">
+            <svg class="icon" viewBox="0 0 16 16" aria-hidden="true"><path d="M9.5 4l4 4-4 4M13.5 8h-7a4 4 0 0 0-4 4v1" /></svg>
+            <span>{t('actions.forward')}</span>
+          </button>
+        {/if}
         <button type="button" class="btn" onclick={remove} data-testid="action-delete">
           <svg class="icon" viewBox="0 0 16 16" aria-hidden="true">
             <path d="M2.5 4h11M6 4V2.5h4V4M4 4l.7 9.5h6.6L12 4M6.5 6.5v4.5M9.5 6.5v4.5" />

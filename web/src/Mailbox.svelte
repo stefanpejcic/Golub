@@ -14,6 +14,7 @@
   import { folderPath } from './lib/format';
   import SettingsNav from './settings/SettingsNav.svelte';
   import SettingsPage from './settings/SettingsPage.svelte';
+  import Compose from './Compose.svelte';
 
   const t = $derived(i18n.t);
 
@@ -64,6 +65,23 @@
         </svg>
       </a>
     </div>
+    {#if !route.settingsSection}
+      <div class="compose-btn">
+        <a
+          class="btn btn-primary"
+          href="/compose"
+          onclick={(e) => {
+            if (e.metaKey || e.ctrlKey || e.shiftKey || e.button !== 0) return;
+            e.preventDefault();
+            route.go('/compose');
+          }}
+          data-testid="compose-open"
+        >
+          <svg class="icon" viewBox="0 0 16 16" aria-hidden="true"><path d="M10.5 2.5 13.5 5.5 6 13H3v-3Z" /><path d="m9 4 3 3" /></svg>
+          {t('compose.open')}
+        </a>
+      </div>
+    {/if}
     <div class="folders">
       {#if route.settingsSection}
         <SettingsNav />
@@ -76,6 +94,12 @@
   {#if route.settingsSection}
     <main class="settings-pane">
       <SettingsPage />
+    </main>
+  {:else if route.compose}
+    <main class="settings-pane">
+      {#key route.search}
+        <Compose params={route.compose} />
+      {/key}
     </main>
   {:else}
   <main class="list-pane">
@@ -154,6 +178,14 @@
   .cog .icon {
     inline-size: 1.15rem;
     block-size: 1.15rem;
+  }
+  .compose-btn {
+    padding: var(--space-2) var(--space-2) 0;
+  }
+  .compose-btn .btn {
+    inline-size: 100%;
+    padding-block: 0.5rem;
+    text-decoration: none;
   }
   .folders {
     flex: 1;
