@@ -275,7 +275,7 @@
       title={t('message.back')}
       data-testid="back"
     >
-      <svg class="icon narrow" viewBox="0 0 16 16" aria-hidden="true"><path d="M10 3 5 8l5 5" /></svg>
+      <svg class="icon narrow flip-rtl" viewBox="0 0 16 16" aria-hidden="true"><path d="M10 3 5 8l5 5" /></svg>
       <span class="narrow">{t('message.back')}</span>
       <svg class="icon wide" viewBox="0 0 16 16" aria-hidden="true"><path d="m4 4 8 8M12 4l-8 8" /></svg>
     </button>
@@ -330,10 +330,10 @@
         </button>
       </div>
       {#if m.priority === 1}<span class="prio-badge" data-testid="priority-high">{t('message.priority_high')}</span>{/if}
-      <h1 data-testid="message-subject">{m.subject || t('list.no_subject')}</h1>
+      <h1 dir="auto" data-testid="message-subject">{m.subject || t('list.no_subject')}</h1>
       <dl>
         <dt>{t('message.from')}</dt>
-        <dd data-testid="message-from">{people(m.from)}</dd>
+        <dd dir="auto" data-testid="message-from">{people(m.from)}</dd>
         {#if m.to.length}
           <dt>{t('message.to')}</dt>
           <dd>{people(m.to)}</dd>
@@ -416,7 +416,7 @@
         data-testid="message-body"
       ></iframe>
     {:else}
-      <div class="text" data-testid="message-text">{m.text}</div>
+      <div class="text" dir="auto" data-testid="message-text">{m.text}</div>
     {/if}
   {/if}
 </article>

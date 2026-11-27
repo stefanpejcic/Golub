@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 import { describe, expect, it } from 'vitest';
-import { createTranslator, resolveLocale } from './i18n';
+import { createTranslator, resolveLocale, textDirection } from './i18n';
 
 const catalogs = {
   en: {
@@ -63,5 +63,15 @@ describe('resolveLocale', () => {
   it('skips empty and unknown candidates', () => {
     expect(resolveLocale([undefined, '', 'de-DE', 'en-GB'], supported)).toBe('en');
     expect(resolveLocale([], supported)).toBe('en');
+  });
+});
+
+describe('textDirection', () => {
+  it('mirrors the layout only for right-to-left languages', () => {
+    expect(textDirection('ar')).toBe('rtl');
+    expect(textDirection('he-IL')).toBe('rtl');
+    expect(textDirection('fa')).toBe('rtl');
+    expect(textDirection('en')).toBe('ltr');
+    expect(textDirection('sr-Latn')).toBe('ltr');
   });
 });

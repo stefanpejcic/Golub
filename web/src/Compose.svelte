@@ -430,7 +430,7 @@
     {#if showBcc}<RecipientInput bind:value={bcc} label={t('compose.bcc')} testid="compose-bcc" />{/if}
     <label class="row">
       <span class="label">{t('compose.subject')}</span>
-      <input class="plain" bind:value={subject} oninput={() => (dirty = true)} spellcheck={settings.value.spellCheck} data-testid="compose-subject" />
+      <input class="plain" dir="auto" bind:value={subject} oninput={() => (dirty = true)} spellcheck={settings.value.spellCheck} data-testid="compose-subject" />
     </label>
   </div>
 
@@ -526,6 +526,7 @@
         bind:this={editor}
         class="editor"
         contenteditable="true"
+        dir="auto"
         spellcheck={settings.value.spellCheck}
         role="textbox"
         aria-multiline="true"
@@ -539,6 +540,7 @@
         spellcheck={settings.value.spellCheck}
         bind:this={textarea}
         class="editor plain-editor"
+        dir="auto"
         bind:value={text}
         oninput={() => (dirty = true)}
         aria-label={t('compose.body')}

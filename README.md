@@ -118,7 +118,7 @@ Both clients read the same mailbox on the same server: an INBOX of 21 messages a
 | Open a message | **0.33 s** | 0.94 s |
 | Whole session download | **245 KB**, 29 requests | 382 KB, 51 requests |
 
-Golub keeps one IMAP connection per user open and reuses it, where Roundcube connects and logs in to IMAP again on every request. That is less work and fewer connections for the mail server, and no "maximum number of connections" errors when one user has several tabs open.
+Golub **keeps one IMAP connection per user open and reuses it**, where Roundcube connects and logs in to IMAP again on every request. That is less work and fewer connections for the mail server, and no "maximum number of connections" errors when one user has several tabs open.
 
 How it was measured, on 27 November 2026: a 4-core VPS that also runs OpenPanel, docker-mailserver 17, and the official Roundcube image with its defaults (Apache and SQLite). The load rows come from ten different accounts, each sending 200 requests one after another with ApacheBench; peak RAM is the container's cgroup peak. The page rows are medians of five runs in Chromium over a link with about 120 ms latency, so they include the network. The setup is in [`e2e/bench`](e2e/bench).
 

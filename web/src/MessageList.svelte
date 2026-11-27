@@ -222,6 +222,7 @@
           onSearch('', true);
         }
       }}
+      dir="auto"
       data-testid="search"
     />
     </div>
@@ -320,7 +321,7 @@
         aria-label={t('list.prev')}
         data-testid="prev"
       >
-        <svg class="icon" viewBox="0 0 16 16" aria-hidden="true"><path d="M10 3 5 8l5 5" /></svg>
+        <svg class="icon flip-rtl" viewBox="0 0 16 16" aria-hidden="true"><path d="M10 3 5 8l5 5" /></svg>
       </button>
       <button
         type="button"
@@ -330,7 +331,7 @@
         aria-label={t('list.next')}
         data-testid="next"
       >
-        <svg class="icon" viewBox="0 0 16 16" aria-hidden="true"><path d="m6 3 5 5-5 5" /></svg>
+        <svg class="icon flip-rtl" viewBox="0 0 16 16" aria-hidden="true"><path d="m6 3 5 5-5 5" /></svg>
       </button>
     </div>
   </header>
@@ -383,7 +384,7 @@
               onclick={(e) => open(e, m.uid, m.folder)}
             >
               <span class="dot-space" aria-hidden="true"></span>
-              <span class="who">
+              <span class="who" dir="auto">
                 {#if isRoot}
                   <button
                     type="button"
@@ -398,7 +399,7 @@
                     }}
                     data-testid="thread-toggle"
                   >
-                    <svg class="icon" viewBox="0 0 16 16" aria-hidden="true"><path d="m6 4 4 4-4 4" /></svg>
+                    <svg class="icon flip-rtl" viewBox="0 0 16 16" aria-hidden="true"><path d="m6 4 4 4-4 4" /></svg>
                     <span class="thread-count" data-testid="thread-count">{m.threadSize}</span>
                   </button>
                 {/if}
@@ -423,7 +424,7 @@
                   </svg>
                 {/if}
                 {#if m.folder}<span class="folder-tag" data-testid="result-folder">{folderLabel(m.folder)}</span>{/if}
-                <span class="text">{m.subject || t('list.no_subject')}</span>
+                <span class="text" dir="auto">{m.subject || t('list.no_subject')}</span>
               </span>
               {#if m.attachments}
                 <svg class="icon clip" viewBox="0 0 16 16" role="img" aria-label={t('list.attachment')}>

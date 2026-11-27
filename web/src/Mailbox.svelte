@@ -414,6 +414,9 @@
       transition: transform 0.2s ease;
       box-shadow: var(--shadow);
     }
+    :global([dir='rtl']) aside {
+      transform: translateX(100%);
+    }
     .mailbox:not(.custom) aside {
       min-inline-size: 0;
     }

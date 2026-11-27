@@ -2,7 +2,7 @@
 
 import en from '../locales/en.json';
 import srLatn from '../locales/sr-Latn.json';
-import { createTranslator, resolveLocale, type Catalog } from './i18n';
+import { createTranslator, resolveLocale, textDirection, type Catalog } from './i18n';
 import { LANG_COOKIE, readCookie, writePref } from './prefs';
 
 const catalogs: Record<string, Catalog> = { en, 'sr-Latn': srLatn };
@@ -24,9 +24,14 @@ export const i18n = {
   },
   set(locale: string) {
     state.locale = resolveLocale([locale], LOCALES);
-    document.documentElement.lang = state.locale;
+    applyLang(state.locale);
     writePref(LANG_COOKIE, state.locale);
   },
 };
 
-document.documentElement.lang = initial;
+function applyLang(locale: string) {
+  document.documentElement.lang = locale;
+  document.documentElement.dir = textDirection(locale);
+}
+
+applyLang(initial);

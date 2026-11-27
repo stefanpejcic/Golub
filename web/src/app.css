@@ -170,3 +170,8 @@ a.btn {
 .btn-danger:hover {
   filter: brightness(0.92);
 }
+
+/* arrows point the way the reading goes, so they turn around in right-to-left languages */
+[dir='rtl'] .flip-rtl {
+  transform: scaleX(-1);
+}

@@ -137,3 +137,11 @@ test.describe('dark theme', () => {
     await expect.poll(filter).not.toContain('invert');
   });
 });
+
+test('message text picks its own direction, so Arabic or Hebrew mail reads right to left', async ({ page }) => {
+  await signIn(page);
+  await openBySubject(page, 'Simple HTML');
+  await expect(page.getByTestId('message-subject')).toHaveAttribute('dir', 'auto');
+  await expect(page.frameLocator('iframe').locator('body')).toHaveAttribute('dir', 'auto');
+  await expect(page.locator('html')).toHaveAttribute('dir', 'ltr');
+});

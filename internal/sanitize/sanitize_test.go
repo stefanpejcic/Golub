@@ -155,3 +155,9 @@ func TestDocumentDark(t *testing.T) {
 		t.Error("body lost")
 	}
 }
+
+func TestDocumentFollowsTextDirection(t *testing.T) {
+	if !strings.Contains(Document("<p>مرحبا</p>", false), `<body dir="auto">`) {
+		t.Error("the body has to pick its direction from the text, so Arabic and Hebrew mail reads right to left")
+	}
+}

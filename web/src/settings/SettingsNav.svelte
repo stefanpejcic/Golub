@@ -55,7 +55,7 @@
 
 <nav aria-label={t('settings.title')}>
   <a class="back" href={folderPath(mail.folder)} onclick={back} data-testid="settings-back">
-    <svg class="icon" viewBox="0 0 16 16" aria-hidden="true"><path d="M10 3 5 8l5 5" /></svg>
+    <svg class="icon flip-rtl" viewBox="0 0 16 16" aria-hidden="true"><path d="M10 3 5 8l5 5" /></svg>
     {t('settings.back')}
   </a>
   {#each groups as g (g.title)}

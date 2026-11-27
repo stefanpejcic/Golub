@@ -54,3 +54,10 @@ export function resolveLocale(candidates: (string | undefined | null)[], support
   }
   return FALLBACK_LOCALE;
 }
+
+// Arabic, Hebrew, Persian and Urdu mirror the whole layout; the CSS uses logical properties for that
+const RTL = ['ar', 'he', 'fa', 'ur'];
+
+export function textDirection(locale: string): 'rtl' | 'ltr' {
+  return RTL.includes(locale.split('-')[0]) ? 'rtl' : 'ltr';
+}

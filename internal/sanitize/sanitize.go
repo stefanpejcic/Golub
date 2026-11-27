@@ -198,7 +198,7 @@ func Document(body string, dark bool) string {
 		style += darkStyle
 	}
 	return `<!doctype html><html><head><meta charset="utf-8"><meta name="color-scheme" content="light">` +
-		`<style>` + style + `</style></head><body>` + body + `</body></html>`
+		`<style>` + style + `</style></head><body dir="auto">` + body + `</body></html>`
 }
 
 // darkStyle inverts mail written for white paper and turns pictures back; the light grey ends up as a dark surface.

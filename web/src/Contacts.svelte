@@ -185,7 +185,7 @@
         <ul>
           {#each shownCollected as c (c.email)}
             <li class="collected" data-testid="collected">
-              <div class="who"><span class="name">{c.name || c.email}</span>{#if c.name}<span class="email">{c.email}</span>{/if}</div>
+              <div class="who"><span class="name" dir="auto">{c.name || c.email}</span>{#if c.name}<span class="email">{c.email}</span>{/if}</div>
               <button type="button" class="btn" onclick={() => keepCollected(c.email, c.name)} data-testid="collected-keep">{t('contacts.add')}</button>
               <button type="button" class="tool" aria-label={t('contacts.forget')} title={t('contacts.forget')} onclick={() => forgetCollected(c.email)} data-testid="collected-forget">
                 <svg class="icon" viewBox="0 0 16 16" aria-hidden="true"><path d="m4 4 8 8M12 4l-8 8" /></svg>
@@ -200,7 +200,7 @@
           {#each shown as c (c.id)}
             <li>
               <button type="button" class="contact" class:current={selectedId === c.id} onclick={() => edit(c)} data-testid="contact">
-                <span class="name">{c.name || c.emails[0] || c.phones?.[0]}</span>
+                <span class="name" dir="auto">{c.name || c.emails[0] || c.phones?.[0]}</span>
                 {#if c.name && c.emails[0]}<span class="email">{c.emails[0]}</span>{/if}
               </button>
             </li>
