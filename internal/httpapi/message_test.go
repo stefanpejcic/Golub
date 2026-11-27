@@ -207,3 +207,15 @@ func TestRiskyTypes(t *testing.T) {
 		}
 	}
 }
+
+func TestMessageViewWithoutMarkingRead(t *testing.T) {
+	h := newMessageServer(t, "01-plain.eml")
+	c := login(t, h)
+	r := httptest.NewRequest("GET", "/api/message?folder=INBOX&uid=1&seen=0", nil)
+	r.AddCookie(c)
+	var v testMessageView
+	_ = json.Unmarshal(serve(h, r).Body.Bytes(), &v)
+	if v.Seen {
+		t.Fatal("seen=0 must not mark the message read")
+	}
+}

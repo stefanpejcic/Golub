@@ -105,7 +105,7 @@ func (a *authAPI) message(w http.ResponseWriter, r *http.Request, s auth.Session
 		writeError(w, http.StatusBadRequest, "request.invalid")
 		return
 	}
-	m, raw, ok := a.load(w, r, s, ref, true)
+	m, raw, ok := a.load(w, r, s, ref, r.URL.Query().Get("seen") != "0")
 	if !ok {
 		return
 	}
