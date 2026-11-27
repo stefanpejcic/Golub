@@ -92,12 +92,16 @@ func (a *authAPI) remove(w http.ResponseWriter, r *http.Request, s auth.Session)
 	}
 	trashed := false
 	err := a.do(r, s, func(c *imapclient.Client) error {
+		st, err := loadSettings(c, s.Email)
+		if err != nil {
+			return err
+		}
 		folders, err := imapx.ListFolders(c)
 		if err != nil {
 			return err
 		}
-		trash := imapx.SpecialFolder(folders, "trash", "Trash")
-		if trash == "" || trash == req.Folder {
+		trash := specialFolder(st, folders, "trash", "Trash")
+		if st.DeleteMode == "permanent" || trash == "" || trash == req.Folder {
 			return imapx.Expunge(c, req.Folder, req.UIDs)
 		}
 		trashed = true
@@ -122,11 +126,15 @@ func (a *authAPI) archive(w http.ResponseWriter, r *http.Request, s auth.Session
 	}
 	var dest string
 	err := a.do(r, s, func(c *imapclient.Client) error {
+		st, err := loadSettings(c, s.Email)
+		if err != nil {
+			return err
+		}
 		folders, err := imapx.ListFolders(c)
 		if err != nil {
 			return err
 		}
-		if dest = imapx.SpecialFolder(folders, "archive", "Archive"); dest == "" {
+		if dest = specialFolder(st, folders, "archive", "Archive"); dest == "" {
 			dest = "Archive"
 			if err := imapx.EnsureFolder(c, dest, "archive"); err != nil {
 				return err

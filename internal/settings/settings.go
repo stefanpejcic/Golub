@@ -113,8 +113,8 @@ func Encode(s Settings) ([]byte, error) {
 func oneOf[T comparable](v T, set ...T) bool { return slices.Contains(set, v) }
 
 // cleanLine rejects control characters, which would allow header injection.
-func cleanLine(s string, max int) bool {
-	if len(s) > max {
+func cleanLine(s string, limit int) bool {
+	if len(s) > limit {
 		return false
 	}
 	return !strings.ContainsFunc(s, unicode.IsControl)
