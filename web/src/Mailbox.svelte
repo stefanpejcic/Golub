@@ -36,8 +36,27 @@
       <span>{t('app.name')}</span>
     </div>
     <div class="account">
-      <svg class="icon" viewBox="0 0 16 16" aria-hidden="true"><circle cx="8" cy="5.5" r="2.5" /><path d="M3 13.5a5 5 0 0 1 10 0" /></svg>
-      <span data-testid="user-email" title={session.info?.email}>{session.info?.email}</span>
+      <span class="email" data-testid="user-email" title={session.info?.email}>{session.info?.email}</span>
+      <a
+        class="cog"
+        href="/settings/general"
+        aria-label={t('settings.title')}
+        title={t('settings.title')}
+        aria-current={route.settingsSection ? 'page' : undefined}
+        onclick={(e) => {
+          if (e.metaKey || e.ctrlKey || e.shiftKey || e.button !== 0) return;
+          e.preventDefault();
+          route.go('/settings/general');
+        }}
+        data-testid="settings-open"
+      >
+        <svg class="icon" viewBox="0 0 24 24" aria-hidden="true">
+          <path
+            d="M10.3 2.6a1.7 1.7 0 0 1 3.4 0l.2 1.3a7.6 7.6 0 0 1 1.9 1.1l1.2-.5a1.7 1.7 0 0 1 2.1.8l.1.2a1.7 1.7 0 0 1-.4 2.1l-1 .8a7.7 7.7 0 0 1 0 2.2l1 .8a1.7 1.7 0 0 1 .4 2.1l-.1.2a1.7 1.7 0 0 1-2.1.8l-1.2-.5a7.6 7.6 0 0 1-1.9 1.1l-.2 1.3a1.7 1.7 0 0 1-3.4 0l-.2-1.3a7.6 7.6 0 0 1-1.9-1.1l-1.2.5a1.7 1.7 0 0 1-2.1-.8l-.1-.2a1.7 1.7 0 0 1 .4-2.1l1-.8a7.7 7.7 0 0 1 0-2.2l-1-.8a1.7 1.7 0 0 1-.4-2.1l.1-.2a1.7 1.7 0 0 1 2.1-.8l1.2.5a7.6 7.6 0 0 1 1.9-1.1Z"
+          />
+          <circle cx="12" cy="10" r="3" />
+        </svg>
+      </a>
     </div>
     <div class="folders">
       {#if route.settingsSection}
@@ -103,19 +122,32 @@
   }
   .account {
     display: flex;
-    align-items: center;
-    gap: var(--space-2);
-    padding-block: var(--space-3);
-    padding-inline: var(--space-3);
+    align-items: stretch;
     color: var(--color-text);
     font-weight: 600;
     border-block-end: 1px solid var(--color-border);
   }
-  .account .icon {
-    color: var(--color-text-muted);
-  }
-  .account span {
+  .email {
+    flex: 1;
+    padding: var(--space-3);
     white-space: nowrap;
+  }
+  .cog {
+    display: grid;
+    place-items: center;
+    flex: none;
+    inline-size: 2.75rem;
+    color: var(--color-text-muted);
+    border-inline-start: 1px solid var(--color-border);
+  }
+  .cog:hover,
+  .cog[aria-current='page'] {
+    color: var(--color-accent);
+    background: var(--color-hover);
+  }
+  .cog .icon {
+    inline-size: 1.15rem;
+    block-size: 1.15rem;
   }
   .folders {
     flex: 1;

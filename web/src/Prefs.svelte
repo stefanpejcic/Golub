@@ -4,7 +4,6 @@
   import { i18n } from './lib/locale.svelte';
   import { theme } from './lib/theme.svelte';
   import { session } from './lib/session.svelte';
-  import { route } from './lib/route.svelte';
   import { settings } from './lib/settings.svelte';
   import { mail } from './lib/mail.svelte';
   import { api } from './lib/api';
@@ -20,12 +19,6 @@
     if (name) await api('POST', '/api/folders/empty', { name });
   }
 
-  function openSettings(e: MouseEvent) {
-    if (e.metaKey || e.ctrlKey || e.shiftKey || e.button !== 0) return;
-    e.preventDefault();
-    route.go('/settings/general');
-  }
-
   function toggle() {
     theme.set(next);
     session.savePrefs({ theme: next });
@@ -34,14 +27,6 @@
 
 <div class="prefs">
   {#if session.status === 'authenticated'}
-    <a class="link" href="/settings/general" onclick={openSettings} data-testid="settings-open">
-      <svg class="icon" viewBox="0 0 16 16" aria-hidden="true">
-        <circle cx="8" cy="8" r="2" /><path
-          d="M8 1.5v2M8 12.5v2M1.5 8h2M12.5 8h2M3.4 3.4l1.4 1.4M11.2 11.2l1.4 1.4M3.4 12.6l1.4-1.4M11.2 4.8l1.4-1.4"
-        />
-      </svg>
-      {t('settings.title')}
-    </a>
     <button type="button" class="link" onclick={() => session.logout(emptyTrash)} data-testid="logout">
       <svg class="icon" viewBox="0 0 16 16" aria-hidden="true"><path d="M6 2.5H3.5v11H6M10 5l3 3-3 3M13 8H6" /></svg>
       {t('auth.logout')}
