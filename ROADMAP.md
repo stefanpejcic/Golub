@@ -83,5 +83,16 @@ Stored per user in an unsubscribed IMAP folder `golub-settings` (one JSON messag
 - [ ] Mobile layout with a slide-out folder panel
 - [ ] Branding through env vars: name, logo, accent colour
 
+## AI assistant (optional, privacy first)
+Off unless the admin configures an endpoint (`GOLUB_AI_URL`, `GOLUB_AI_MODEL`, `GOLUB_AI_KEY`; OpenAI-compatible API, so a local Ollama or vLLM works). Nothing leaves the server unless the user clicks an AI action; no background analysis, no storage, users can turn it off in settings.
+- [ ] Summarize a message or a long thread
+- [ ] Reply suggestions: two or three short drafts in the user's language, inserted into compose for editing
+- [ ] Compose helpers: rewrite, shorten, fix grammar, change tone, translate the draft
+- [ ] Translate an incoming message in place
+- [ ] Natural-language search turned into IMAP SEARCH ("invoices from Marko last month")
+- [ ] Extract action items, dates and deadlines from a message
+- [ ] Explain why a message looks like phishing or spam
+- [ ] Admin limits: per-user rate limit, max input size, strip attachments and quoted history before sending
+
 ## Later
 Search, threading, contacts, multiple identities, drag and drop, PGP, dark message view for HTML mail, RTL locales.
