@@ -147,3 +147,16 @@ test('settings cog toggles between settings and mail', async ({ page }) => {
   await expect(page).toHaveURL(/\/mail\/INBOX$/);
   await expect(page.getByTestId('message').first()).toBeVisible();
 });
+
+test('the row dot toggles read and unread', async ({ page }) => {
+  await openBulk(page);
+  const r = row(page, 'Bulk 6');
+  const wasUnread = ((await r.getAttribute('class')) ?? '').includes('unread');
+  await r.getByTestId('row-dot').click();
+  if (wasUnread) await expect(r).not.toHaveClass(/unread/);
+  else await expect(r).toHaveClass(/unread/);
+  await page.getByTestId('refresh').click();
+  await r.getByTestId('row-dot').click();
+  if (wasUnread) await expect(r).toHaveClass(/unread/);
+  else await expect(r).not.toHaveClass(/unread/);
+});
