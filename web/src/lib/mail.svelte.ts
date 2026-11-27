@@ -120,7 +120,7 @@ function readLocation(): { folder: string; page: number; uid: number | null; que
 
 function writeLocation(folder: string, page: number, replace: boolean, uid: number | null = null) {
   // Background mailbox loads must not pull the user out of settings.
-  if (location.pathname.startsWith('/settings') || location.pathname === '/compose') return;
+  if (location.pathname.startsWith('/settings') || location.pathname === '/compose' || location.pathname === '/contacts') return;
   const base = uid === null ? folderPath(folder) : messagePath(folder, uid);
   const params = [page > 1 ? `page=${page}` : '', state.query ? `q=${encodeURIComponent(state.query)}` : '']
     .filter(Boolean)

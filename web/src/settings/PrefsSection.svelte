@@ -45,6 +45,7 @@
       { key: 'forwardMode', kind: 'select', options: ['inline', 'attachment'], label: (v) => t(`settings.forwardMode.${v}`) },
       { key: 'signatureOnReply', kind: 'toggle' },
       { key: 'spellCheck', kind: 'toggle' },
+      { key: 'collectRecipients', kind: 'toggle' },
       { key: 'draftAutosave', kind: 'select', options: [0, 30, 60, 180, 300], label: seconds },
     ],
   });

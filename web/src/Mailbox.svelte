@@ -20,6 +20,7 @@
   import { folderLabel } from './lib/actions';
   import SettingsNav from './settings/SettingsNav.svelte';
   import SettingsPage from './settings/SettingsPage.svelte';
+  import Contacts from './Contacts.svelte';
   import Compose from './Compose.svelte';
   import Resizer from './Resizer.svelte';
   import { clamp, LIMITS, loadColumns, saveColumns, type Columns } from './lib/resize';
@@ -50,7 +51,13 @@
   }
 
   const mobileTitle = $derived(
-    route.settingsSection ? t('settings.title') : route.compose ? t('compose.title.new') : folderLabel(mail.folder),
+    route.settingsSection
+      ? t('settings.title')
+      : route.compose
+        ? t('compose.title.new')
+        : route.contacts
+          ? t('contacts.title')
+          : folderLabel(mail.folder),
   );
 
   // Anything that navigates closes the drawer, so it never stays over the page that was opened.
@@ -97,7 +104,7 @@
     >
       <svg class="icon" viewBox="0 0 16 16" aria-hidden="true"><path d="M2.5 4h11M2.5 8h11M2.5 12h11" /></svg>
     </button>
-    {#if route.settingsSection || route.compose}
+    {#if route.settingsSection || route.compose || route.contacts}
       <span class="mobile-title">{mobileTitle}</span>
     {:else}
       <FolderSelect />
@@ -161,6 +168,21 @@
           <svg class="icon" viewBox="0 0 16 16" aria-hidden="true"><path d="M10.5 2.5 13.5 5.5 6 13H3v-3Z" /><path d="m9 4 3 3" /></svg>
           {t('compose.open')}
         </a>
+        <a
+          class="nav-link"
+          href="/contacts"
+          aria-current={route.contacts ? 'page' : undefined}
+          onclick={(e) => {
+            if (e.metaKey || e.ctrlKey || e.shiftKey || e.button !== 0) return;
+            e.preventDefault();
+            ui.close();
+            route.go('/contacts');
+          }}
+          data-testid="contacts-open"
+        >
+          <svg class="icon" viewBox="0 0 16 16" aria-hidden="true"><circle cx="8" cy="5.5" r="2.5" /><path d="M3 13.5c.6-2.6 2.6-4 5-4s4.4 1.4 5 4" /></svg>
+          {t('contacts.title')}
+        </a>
       </div>
     {/if}
     <div class="folders" class:mobile-hidden={!route.settingsSection}>
@@ -175,6 +197,10 @@
   {#if route.settingsSection}
     <main class="settings-pane">
       <SettingsPage />
+    </main>
+  {:else if route.contacts}
+    <main class="settings-pane">
+      <Contacts />
     </main>
   {:else if route.compose}
     <main class="settings-pane">
@@ -279,6 +305,23 @@
   }
   .compose-btn {
     padding: var(--space-3) var(--space-2) 0;
+  }
+  .nav-link {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    margin-block-start: var(--space-2);
+    padding: var(--space-2);
+    color: var(--color-text);
+    text-decoration: none;
+    border-radius: var(--radius);
+  }
+  .nav-link:hover {
+    background: var(--color-hover);
+  }
+  .nav-link[aria-current='page'] {
+    background: var(--color-selected);
+    font-weight: 600;
   }
   .compose-btn .btn {
     inline-size: 100%;

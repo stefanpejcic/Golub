@@ -36,6 +36,7 @@ export interface Settings {
   forwardMode: 'inline' | 'attachment';
   signatureOnReply: boolean;
   spellCheck: boolean;
+  collectRecipients: boolean;
   draftAutosave: number;
   deleteMode: 'trash' | 'permanent';
   emptyTrashOnLogout: boolean;
@@ -60,6 +61,7 @@ export const DEFAULTS: Settings = {
   forwardMode: 'inline',
   signatureOnReply: true,
   spellCheck: true,
+  collectRecipients: true,
   draftAutosave: 60,
   deleteMode: 'trash',
   emptyTrashOnLogout: false,

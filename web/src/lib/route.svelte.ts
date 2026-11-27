@@ -24,6 +24,9 @@ export const route = {
     // eslint-disable-next-line svelte/prefer-svelte-reactivity
     return state.path === '/compose' ? new URLSearchParams(state.search) : null;
   },
+  get contacts(): boolean {
+    return state.path === '/contacts';
+  },
   get settingsSection(): string | null {
     const m = /^\/settings(?:\/([\w-]+))?\/?$/.exec(state.path);
     return m ? (m[1] ?? 'general') : null;

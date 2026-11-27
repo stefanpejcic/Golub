@@ -7,6 +7,7 @@
   import { mail, type Attachment } from './lib/mail.svelte';
   import { route } from './lib/route.svelte';
   import { dialog } from './lib/dialog.svelte';
+  import { contacts } from './lib/contacts.svelte';
   import { toast } from './lib/toast.svelte';
   import { api, ApiError } from './lib/api';
   import { errorMessage } from './lib/errors';
@@ -305,6 +306,7 @@
     try {
       const res = await post<{ savedToSent: boolean }>('/api/compose/send');
       toast.show(res.savedToSent ? t('compose.sent') : t('compose.sent_not_saved'));
+      if (contacts.loaded) contacts.load(true).catch(() => undefined);
       leave();
     } catch (e) {
       const err = e as ApiError & { address?: string };
