@@ -32,18 +32,47 @@ func SetFlags(c *imapclient.Client, folder string, uids []uint32, flag imap.Flag
 
 // Move moves messages to dest, emulating MOVE with COPY and EXPUNGE on old servers.
 func Move(c *imapclient.Client, folder string, uids []uint32, dest string) error {
+	_, err := MoveUIDs(c, folder, uids, dest)
+	return err
+}
+
+// MoveUIDs moves messages and returns their UIDs in dest, when the server reports them (UIDPLUS).
+func MoveUIDs(c *imapclient.Client, folder string, uids []uint32, dest string) ([]uint32, error) {
 	if _, err := c.Select(folder, nil).Wait(); err != nil {
-		return err
+		return nil, err
 	}
 	set := uidSetOf(uids)
 	if c.Caps().Has(imap.CapMove) {
-		_, err := c.Move(set, dest).Wait()
-		return err
+		data, err := c.Move(set, dest).Wait()
+		if err != nil || data == nil {
+			return nil, err
+		}
+		dst, _ := data.DestUIDs.(imap.UIDSet)
+		return uidsOf(dst), nil
 	}
-	if _, err := c.Copy(set, dest).Wait(); err != nil {
-		return err
+	data, err := c.Copy(set, dest).Wait()
+	if err != nil {
+		return nil, err
 	}
-	return expungeSelected(c, set)
+	if err := expungeSelected(c, set); err != nil {
+		return nil, err
+	}
+	if data == nil {
+		return nil, nil
+	}
+	return uidsOf(data.DestUIDs), nil
+}
+
+func uidsOf(s imap.UIDSet) []uint32 {
+	nums, ok := s.Nums()
+	if !ok {
+		return nil
+	}
+	out := make([]uint32, len(nums))
+	for i, n := range nums {
+		out[i] = uint32(n)
+	}
+	return out
 }
 
 // Expunge permanently removes messages.

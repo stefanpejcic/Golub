@@ -73,7 +73,7 @@ func TestFlagEndpoint(t *testing.T) {
 
 func TestMoveEndpoint(t *testing.T) {
 	h, c := newMutateServer(t)
-	if rec := post(t, h, c, "/api/messages/move", `{"folder":"INBOX","uids":[1,2],"to":"Work"}`); rec.Code != 204 {
+	if rec := post(t, h, c, "/api/messages/move", `{"folder":"INBOX","uids":[1,2],"to":"Work"}`); rec.Code != 200 || !strings.Contains(rec.Body.String(), `"uids":[`) {
 		t.Fatalf("%d %s", rec.Code, rec.Body)
 	}
 	if n := len(list(t, h, c, "Work")); n != 2 {
@@ -149,5 +149,22 @@ func TestCopyEndpoint(t *testing.T) {
 	}
 	if len(list(t, h, c, "Work")) != 2 || len(list(t, h, c, "INBOX")) != 4 {
 		t.Fatal("copy did not keep originals")
+	}
+}
+
+func TestSpamAndUndo(t *testing.T) {
+	h, c := newMutateServer(t)
+	rec := post(t, h, c, "/api/messages/spam", `{"folder":"INBOX","uids":[1]}`)
+	var m struct {
+		Folder string
+		UIDs   []uint32
+	}
+	_ = json.Unmarshal(rec.Body.Bytes(), &m)
+	if rec.Code != 200 || m.Folder != "Junk" || len(m.UIDs) != 1 {
+		t.Fatalf("%d %s", rec.Code, rec.Body)
+	}
+	undo := post(t, h, c, "/api/messages/move", `{"folder":"Junk","uids":[`+itoa(m.UIDs[0])+`],"to":"INBOX"}`)
+	if undo.Code != 200 || len(list(t, h, c, "INBOX")) != 4 || len(list(t, h, c, "Junk")) != 0 {
+		t.Fatalf("undo: %d %s", undo.Code, undo.Body)
 	}
 }

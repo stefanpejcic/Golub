@@ -58,15 +58,22 @@ func (a *authAPI) setFlag(w http.ResponseWriter, r *http.Request, s auth.Session
 	w.WriteHeader(http.StatusNoContent)
 }
 
+// moved tells the client where messages went, so it can offer Undo.
+type moved struct {
+	Folder  string   `json:"folder"`
+	UIDs    []uint32 `json:"uids"`
+	Trashed bool     `json:"trashed"`
+}
+
 func (a *authAPI) copyTo(w http.ResponseWriter, r *http.Request, s auth.Session) {
-	a.transfer(w, r, s, imapx.Copy)
+	a.transfer(w, r, s, false)
 }
 
 func (a *authAPI) move(w http.ResponseWriter, r *http.Request, s auth.Session) {
-	a.transfer(w, r, s, imapx.Move)
+	a.transfer(w, r, s, true)
 }
 
-func (a *authAPI) transfer(w http.ResponseWriter, r *http.Request, s auth.Session, op func(*imapclient.Client, string, []uint32, string) error) {
+func (a *authAPI) transfer(w http.ResponseWriter, r *http.Request, s auth.Session, isMove bool) {
 	var req struct {
 		batch
 		To string `json:"to"`
@@ -78,14 +85,31 @@ func (a *authAPI) transfer(w http.ResponseWriter, r *http.Request, s auth.Sessio
 		writeError(w, http.StatusBadRequest, "request.invalid")
 		return
 	}
+	var dest []uint32
 	err := a.do(r, s, func(c *imapclient.Client) error {
-		return op(c, req.Folder, req.UIDs, req.To)
+		if !isMove {
+			return imapx.Copy(c, req.Folder, req.UIDs, req.To)
+		}
+		var err error
+		dest, err = imapx.MoveUIDs(c, req.Folder, req.UIDs, req.To)
+		return err
 	})
 	if err != nil {
 		a.mailError(w, r, err)
 		return
 	}
-	w.WriteHeader(http.StatusNoContent)
+	if !isMove {
+		w.WriteHeader(http.StatusNoContent)
+		return
+	}
+	writeJSON(w, http.StatusOK, moved{Folder: req.To, UIDs: orEmpty(dest)})
+}
+
+func orEmpty(u []uint32) []uint32 {
+	if u == nil {
+		return []uint32{}
+	}
+	return u
 }
 
 // remove moves mail to Trash, or deletes it for good when it is already there.
@@ -99,6 +123,8 @@ func (a *authAPI) remove(w http.ResponseWriter, r *http.Request, s auth.Session)
 		return
 	}
 	trashed := false
+	var trash string
+	var dest []uint32
 	err := a.do(r, s, func(c *imapclient.Client) error {
 		st, err := loadSettings(c, s.Email)
 		if err != nil {
@@ -108,60 +134,68 @@ func (a *authAPI) remove(w http.ResponseWriter, r *http.Request, s auth.Session)
 		if err != nil {
 			return err
 		}
-		trash := specialFolder(st, folders, "trash", "Trash")
+		trash = specialFolder(st, folders, "trash", "Trash")
 		if st.DeleteMode == "permanent" || trash == "" || trash == req.Folder {
 			return imapx.Expunge(c, req.Folder, req.UIDs)
 		}
 		trashed = true
-		return imapx.Move(c, req.Folder, req.UIDs, trash)
+		dest, err = imapx.MoveUIDs(c, req.Folder, req.UIDs, trash)
+		return err
 	})
 	if err != nil {
 		a.mailError(w, r, err)
 		return
 	}
-	writeJSON(w, http.StatusOK, map[string]bool{"trashed": trashed})
+	if !trashed {
+		trash = ""
+	}
+	writeJSON(w, http.StatusOK, moved{Folder: trash, UIDs: orEmpty(dest), Trashed: trashed})
 }
 
-// archive moves mail to the Archive folder, creating it on first use.
-func (a *authAPI) archive(w http.ResponseWriter, r *http.Request, s auth.Session) {
-	var req batch
-	if !decodeJSON(w, r, &req) {
-		return
-	}
-	if !req.valid() {
-		writeError(w, http.StatusBadRequest, "request.invalid")
-		return
-	}
-	var dest string
-	err := a.do(r, s, func(c *imapclient.Client) error {
-		st, err := loadSettings(c, s.Email)
-		if err != nil {
-			return err
+// toSpecial moves mail to a role folder (archive, junk), creating it on first use.
+func (a *authAPI) toSpecial(role, fallback string) func(http.ResponseWriter, *http.Request, auth.Session) {
+	return func(w http.ResponseWriter, r *http.Request, s auth.Session) {
+		var req batch
+		if !decodeJSON(w, r, &req) {
+			return
 		}
-		folders, err := imapx.ListFolders(c)
-		if err != nil {
-			return err
+		if !req.valid() {
+			writeError(w, http.StatusBadRequest, "request.invalid")
+			return
 		}
-		if dest = specialFolder(st, folders, "archive", "Archive"); dest == "" {
-			dest = "Archive"
-			if err := imapx.EnsureFolder(c, dest, "archive"); err != nil {
+		var folder string
+		var dest []uint32
+		err := a.do(r, s, func(c *imapclient.Client) error {
+			st, err := loadSettings(c, s.Email)
+			if err != nil {
 				return err
 			}
+			folders, err := imapx.ListFolders(c)
+			if err != nil {
+				return err
+			}
+			if folder = specialFolder(st, folders, role, fallback); folder == "" {
+				folder = fallback
+				if err := imapx.EnsureFolder(c, folder, role); err != nil {
+					return err
+				}
+			}
+			if folder == req.Folder {
+				return errSameFolder
+			}
+			dest, err = imapx.MoveUIDs(c, req.Folder, req.UIDs, folder)
+			return err
+		})
+		if errors.Is(err, errSameFolder) {
+			writeError(w, http.StatusBadRequest, "request.invalid")
+			return
 		}
-		if dest == req.Folder {
-			return errSameFolder
+		if err != nil {
+			a.mailError(w, r, err)
+			return
 		}
-		return imapx.Move(c, req.Folder, req.UIDs, dest)
-	})
-	if errors.Is(err, errSameFolder) {
-		writeError(w, http.StatusBadRequest, "request.invalid")
-		return
+		writeJSON(w, http.StatusOK, moved{Folder: folder, UIDs: orEmpty(dest)})
 	}
-	if err != nil {
-		a.mailError(w, r, err)
-		return
-	}
-	writeJSON(w, http.StatusOK, map[string]string{"folder": dest})
 }
 
 var errSameFolder = errors.New("source and destination are the same folder")

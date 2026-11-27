@@ -107,3 +107,19 @@ func TestCopy(t *testing.T) {
 		t.Fatalf("inbox %d work %d", inbox.Total, work.Total)
 	}
 }
+
+func TestMoveUIDsForUndo(t *testing.T) {
+	c := seededClient(t, 3)
+	p, _ := ListMessages(c, "INBOX", 0, 5, "")
+	dest, err := MoveUIDs(c, "INBOX", []uint32{p.Messages[0].UID, p.Messages[1].UID}, "Work")
+	if err != nil || len(dest) != 2 {
+		t.Fatalf("dest uids %v %v", dest, err)
+	}
+	if _, err := MoveUIDs(c, "Work", dest, "INBOX"); err != nil {
+		t.Fatal(err)
+	}
+	inbox, _ := ListMessages(c, "INBOX", 0, 5, "")
+	if inbox.Total != 3 {
+		t.Fatalf("undo did not restore: %d", inbox.Total)
+	}
+}
