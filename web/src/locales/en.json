@@ -68,5 +68,16 @@
   "about.source": "Source code",
   "about.credits": "Built with",
   "about.close": "Close",
-  "message.none_selected": "Select a message to read it."
+  "message.none_selected": "Select a message to read it.",
+  "actions.label": "Message actions",
+  "actions.delete": "Delete",
+  "actions.mark_read": "Mark as read",
+  "actions.mark_unread": "Mark as unread",
+  "actions.flag": "Flag",
+  "actions.unflag": "Unflag",
+  "actions.move": "Move to folder",
+  "actions.move_to": "Move to…",
+  "toast.trashed": "Moved to Trash.",
+  "toast.deleted": "Deleted permanently.",
+  "toast.moved": "Moved to {folder}."
 }

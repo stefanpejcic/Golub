@@ -6,6 +6,7 @@
   import MessageList from './MessageList.svelte';
   import MessageView from './MessageView.svelte';
   import Prefs from './Prefs.svelte';
+  import Toast from './Toast.svelte';
   import Logo from './Logo.svelte';
   import { session } from './lib/session.svelte';
 
@@ -43,6 +44,8 @@
     {/if}
   </section>
 </div>
+
+<Toast />
 
 <style>
   .mailbox {

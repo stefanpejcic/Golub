@@ -33,7 +33,7 @@
 - [x] Remote image proxy with SSRF guard
 
 ### 6. Mutations
-- [ ] Flags, move, delete
+- [x] Flags, move, delete
 
 ### 7. Compose and send
 - [ ] Reply/forward quoting, attachments, Sent copy

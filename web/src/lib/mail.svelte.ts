@@ -177,14 +177,14 @@ export const mail = {
     }
   },
 
-  async openMessage(uid: number, opts: { history?: boolean } = {}) {
+  async openMessage(uid: number, opts: { history?: boolean; replace?: boolean } = {}) {
     const mine = ++messageSeq;
     const folder = state.folder;
     state.uid = uid;
     state.message = null;
     state.messageError = '';
     state.messageLoading = true;
-    if (opts.history !== false) writeLocation(folder, state.page, false, uid);
+    if (opts.history !== false) writeLocation(folder, state.page, opts.replace ?? false, uid);
     try {
       const m = await api<MessageView>('GET', `/api/message?folder=${encodeURIComponent(folder)}&uid=${uid}`);
       if (mine !== messageSeq) return;
@@ -208,6 +208,49 @@ export const mail = {
     state.message = null;
     state.messageError = '';
     if (opts.history !== false) writeLocation(state.folder, state.page, false);
+  },
+
+  // Updates rows, the open message and unread counters before the server answers.
+  async setFlag(uids: number[], flag: 'seen' | 'flagged', value: boolean) {
+    const folder = state.folder;
+    const f = state.folders.find((x) => x.name === folder);
+    for (const row of state.messages) {
+      if (!uids.includes(row.uid)) continue;
+      if (flag === 'seen' && row.seen !== value && f) f.unread += value ? -1 : 1;
+      row[flag] = value;
+    }
+    if (state.message && uids.includes(state.message.uid)) state.message[flag] = value;
+    try {
+      await api('POST', '/api/messages/flag', { folder, uids, flag, value });
+    } catch (e) {
+      fail(e);
+      await this.loadFolders();
+      throw e;
+    }
+  },
+
+  // Removes rows from the list and opens the next message, like a desktop client.
+  async removeRows(uids: number[]) {
+    const idx = state.messages.findIndex((r) => uids.includes(r.uid));
+    state.messages = state.messages.filter((r) => !uids.includes(r.uid));
+    state.total = Math.max(0, state.total - uids.length);
+    if (state.uid !== null && uids.includes(state.uid)) {
+      const next = state.messages[Math.min(idx, state.messages.length - 1)];
+      if (next) this.openMessage(next.uid, { replace: true });
+      else this.closeMessage();
+    }
+    await this.loadFolders();
+  },
+
+  async move(uids: number[], to: string) {
+    await api('POST', '/api/messages/move', { folder: state.folder, uids, to });
+    await this.removeRows(uids);
+  },
+
+  async remove(uids: number[]): Promise<boolean> {
+    const res = await api<{ trashed: boolean }>('POST', '/api/messages/delete', { folder: state.folder, uids });
+    await this.removeRows(uids);
+    return res.trashed;
   },
 
   start() {

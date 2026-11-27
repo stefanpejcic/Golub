@@ -71,5 +71,16 @@
   "about.source": "Izvorni kod",
   "about.credits": "Napravljeno pomoću",
   "about.close": "Zatvori",
-  "message.none_selected": "Izaberite poruku da biste je pročitali."
+  "message.none_selected": "Izaberite poruku da biste je pročitali.",
+  "actions.label": "Radnje nad porukom",
+  "actions.delete": "Obriši",
+  "actions.mark_read": "Označi kao pročitano",
+  "actions.mark_unread": "Označi kao nepročitano",
+  "actions.flag": "Označi zastavicom",
+  "actions.unflag": "Ukloni zastavicu",
+  "actions.move": "Premesti u fasciklu",
+  "actions.move_to": "Premesti u…",
+  "toast.trashed": "Premešteno u otpad.",
+  "toast.deleted": "Trajno obrisano.",
+  "toast.moved": "Premešteno u {folder}."
 }
