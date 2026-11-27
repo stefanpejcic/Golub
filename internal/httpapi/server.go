@@ -97,7 +97,7 @@ func New(o Options) http.Handler {
 		mux.Handle("GET /proxy", o.Proxy)
 	}
 	mux.Handle("/", fallback(spa(o.Static)))
-	return securityHeaders(o.HTTPS, http.NewCrossOriginProtection().Handler(timed(mux)))
+	return securityHeaders(o.HTTPS, http.NewCrossOriginProtection().Handler(gzipAPI(timed(mux))))
 }
 
 func securityHeaders(https bool, next http.Handler) http.Handler {
@@ -141,6 +141,9 @@ func spa(static fs.FS) http.Handler {
 		if _, err := fs.Stat(static, name); err == nil {
 			if strings.HasPrefix(name, "assets/") {
 				w.Header().Set("Cache-Control", "public, max-age=31536000, immutable")
+			}
+			if precompressed(w, r, static, name) {
+				return
 			}
 			files.ServeHTTP(w, r)
 			return
