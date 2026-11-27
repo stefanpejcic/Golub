@@ -64,7 +64,8 @@ test('vCard import and export', async ({ page }) => {
 
 test('sending collects new recipients for suggestions', async ({ page }) => {
   const id = Date.now();
-  const to = `collected${id}@golub.test`;
+  // A plus address of a real user, so nothing bounces back into the inbox other tests count.
+  const to = `bob+c${id}@golub.test`;
   await signIn(page);
   await page.getByTestId('compose-open').click();
   await page.getByTestId('compose-to-input').fill(to);
