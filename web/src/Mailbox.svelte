@@ -14,6 +14,8 @@
   import { live } from './lib/live.svelte';
   import { route } from './lib/route.svelte';
   import { folderPath } from './lib/format';
+  import { ui } from './lib/ui.svelte';
+  import { folderLabel } from './lib/actions';
   import SettingsNav from './settings/SettingsNav.svelte';
   import SettingsPage from './settings/SettingsPage.svelte';
   import Compose from './Compose.svelte';
@@ -45,6 +47,17 @@
     if (done) saveColumns(columns);
   }
 
+  const mobileTitle = $derived(
+    route.settingsSection ? t('settings.title') : route.compose ? t('compose.title.new') : folderLabel(mail.folder),
+  );
+
+  // Anything that navigates closes the drawer, so it never stays over the page that was opened.
+  $effect(() => {
+    void route.path;
+    void mail.folder;
+    ui.close();
+  });
+
   function reset() {
     columns = null;
     saveColumns(null);
@@ -68,8 +81,26 @@
   });
 </script>
 
-<div bind:this={root} class="mailbox" class:custom={columns !== null} class:has-message={mail.uid !== null} class:in-settings={route.settingsSection !== null}>
-  <aside bind:this={aside}>
+<svelte:window onkeydown={(e) => e.key === 'Escape' && ui.drawer && ui.close()} />
+
+<div bind:this={root} class="mailbox" class:drawer-open={ui.drawer} class:custom={columns !== null} class:has-message={mail.uid !== null} class:in-settings={route.settingsSection !== null}>
+  <div class="mobile-bar">
+    <button
+      type="button"
+      class="btn btn-icon"
+      aria-label={t('layout.menu')}
+      aria-expanded={ui.drawer}
+      onclick={() => ui.toggle()}
+      data-testid="drawer-toggle"
+    >
+      <svg class="icon" viewBox="0 0 16 16" aria-hidden="true"><path d="M2.5 4h11M2.5 8h11M2.5 12h11" /></svg>
+    </button>
+    <span class="mobile-title">{mobileTitle}</span>
+  </div>
+  {#if ui.drawer}
+    <button type="button" class="backdrop" aria-label={t('layout.close_menu')} onclick={() => ui.close()} data-testid="drawer-backdrop"></button>
+  {/if}
+  <aside bind:this={aside} data-testid="sidebar">
     <Resizer
       label={t('layout.resize_sidebar')}
       testid="resize-sidebar"
@@ -299,19 +330,66 @@
       display: none;
     }
   }
+  .mobile-bar,
+  .backdrop {
+    display: none;
+  }
+  /* Phones: the sidebar becomes a drawer and the content gets the whole width. */
   @media (max-width: 48rem) {
     .mailbox {
-      grid-template-columns: 1fr;
-      grid-template-rows: auto 1fr;
-      block-size: auto;
-      min-block-size: 100vh;
+      grid-template-columns: minmax(0, 1fr);
+      grid-template-rows: auto minmax(0, 1fr);
+      block-size: 100dvh;
+    }
+    .mobile-bar {
+      display: flex;
+      align-items: center;
+      gap: var(--space-2);
+      padding: var(--space-2) var(--space-3);
+      background: var(--color-surface);
+    }
+    .mobile-title {
+      overflow: hidden;
+      font-weight: 600;
+      text-overflow: ellipsis;
+      white-space: nowrap;
     }
     aside {
-      border-inline-end: none;
-      border-block-end: 1px solid var(--color-border);
+      position: fixed;
+      z-index: 40;
+      inset-block: 0;
+      inset-inline-start: 0;
+      inline-size: min(85vw, 20rem);
+      transform: translateX(-100%);
+      transition: transform 0.2s ease;
+      box-shadow: var(--shadow);
     }
-    .folders {
-      max-block-size: 40vh;
+    .mailbox:not(.custom) aside {
+      min-inline-size: 0;
+    }
+    .drawer-open aside {
+      transform: none;
+    }
+    .backdrop {
+      display: block;
+      position: fixed;
+      z-index: 35;
+      inset: 0;
+      padding: 0;
+      background: rgb(0 0 0 / 0.4);
+      border: none;
+    }
+    .list-pane,
+    .preview-pane,
+    .settings-pane {
+      grid-row: 2;
+      grid-column: 1;
+      border-inline-end: none;
+    }
+  }
+  @media (max-width: 48rem) and (prefers-reduced-motion: reduce) {
+    aside {
+      transition: none;
     }
   }
 </style>

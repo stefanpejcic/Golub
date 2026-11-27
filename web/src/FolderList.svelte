@@ -5,6 +5,7 @@
   import { folderPath } from './lib/format';
   import { route } from './lib/route.svelte';
   import { moveMessages } from './lib/actions';
+  import { ui } from './lib/ui.svelte';
 
   const t = $derived(i18n.t);
 
@@ -46,6 +47,7 @@
   async function go(e: MouseEvent, f: Folder) {
     if (e.metaKey || e.ctrlKey || e.shiftKey || e.button !== 0) return;
     e.preventDefault();
+    ui.close();
     if (route.compose || route.settingsSection) {
       if (await route.go(folderPath(f.name))) mail.open(f.name, 1, { replace: true });
       return;

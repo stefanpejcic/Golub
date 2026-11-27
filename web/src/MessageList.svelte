@@ -703,6 +703,14 @@
   .row:hover {
     background: var(--color-hover);
   }
+  @media (pointer: coarse) {
+    .row {
+      padding-block: 0.85rem;
+    }
+    .dot-btn {
+      inset-block-start: 0.8rem;
+    }
+  }
   .row[aria-current='true'] {
     background: var(--color-selected);
   }

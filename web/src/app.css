@@ -118,3 +118,10 @@ body {
   background: var(--color-primary);
   border-radius: 999px;
 }
+
+@media (pointer: coarse) {
+  .btn-icon {
+    inline-size: 2.5rem;
+    block-size: 2.5rem;
+  }
+}
