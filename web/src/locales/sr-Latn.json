@@ -377,5 +377,16 @@
   "contacts.imported": "Uvezeno: {added} novih, {updated} ažurirano.",
   "errors.contacts.invalid": "Neki podaci nisu ispravni. Proverite email adrese.",
   "errors.contacts.bad_vcard": "Taj fajl nije vCard (.vcf) fajl.",
-  "settings.collectRecipients": "Pamti osobe kojima pišem, za predloge adresa"
+  "settings.collectRecipients": "Pamti osobe kojima pišem, za predloge adresa",
+  "options.threads": "Grupiši poruke u razgovore",
+  "list.thread_open": {
+    "one": "Prikaži razgovor ({count} poruka)",
+    "few": "Prikaži razgovor ({count} poruke)",
+    "other": "Prikaži razgovor ({count} poruka)"
+  },
+  "list.thread_close": {
+    "one": "Sakrij razgovor ({count} poruka)",
+    "few": "Sakrij razgovor ({count} poruke)",
+    "other": "Sakrij razgovor ({count} poruka)"
+  }
 }

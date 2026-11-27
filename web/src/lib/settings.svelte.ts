@@ -24,6 +24,7 @@ export interface Settings {
   pageSize: number;
   sortBy: 'date' | 'arrival' | 'subject' | 'from' | 'size';
   sortDesc: boolean;
+  threads: boolean;
   prettyDates: boolean;
   refreshInterval: number;
   markRead: 'immediately' | 'delay' | 'never';
@@ -49,6 +50,7 @@ export const DEFAULTS: Settings = {
   pageSize: 50,
   sortBy: 'date',
   sortDesc: true,
+  threads: false,
   prettyDates: true,
   refreshInterval: 60,
   markRead: 'immediately',

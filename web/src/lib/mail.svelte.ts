@@ -29,6 +29,10 @@ export interface Summary {
   attachments: boolean;
   size: number;
   priority: number;
+  depth?: number;
+  root?: number;
+  threadSize?: number;
+  threadUnread?: number;
 }
 
 export interface Attachment {
@@ -71,6 +75,7 @@ interface MessagePage {
   page: number;
   size: number;
   messages: Summary[];
+  threaded?: boolean;
 }
 
 
@@ -90,7 +95,14 @@ const state = $state({
   quota: null as { used: number; limit: number } | null,
   selected: [] as number[],
   anchor: null as number | null,
+  threaded: false,
+  expanded: [] as number[],
 });
+
+// Rows the user can see: in the threaded view replies stay hidden until their thread is opened.
+const visible = $derived(
+  state.threaded ? state.messages.filter((m) => !m.root || m.root === m.uid || state.expanded.includes(m.root)) : state.messages,
+);
 
 let seq = 0;
 
@@ -107,7 +119,7 @@ let messageSeq = 0;
 let mutations = 0;
 
 function sortParams(): string {
-  return `&sort=${settings.value.sortBy}&order=${settings.value.sortDesc ? 'desc' : 'asc'}`;
+  return `&sort=${settings.value.sortBy}&order=${settings.value.sortDesc ? 'desc' : 'asc'}${settings.value.threads ? '&threads=1' : ''}`;
 }
 let markTimer: ReturnType<typeof setTimeout> | undefined;
 
@@ -150,6 +162,28 @@ export const mail = {
   },
   get messages() {
     return state.messages;
+  },
+  get visible() {
+    return visible;
+  },
+  get threaded() {
+    return state.threaded;
+  },
+  isExpanded(root: number) {
+    return state.expanded.includes(root);
+  },
+  toggleThread(root: number) {
+    state.expanded = state.expanded.includes(root) ? state.expanded.filter((r) => r !== root) : [...state.expanded, root];
+  },
+  // Acting on a closed thread acts on every message in it.
+  withThreads(uids: number[]): number[] {
+    if (!state.threaded) return uids;
+    const out = [...uids];
+    for (const u of uids) {
+      if (state.expanded.includes(u)) continue;
+      for (const m of state.messages) if (m.root === u && !out.includes(m.uid)) out.push(m.uid);
+    }
+    return out;
   },
   get loading() {
     return state.loading;
@@ -201,7 +235,7 @@ export const mail = {
     state.anchor = uid;
   },
   selectAll() {
-    state.selected = state.messages.map((m) => m.uid);
+    state.selected = visible.map((m) => m.uid);
   },
   selectWhere(pick: (m: Summary) => boolean) {
     state.selected = state.messages.filter(pick).map((m) => m.uid);
@@ -253,6 +287,7 @@ export const mail = {
       if (mine !== seq) return;
       state.total = res.total;
       state.messages = res.messages;
+      state.threaded = !!res.threaded;
     } catch (e) {
       if (mine !== seq) return;
       state.messages = [];
@@ -403,6 +438,7 @@ export const mail = {
       if (started !== mutations) return;
       state.total = res.total;
       state.messages = res.messages;
+      state.threaded = !!res.threaded;
     } catch (e) {
       fail(e);
     }

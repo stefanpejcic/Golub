@@ -47,6 +47,7 @@ type Settings struct {
 	PageSize           int               `json:"pageSize"`
 	SortBy             string            `json:"sortBy"`
 	SortDesc           bool              `json:"sortDesc"`
+	Threads            bool              `json:"threads"`
 	PrettyDates        bool              `json:"prettyDates"`
 	RefreshInterval    int               `json:"refreshInterval"`
 	MarkRead           string            `json:"markRead"`

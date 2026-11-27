@@ -10,10 +10,12 @@
   let refreshing = $state(false);
   let sortBy = $state<Settings['sortBy']>('date');
   let sortDesc = $state(true);
+  let threads = $state(false);
 
   $effect(() => {
     sortBy = settings.value.sortBy;
     sortDesc = settings.value.sortDesc;
+    threads = settings.value.threads;
   });
 
   async function refresh() {
@@ -28,7 +30,7 @@
   async function applySort(close: () => void) {
     close();
     try {
-      await settings.patch({ sortBy, sortDesc });
+      await settings.patch({ sortBy, sortDesc, threads });
       await mail.open(mail.folder, 1);
     } catch {
       toast.show(t('errors.unknown'), true);
@@ -84,6 +86,7 @@
           <label class="radio"><input type="radio" bind:group={sortDesc} value={true} data-testid="options-desc" />{t('options.desc')}</label>
           <label class="radio"><input type="radio" bind:group={sortDesc} value={false} data-testid="options-asc" />{t('options.asc')}</label>
         </fieldset>
+        <label class="radio"><input type="checkbox" bind:checked={threads} data-testid="options-threads" />{t('options.threads')}</label>
         <button class="btn btn-primary" type="submit" data-testid="options-save">{t('folders.save')}</button>
       </form>
     {/snippet}

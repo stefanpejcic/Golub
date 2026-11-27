@@ -21,7 +21,9 @@
   const numbers = $derived(new Intl.NumberFormat(i18n.locale));
 
   const bulk = $derived(mail.selected.length > 1);
-  const selectedRows = $derived(mail.messages.filter((m) => mail.selected.includes(m.uid)));
+  const selectedRows = $derived(mail.visible.filter((m) => mail.selected.includes(m.uid)));
+  // A closed thread shows as unread while any message in it is.
+  const threadUnread = (root: number) => mail.messages.filter((m) => m.root === root && !m.seen).length;
   const anyUnread = $derived(selectedRows.some((m) => !m.seen));
   const anyUnflagged = $derived(selectedRows.some((m) => !m.flagged));
   const targets = $derived(mail.folders.filter((f) => f.selectable && f.name !== mail.folder));
@@ -72,7 +74,7 @@
   }
 
   function step(delta: number) {
-    const rows = mail.messages;
+    const rows = mail.visible;
     if (!rows.length) return;
     const at = rows.findIndex((r) => r.uid === mail.uid);
     const next = at < 0 ? (delta > 0 ? 0 : rows.length - 1) : at + delta;
@@ -324,10 +326,14 @@
     <p class="state" data-testid="empty">{mail.query ? t('search.no_results') : t('list.empty')}</p>
   {:else}
     <ul data-testid="messages">
-      {#each mail.messages as m (m.uid)}
+      {#each mail.visible as m (m.uid)}
         {@const who = showRecipients ? m.to.map(displayName).join(', ') : displayName(m.from[0])}
+        {@const isRoot = !!m.threadSize && m.threadSize > 1}
+        {@const closed = isRoot && !mail.isExpanded(m.uid)}
         <li
-          class:unread={!m.seen}
+          class:unread={closed ? threadUnread(m.uid) > 0 : !m.seen}
+          class:reply={!!m.depth}
+          style:--depth={Math.min(m.depth ?? 0, 6)}
           class:selected={mail.isSelected(m.uid)}
           data-testid="message"
           data-uid={m.uid}
@@ -361,7 +367,27 @@
               onclick={(e) => open(e, m.uid)}
             >
               <span class="dot-space" aria-hidden="true"></span>
-              <span class="who">{who}</span>
+              <span class="who">
+                {#if isRoot}
+                  <button
+                    type="button"
+                    class="thread-toggle"
+                    class:open={!closed}
+                    aria-expanded={!closed}
+                    aria-label={t(closed ? 'list.thread_open' : 'list.thread_close', { count: m.threadSize ?? 0 })}
+                    onclick={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      mail.toggleThread(m.uid);
+                    }}
+                    data-testid="thread-toggle"
+                  >
+                    <svg class="icon" viewBox="0 0 16 16" aria-hidden="true"><path d="m6 4 4 4-4 4" /></svg>
+                    <span class="thread-count" data-testid="thread-count">{m.threadSize}</span>
+                  </button>
+                {/if}
+                {who}
+              </span>
               <time datetime={m.date} title={formatFullDate(i18n.locale, m.date)}>
                 {formatListDate(i18n.locale, m.date, undefined, settings.value.prettyDates)}
               </time>
@@ -794,6 +820,38 @@
   .flag {
     color: var(--color-danger);
     fill: currentColor;
+  }
+  li.reply .row {
+    padding-inline-start: calc(var(--depth) * 1rem + 1.75rem);
+  }
+  li.reply .dot-btn {
+    inset-inline-start: calc(var(--depth) * 1rem + 0.25rem);
+  }
+  .thread-toggle {
+    display: inline-flex;
+    align-items: center;
+    gap: 2px;
+    margin-inline-end: var(--space-1);
+    padding: 0 var(--space-1) 0 0;
+    font: inherit;
+    font-size: 0.75rem;
+    color: var(--color-text-muted);
+    vertical-align: middle;
+    background: var(--color-input-bg);
+    border: none;
+    border-radius: 999px;
+    cursor: pointer;
+  }
+  .thread-toggle .icon {
+    inline-size: 0.9rem;
+    block-size: 0.9rem;
+    transition: transform 0.15s;
+  }
+  .thread-toggle.open .icon {
+    transform: rotate(90deg);
+  }
+  .thread-toggle:hover {
+    color: var(--color-text);
   }
   .prio.high {
     color: var(--color-danger);

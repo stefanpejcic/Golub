@@ -69,7 +69,7 @@ Stored per user in an unsubscribed IMAP folder `golub-settings` (one JSON messag
 - [ ] Spell checking via the browser
 - [ ] Cache sorted UIDs per connection so paging and search on very large folders skip the full SORT
 - [x] Address book with groups, autocomplete, addresses collected from Sent, vCard import/export (stored in a hidden IMAP folder)
-- [ ] Threaded view (IMAP THREAD)
+- [x] Threaded view (IMAP THREAD)
 - [ ] Advanced search: body text, all folders, date range, has attachments, unread, flagged
 - [ ] Import/export: .eml/.mbox upload into a folder, folder export
 

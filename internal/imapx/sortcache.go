@@ -13,7 +13,7 @@ import (
 )
 
 // Each entry can hold a whole 50k folder, so only the most recent few views are kept.
-const sortCacheEntries = 3
+const sortCacheEntries = 4
 
 // sortRuns counts real UID SORT commands, for tests.
 var sortRuns atomic.Int64
@@ -31,9 +31,10 @@ type sortState struct {
 }
 
 type sortEntry struct {
-	key   sortKey
-	state sortState
-	uids  []uint32
+	key     sortKey
+	state   sortState
+	uids    []uint32
+	threads [][]member
 }
 
 type sortCache struct {
@@ -49,17 +50,27 @@ func stateOf(sel *imap.SelectData) (sortState, bool) {
 }
 
 func (sc *sortCache) get(c *imapclient.Client, k sortKey, st sortState) ([]uint32, bool) {
+	e, ok := sc.getEntry(c, k, st)
+	return e.uids, ok
+}
+
+func (sc *sortCache) getEntry(c *imapclient.Client, k sortKey, st sortState) (sortEntry, bool) {
 	sc.mu.Lock()
 	defer sc.mu.Unlock()
 	for _, e := range sc.entries[weak.Make(c)] {
 		if e.key == k && e.state == st {
-			return e.uids, true
+			return e, true
 		}
 	}
-	return nil, false
+	return sortEntry{}, false
 }
 
 func (sc *sortCache) put(c *imapclient.Client, k sortKey, st sortState, uids []uint32) {
+	sc.putEntry(c, sortEntry{key: k, state: st, uids: uids})
+}
+
+func (sc *sortCache) putEntry(c *imapclient.Client, entry sortEntry) {
+	k := entry.key
 	wp := weak.Make(c)
 	sc.mu.Lock()
 	defer sc.mu.Unlock()
@@ -71,7 +82,7 @@ func (sc *sortCache) put(c *imapclient.Client, k sortKey, st sortState, uids []u
 			sc.mu.Unlock()
 		}, wp)
 	}
-	kept := []sortEntry{{key: k, state: st, uids: uids}}
+	kept := []sortEntry{entry}
 	for _, e := range list {
 		if e.key != k && len(kept) < sortCacheEntries {
 			kept = append(kept, e)

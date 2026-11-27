@@ -367,5 +367,14 @@
   "contacts.imported": "Imported: {added} new, {updated} updated.",
   "errors.contacts.invalid": "Some details are not valid. Check the email addresses.",
   "errors.contacts.bad_vcard": "That file is not a vCard (.vcf) file.",
-  "settings.collectRecipients": "Remember the people I write to, for address suggestions"
+  "settings.collectRecipients": "Remember the people I write to, for address suggestions",
+  "options.threads": "Group messages into conversations",
+  "list.thread_open": {
+    "one": "Show the conversation ({count} message)",
+    "other": "Show the conversation ({count} messages)"
+  },
+  "list.thread_close": {
+    "one": "Hide the conversation ({count} message)",
+    "other": "Hide the conversation ({count} messages)"
+  }
 }

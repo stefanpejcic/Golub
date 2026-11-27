@@ -37,6 +37,7 @@ async function moveWithUndo(work: () => Promise<Moved>, message: (m: Moved) => s
 }
 
 export function removeMessages(uids: number[]) {
+  uids = mail.withThreads(uids);
   return moveWithUndo(
     () => mail.remove(uids),
     (m) => {
@@ -47,6 +48,7 @@ export function removeMessages(uids: number[]) {
 }
 
 export function archiveMessages(uids: number[]) {
+  uids = mail.withThreads(uids);
   return moveWithUndo(
     () => mail.archive(uids),
     (m) => i18n.t('toast.archived', { folder: folderLabel(m.folder) }),
@@ -54,6 +56,7 @@ export function archiveMessages(uids: number[]) {
 }
 
 export function spamMessages(uids: number[]) {
+  uids = mail.withThreads(uids);
   return moveWithUndo(
     () => mail.spam(uids),
     (m) => i18n.t('toast.moved', { folder: folderLabel(m.folder) }),
@@ -61,6 +64,7 @@ export function spamMessages(uids: number[]) {
 }
 
 export function moveMessages(uids: number[], to: string) {
+  uids = mail.withThreads(uids);
   return moveWithUndo(
     () => mail.move(uids, to),
     () => i18n.t('toast.moved', { folder: folderLabel(to) }),
@@ -68,10 +72,12 @@ export function moveMessages(uids: number[], to: string) {
 }
 
 export function flagMessages(uids: number[], flag: 'seen' | 'flagged', value: boolean) {
+  uids = mail.withThreads(uids);
   return run(() => mail.setFlag(uids, flag, value));
 }
 
 export function copyMessages(uids: number[], to: string) {
+  uids = mail.withThreads(uids);
   return run(async () => {
     await mail.copy(uids, to);
     return i18n.t('toast.copied', { folder: folderLabel(to) });

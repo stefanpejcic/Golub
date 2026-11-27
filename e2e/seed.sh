@@ -69,6 +69,26 @@ for i in 1 2 3 4 5 6 7 8; do
 done
 imap -u "$ALICE:$E2E_PASSWORD" "$IMAP/Bulk" -X 'STORE 1:* -FLAGS (\Seen)' >/dev/null
 
+# Threads holds two conversations and a lone message for the threaded view.
+imap -u "$ALICE:$E2E_PASSWORD" "$IMAP/" -X 'CREATE Threads' >/dev/null
+imap -u "$ALICE:$E2E_PASSWORD" "$IMAP/" -X 'SUBSCRIBE Threads' >/dev/null
+thread_msg() {
+  # id, subject, hour, in-reply-to, references
+  {
+    printf 'From: Bob <bob@%s>\r\nTo: Alice <%s>\r\nSubject: %s\r\nDate: %s\r\nMessage-ID: <%s@golub.test>\r\n' \
+      "$E2E_DOMAIN" "$ALICE" "$2" "$(date -u -R -d "2026-04-01 +$3 hours")" "$1"
+    [ -n "${4:-}" ] && printf 'In-Reply-To: <%s@golub.test>\r\nReferences: %s\r\n' "$4" "$5"
+    printf 'Content-Type: text/plain; charset=utf-8\r\n\r\n%s body.\r\n' "$1"
+  } >"$tmp"
+  imap -u "$ALICE:$E2E_PASSWORD" "$IMAP/Threads" -T "$tmp"
+}
+thread_msg plan-1 "Trip plan" 1
+thread_msg lone "Lone message" 2
+thread_msg plan-2 "Re: Trip plan" 3 plan-1 "<plan-1@golub.test>"
+thread_msg budget-1 "Budget" 4
+thread_msg plan-3 "Re: Trip plan" 5 plan-2 "<plan-1@golub.test> <plan-2@golub.test>"
+thread_msg budget-2 "Re: Budget" 6 budget-1 "<budget-1@golub.test>"
+
 # Drag owns its two folders so the drag test never races the bulk tests.
 for f in Drag Dropped; do
   imap -u "$ALICE:$E2E_PASSWORD" "$IMAP/" -X "CREATE $f" >/dev/null

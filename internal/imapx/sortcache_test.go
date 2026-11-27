@@ -44,13 +44,13 @@ func TestSortCacheEvictsOldest(t *testing.T) {
 	sc := sortCache{entries: map[weak.Pointer[imapclient.Client]][]sortEntry{}}
 	c := new(imapclient.Client)
 	st := sortState{validity: 1, next: 2, count: 1}
-	for _, f := range []string{"a", "b", "c", "d"} {
+	for _, f := range []string{"a", "b", "c", "d", "e"} {
 		sc.put(c, sortKey{folder: f}, st, []uint32{1})
 	}
 	if _, ok := sc.get(c, sortKey{folder: "a"}, st); ok {
 		t.Error("oldest entry should be gone")
 	}
-	if _, ok := sc.get(c, sortKey{folder: "d"}, st); !ok {
+	if _, ok := sc.get(c, sortKey{folder: "e"}, st); !ok {
 		t.Error("newest entry missing")
 	}
 	runtime.KeepAlive(c)

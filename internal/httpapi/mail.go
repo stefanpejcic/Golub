@@ -99,8 +99,14 @@ func (a *authAPI) messages(w http.ResponseWriter, r *http.Request, s auth.Sessio
 		return
 	}
 	var p imapx.Page
+	threaded := false
 	err := a.do(r, s, func(c *imapclient.Client) error {
 		var err error
+		if q.Get("threads") == "1" && imapx.CanThread(c) {
+			threaded = true
+			p, err = imapx.ListThreads(c, folder, (page-1)*size, size, query, order)
+			return err
+		}
 		p, err = imapx.ListMessages(c, folder, (page-1)*size, size, query, order)
 		return err
 	})
@@ -108,7 +114,7 @@ func (a *authAPI) messages(w http.ResponseWriter, r *http.Request, s auth.Sessio
 		a.mailError(w, r, err)
 		return
 	}
-	writeJSON(w, http.StatusOK, map[string]any{"total": p.Total, "page": page, "size": size, "messages": p.Messages})
+	writeJSON(w, http.StatusOK, map[string]any{"total": p.Total, "page": page, "size": size, "messages": p.Messages, "threaded": threaded})
 }
 
 func intParam(v string, def int) (int, bool) {

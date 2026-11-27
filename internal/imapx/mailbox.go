@@ -53,6 +53,11 @@ type Summary struct {
 	Attachments bool      `json:"attachments"`
 	Size        int64     `json:"size"`
 	Priority    int       `json:"priority"`
+	// Thread fields are set only in the threaded view; the first message of a thread carries the counts.
+	Depth        int    `json:"depth,omitempty"`
+	Root         uint32 `json:"root,omitempty"`
+	ThreadSize   int    `json:"threadSize,omitempty"`
+	ThreadUnread int    `json:"threadUnread,omitempty"`
 }
 
 // Page is a slice of a sorted folder.
@@ -207,30 +212,15 @@ func ListMessages(c *imapclient.Client, folder string, offset, limit int, query 
 	}
 	end := min(offset+limit, total)
 
-	fetch := &imap.FetchOptions{
-		UID: true, Envelope: true, Flags: true, InternalDate: true, RFC822Size: true,
-		BodyStructure: &imap.FetchItemBodyStructure{},
-		BodySection:   []*imap.FetchItemBodySection{prioritySection},
-	}
+	fetch := summaryFetch
 	var msgs []*imapclient.FetchMessageBuffer
 	var order []uint32
 
 	if c.Caps().Has(imap.CapSort) {
-		key := sortKey{folder: folder, query: query, sort: sortBy.Key, desc: sortBy.Desc}
 		st, cacheable := stateOf(sel)
-		uids, hit := sorted.get(c, key, st)
-		if !hit {
-			sortRuns.Add(1)
-			uids, err = c.UIDSort(&imapclient.SortOptions{
-				SearchCriteria: searchCriteria(query),
-				SortCriteria:   []imapclient.SortCriterion{{Key: sortKeys[sortBy.Key], Reverse: sortBy.Desc}},
-			}).Wait()
-			if err != nil {
-				return Page{}, err
-			}
-			if cacheable {
-				sorted.put(c, key, st, uids)
-			}
+		uids, err := sortedUIDs(c, folder, query, sortBy, st, cacheable)
+		if err != nil {
+			return Page{}, err
 		}
 		page.Total = len(uids)
 		if offset >= len(uids) {
@@ -296,6 +286,31 @@ func ListMessages(c *imapclient.Client, folder string, offset, limit int, query 
 		}
 	}
 	return page, nil
+}
+
+func sortedUIDs(c *imapclient.Client, folder, query string, sortBy Sort, st sortState, cacheable bool) ([]uint32, error) {
+	key := sortKey{folder: folder, query: query, sort: sortBy.Key, desc: sortBy.Desc}
+	if uids, ok := sorted.get(c, key, st); ok {
+		return uids, nil
+	}
+	sortRuns.Add(1)
+	uids, err := c.UIDSort(&imapclient.SortOptions{
+		SearchCriteria: searchCriteria(query),
+		SortCriteria:   []imapclient.SortCriterion{{Key: sortKeys[sortBy.Key], Reverse: sortBy.Desc}},
+	}).Wait()
+	if err != nil {
+		return nil, err
+	}
+	if cacheable {
+		sorted.put(c, key, st, uids)
+	}
+	return uids, nil
+}
+
+var summaryFetch = &imap.FetchOptions{
+	UID: true, Envelope: true, Flags: true, InternalDate: true, RFC822Size: true,
+	BodyStructure: &imap.FetchItemBodyStructure{},
+	BodySection:   []*imap.FetchItemBodySection{prioritySection},
 }
 
 var prioritySection = &imap.FetchItemBodySection{
