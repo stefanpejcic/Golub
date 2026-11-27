@@ -217,14 +217,19 @@ Golub follows [semantic versioning](https://semver.org). `VERSION` holds the nex
 
 ## Roadmap
 
-**Notifications and avatars**
+<details>
+<summary><b>Notifications and avatars</b></summary>
+
 - Unread count in the tab title, kept up to date while the tab is in the background
 - Favicon dot for new mail and optional desktop notifications
 - Avatars: initials in a stable colour by default, no network requests
 - BIMI logos for senders whose mail passed DMARC, loaded through the image proxy
 - Optional Gravatar, off by default and loaded through the proxy
 
-**AI assistant (optional, privacy first)**
+</details>
+
+<details>
+<summary><b>AI assistant (optional, privacy first)</b></summary>
 
 Off unless the admin points Golub at an OpenAI-compatible endpoint, so a local Ollama or vLLM works. Nothing leaves the server unless the user clicks an AI action: no background analysis, nothing stored, and users can turn it off.
 - Summarize a message or a long thread
@@ -235,6 +240,8 @@ Off unless the admin points Golub at an OpenAI-compatible endpoint, so a local O
 - Pull out action items, dates and deadlines from a message
 - Explain why a message looks like phishing or spam
 - Admin limits: per-user rate limit, maximum input size, attachments and quoted history left out
+
+</details>
 
 ## License
 
