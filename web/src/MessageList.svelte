@@ -206,6 +206,7 @@
       onSearch(searchInput.value, true);
     }}
   >
+    <div class="field">
     <svg class="icon" viewBox="0 0 16 16" aria-hidden="true"><circle cx="7" cy="7" r="4.5" /><path d="m10.5 10.5 3 3" /></svg>
     <input
       bind:this={searchInput}
@@ -223,6 +224,7 @@
       }}
       data-testid="search"
     />
+    </div>
     <SearchFilters />
   </form>
   {#if bulk}
@@ -702,14 +704,21 @@
     inline-size: 100%;
   }
   .search {
-    position: relative;
+    display: flex;
     flex: none;
+    align-items: center;
+    gap: var(--space-1);
     padding: var(--space-1) var(--space-3) var(--space-2);
   }
-  .search .icon {
+  .search .field {
+    position: relative;
+    flex: 1;
+    min-inline-size: 0;
+  }
+  .search .field .icon {
     position: absolute;
     inset-block-start: 50%;
-    inset-inline-start: calc(var(--space-3) + 0.625rem);
+    inset-inline-start: 0.625rem;
     transform: translateY(-50%);
     color: var(--color-text-muted);
     pointer-events: none;

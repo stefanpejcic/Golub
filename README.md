@@ -17,6 +17,30 @@ It runs as one small container: no PHP, no database, no cron jobs, no plugins to
 
 Golub was developed as the default webmail client for [OpenPanel](https://openpanel.com) and open-sourced so anyone can use it with their own mail stack.
 
+![Golub inbox with a message open](assets/screenshots/inbox-light.png)
+
+<table>
+  <tr>
+    <td><img src="assets/screenshots/inbox-dark.png" alt="Dark theme"></td>
+    <td><img src="assets/screenshots/compose.png" alt="Compose with address suggestions"></td>
+  </tr>
+  <tr>
+    <td align="center">Dark theme</td>
+    <td align="center">Compose with contact and group suggestions</td>
+  </tr>
+  <tr>
+    <td><img src="assets/screenshots/contacts.png" alt="Contacts"></td>
+    <td align="center">
+      <img src="assets/screenshots/mobile-list.png" alt="Mobile list" width="180">
+      <img src="assets/screenshots/mobile-message.png" alt="Mobile message" width="180">
+    </td>
+  </tr>
+  <tr>
+    <td align="center">Contacts and groups</td>
+    <td align="center">Mobile</td>
+  </tr>
+</table>
+
 ## Privacy first
 
 Webmail sees everything a person writes and reads, so Golub is built to keep as little as possible and to leak nothing.
@@ -163,7 +187,7 @@ go test -race ./...
 go run ./cmd/golub
 ```
 
-The frontend is Svelte and builds into `internal/ui/dist`, which the Go binary embeds. End-to-end tests run Playwright against docker-mailserver; see [`e2e/`](e2e).
+The frontend is Svelte and builds into `internal/ui/dist`, which the Go binary embeds. End-to-end tests run Playwright against docker-mailserver; see [`e2e/`](e2e). The README screenshots are made by `e2e/screenshots/shots.mjs` from invented demo mail.
 
 Golub follows [semantic versioning](https://semver.org). `VERSION` holds the next release; builds in between report `X.Y.Z-dev.N`. Plans live in [ROADMAP.md](ROADMAP.md).
 
