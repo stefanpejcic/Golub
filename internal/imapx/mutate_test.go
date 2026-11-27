@@ -82,3 +82,15 @@ func TestEnsureFolder(t *testing.T) {
 		t.Fatalf("%+v", folders)
 	}
 }
+
+func TestAppendMessage(t *testing.T) {
+	c := seededClient(t, 0)
+	uid, err := AppendMessage(c, "Work", []byte("Subject: hi\r\n\r\nx\r\n"), FlagSeen)
+	if err != nil || uid == 0 {
+		t.Fatalf("%d %v", uid, err)
+	}
+	p, _ := ListMessages(c, "Work", 0, 5, "")
+	if p.Total != 1 || !p.Messages[0].Seen || p.Messages[0].UID != uid {
+		t.Fatalf("%+v", p)
+	}
+}

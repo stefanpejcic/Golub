@@ -20,6 +20,7 @@ import (
 	"github.com/stefanpejcic/golub/internal/httpapi"
 	"github.com/stefanpejcic/golub/internal/imapx"
 	"github.com/stefanpejcic/golub/internal/proxy"
+	"github.com/stefanpejcic/golub/internal/smtpx"
 	"github.com/stefanpejcic/golub/internal/tlsx"
 	"github.com/stefanpejcic/golub/internal/ui"
 )
@@ -60,6 +61,10 @@ func run(ctx context.Context, getenv func(string) string, logOut io.Writer) erro
 	if err != nil {
 		return err
 	}
+	smtpTLS, err := tlsx.ClientConfig(cfg.SMTP.Host, cfg.TLSCA)
+	if err != nil {
+		return err
+	}
 	pool := imapx.NewPool(&imapx.Dialer{Endpoint: cfg.IMAP, TLS: imapTLS}, 5*time.Minute)
 	defer pool.Close()
 
@@ -71,6 +76,7 @@ func run(ctx context.Context, getenv func(string) string, logOut io.Writer) erro
 		Mail:           pool,
 		Pool:           pool,
 		Proxy:          proxy.New(cfg.SecretKey),
+		SMTP:           &smtpx.Sender{Endpoint: cfg.SMTP, TLS: smtpTLS},
 		MasterUser:     cfg.MasterUser,
 		MasterPassword: cfg.MasterPassword,
 		SessionTTL:     cfg.SessionTTL,

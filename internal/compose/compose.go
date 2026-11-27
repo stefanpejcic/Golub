@@ -62,12 +62,17 @@ func Build(d Draft, userAgent string) ([]byte, string, error) {
 		}
 	}
 	id := newMessageID(d.From.Address)
+	bcc := d.Bcc
+	// Drafts may have no recipients yet; the builder insists on one, and Bcc never reaches the headers.
+	if len(d.To)+len(d.Cc)+len(d.Bcc) == 0 {
+		bcc = []mail.Address{d.From}
+	}
 	b := enmime.Builder().
 		From(d.From.Name, d.From.Address).
 		Subject(d.Subject).
 		ToAddrs(d.To).
 		CCAddrs(d.Cc).
-		BCCAddrs(d.Bcc).
+		BCCAddrs(bcc).
 		Header("Message-Id", id).
 		Header("User-Agent", userAgent)
 	if len(d.ReplyTo) > 0 {

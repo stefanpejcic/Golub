@@ -36,6 +36,7 @@ type Message struct {
 	ReplyTo     []Address
 	Date        time.Time
 	MessageID   string
+	References  string
 	Text        string
 	HTML        string
 	Attachments []Attachment
@@ -59,16 +60,17 @@ func Parse(raw []byte) (*Message, error) {
 		return nil, errors.New("mime: empty message")
 	}
 	m := &Message{
-		Subject:   env.GetHeader("Subject"),
-		From:      addresses(env, "From"),
-		To:        addresses(env, "To"),
-		Cc:        addresses(env, "Cc"),
-		ReplyTo:   addresses(env, "Reply-To"),
-		MessageID: strings.TrimSpace(env.GetHeader("Message-ID")),
-		Text:      env.Text,
-		HTML:      env.HTML,
-		parts:     map[string]*enmime.Part{},
-		cids:      map[string]*enmime.Part{},
+		Subject:    env.GetHeader("Subject"),
+		From:       addresses(env, "From"),
+		To:         addresses(env, "To"),
+		Cc:         addresses(env, "Cc"),
+		ReplyTo:    addresses(env, "Reply-To"),
+		MessageID:  strings.TrimSpace(env.GetHeader("Message-ID")),
+		References: strings.TrimSpace(env.GetHeader("References")),
+		Text:       env.Text,
+		HTML:       env.HTML,
+		parts:      map[string]*enmime.Part{},
+		cids:       map[string]*enmime.Part{},
 	}
 	if d, err := env.Date(); err == nil {
 		m.Date = d

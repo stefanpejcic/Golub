@@ -109,3 +109,13 @@ func TestReplySubject(t *testing.T) {
 		t.Error(got)
 	}
 }
+
+func TestBuildWithoutRecipients(t *testing.T) {
+	raw, _, err := Build(Draft{From: mail.Address{Address: "a@golub.test"}, Subject: "draft", Text: "x"}, "Golub")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if strings.Contains(string(raw), "To:") || strings.Contains(string(raw), "Bcc:") {
+		t.Fatalf("%s", raw)
+	}
+}

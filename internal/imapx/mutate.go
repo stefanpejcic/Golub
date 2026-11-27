@@ -103,3 +103,27 @@ func EnsureFolder(c *imapclient.Client, name, special string) error {
 	_ = c.Subscribe(name).Wait()
 	return nil
 }
+
+// Flags set on originals after replying or forwarding.
+const (
+	FlagAnswered  = imap.FlagAnswered
+	FlagDraft     = imap.FlagDraft
+	FlagForwarded = imap.Flag("$Forwarded")
+)
+
+// AppendMessage stores raw in folder and returns its UID when the server reports one.
+func AppendMessage(c *imapclient.Client, folder string, raw []byte, flags ...imap.Flag) (uint32, error) {
+	cmd := c.Append(folder, int64(len(raw)), &imap.AppendOptions{Flags: flags})
+	if _, err := cmd.Write(raw); err != nil {
+		_ = cmd.Close()
+		return 0, err
+	}
+	if err := cmd.Close(); err != nil {
+		return 0, err
+	}
+	data, err := cmd.Wait()
+	if err != nil {
+		return 0, err
+	}
+	return uint32(data.UID), nil
+}
