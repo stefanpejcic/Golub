@@ -1,0 +1,9 @@
+From: Bob Sender <bob@golub.test>
+To: Alice <alice@golub.test>
+Date: Mon, 02 Nov 2026 10:00:00 +0100
+Message-ID: <xss-css@golub.test>
+Subject: XSS CSS
+MIME-Version: 1.0
+Content-Type: text/html; charset=utf-8
+
+<html><body><div style="width:expression(alert(1));background:url(https://evil.test/css)">css</div><style>@import url(https://evil.test/i.css); body{background:url("https://evil.test/bg")}</style></body></html>

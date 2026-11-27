@@ -14,9 +14,9 @@
 - [x] CI green
 
 ### 2. Test env
-- [ ] `e2e/docker-compose.yml` with docker-mailserver + Golub
-- [ ] Seed script appending `testdata/mail/*.eml`
-- [ ] Master user configured
+- [x] `e2e/docker-compose.yml` with docker-mailserver + Golub
+- [x] Seed script appending `testdata/mail/*.eml`
+- [x] Master user configured
 
 ### 3. Auth
 - [ ] Normal login, session cookie, logout

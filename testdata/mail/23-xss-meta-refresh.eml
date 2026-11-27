@@ -1,0 +1,9 @@
+From: Bob Sender <bob@golub.test>
+To: Alice <alice@golub.test>
+Date: Mon, 02 Nov 2026 10:00:00 +0100
+Message-ID: <xss-meta-refresh@golub.test>
+Subject: XSS meta refresh
+MIME-Version: 1.0
+Content-Type: text/html; charset=utf-8
+
+<html><body><meta http-equiv="refresh" content="0;url=https://evil.test/meta"><p>refresh</p></body></html>

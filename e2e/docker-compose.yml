@@ -1,0 +1,52 @@
+# SPDX-License-Identifier: GPL-3.0-or-later
+# Disposable stack for end-to-end tests; every credential here is test-only.
+
+name: golub-e2e
+
+services:
+  mailserver:
+    image: ghcr.io/docker-mailserver/docker-mailserver:17
+    hostname: mail.golub.test
+    env_file: test.env
+    environment:
+      SSL_TYPE: ""
+      ENABLE_AMAVIS: "0"
+      ENABLE_CLAMAV: "0"
+      ENABLE_SPAMASSASSIN: "0"
+      ENABLE_RSPAMD: "0"
+      ENABLE_OPENDKIM: "0"
+      ENABLE_OPENDMARC: "0"
+      ENABLE_POLICYD_SPF: "0"
+      ENABLE_FAIL2BAN: "0"
+      ENABLE_POSTGREY: "0"
+      ENABLE_UPDATE_CHECK: "0"
+      PERMIT_DOCKER: connected-networks
+      LOG_LEVEL: warn
+    volumes:
+      - ./dms/dovecot.cf:/tmp/docker-mailserver/dovecot.cf:ro
+      - ./dms/postfix-accounts.cf:/tmp/docker-mailserver/postfix-accounts.cf:ro
+      - ./dms/dovecot-masters.cf:/tmp/docker-mailserver/dovecot-masters.cf:ro
+    ports:
+      - "127.0.0.1:${E2E_IMAP_PORT:-1143}:143"
+      - "127.0.0.1:${E2E_SMTP_PORT:-1587}:587"
+    healthcheck:
+      test: "ss --listening --tcp --numeric | grep -q ':143 ' || exit 1"
+      interval: 5s
+      timeout: 3s
+      retries: 30
+
+  golub:
+    build:
+      context: ..
+      args:
+        VERSION: e2e
+    env_file: test.env
+    environment:
+      GOLUB_IMAP_HOST: mailserver
+      GOLUB_IMAP_TLS: none
+      GOLUB_SMTP_TLS: none
+    depends_on:
+      mailserver:
+        condition: service_healthy
+    ports:
+      - "127.0.0.1:${E2E_HTTP_PORT:-8080}:8080"

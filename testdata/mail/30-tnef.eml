@@ -1,0 +1,20 @@
+From: Bob Sender <bob@golub.test>
+To: Alice <alice@golub.test>
+Date: Mon, 02 Nov 2026 10:00:00 +0100
+Message-ID: <tnef-winmail@golub.test>
+Subject: TNEF winmail
+MIME-Version: 1.0
+Content-Type: multipart/mixed; boundary="t"
+
+--t
+Content-Type: text/plain
+
+Outlook rich text attached.
+--t
+Content-Type: application/ms-tnef; name="winmail.dat"
+Content-Disposition: attachment; filename="winmail.dat"
+Content-Transfer-Encoding: base64
+
+eJ8+IgAAAQaQCAAEAAAAAAABAAEAAQeQBgAIAAAA5AQAAAAAAADoAAEIgAcAGAAAAElQTS5NaWNy
+b3NvZnQgTWFpbC5Ob3RlADEIAQ2ABAACAAAAAgACAAEEkAYA
+--t--

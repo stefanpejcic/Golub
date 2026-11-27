@@ -1,0 +1,17 @@
+From: Bob Sender <bob@golub.test>
+To: Alice <alice@golub.test>
+Date: Mon, 02 Nov 2026 10:00:00 +0100
+Message-ID: <multipart-alternative@golub.test>
+Subject: Multipart alternative
+MIME-Version: 1.0
+Content-Type: multipart/alternative; boundary="alt"
+
+--alt
+Content-Type: text/plain; charset=utf-8
+
+Plain part.
+--alt
+Content-Type: text/html; charset=utf-8
+
+<p>HTML <i>part</i>.</p>
+--alt--

