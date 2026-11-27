@@ -61,5 +61,12 @@ Stored per user in an unsubscribed IMAP folder `golub-settings` (one JSON messag
 - [ ] Message toolbar: Reply, Reply all, Forward, Delete, More (print, download .eml, edit as new, show source, move to, copy to, open in new window)
 - [ ] Resizable folder / list / preview columns, widths remembered in the browser
 
+## Notifications and avatars (requested)
+- [ ] Tab title with unread count ("(3) Inbox – Golub"), keep refreshing while the tab is in the background
+- [ ] Favicon dot for new mail, optional desktop notifications (setting, browser permission)
+- [ ] Avatars: initials in a stable colour by default, no network requests
+- [ ] BIMI logos for senders whose mail passed DMARC (checked from the server's Authentication-Results), loaded through the proxy as images only
+- [ ] Optional Gravatar (off by default, through the proxy), in-memory cache
+
 ## Later
 Search, threading, contacts, multiple identities, drag and drop, PGP, dark message view for HTML mail, RTL locales.
