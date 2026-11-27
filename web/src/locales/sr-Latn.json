@@ -77,8 +77,6 @@
   "toast.trashed": "Premešteno u otpad.",
   "toast.deleted": "Trajno obrisano.",
   "toast.moved": "Premešteno u {folder}.",
-  "theme.to_dark": "Uključi tamni režim",
-  "theme.to_light": "Uključi svetli režim",
   "actions.archive": "Arhiviraj",
   "toast.archived": "Arhivirano u {folder}.",
   "toast.trashed_many": {

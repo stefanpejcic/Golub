@@ -1,6 +1,5 @@
 <!-- SPDX-License-Identifier: GPL-3.0-or-later -->
 <script lang="ts">
-  import { MediaQuery } from 'svelte/reactivity';
   import { i18n } from './lib/locale.svelte';
   import { theme } from './lib/theme.svelte';
   import { session } from './lib/session.svelte';
@@ -9,9 +8,7 @@
   import { api } from './lib/api';
 
   const t = $derived(i18n.t);
-  const systemDark = new MediaQuery('(prefers-color-scheme: dark)');
-  const effective = $derived(theme.value === 'system' ? (systemDark.current ? 'dark' : 'light') : theme.value);
-  const next = $derived(effective === 'dark' ? 'light' : 'dark');
+  import { THEMES, type Theme } from './lib/prefs';
 
   async function emptyTrash() {
     if (!settings.value.emptyTrashOnLogout) return;
@@ -19,9 +16,7 @@
     if (name) await api('POST', '/api/folders/empty', { name });
   }
 
-  function toggle() {
-    // Read once: `next` is derived from the theme and flips as soon as it is set.
-    const value = next;
+  function setTheme(value: Theme) {
     theme.set(value);
     session.savePrefs({ theme: value });
   }
@@ -34,25 +29,31 @@
       {t('auth.logout')}
     </button>
   {/if}
-  <button
-    type="button"
-    class="btn btn-icon theme"
-    onclick={toggle}
-    aria-label={t(`theme.to_${next}`)}
-    title={t(`theme.to_${next}`)}
-    data-testid="theme-toggle"
-    data-next={next}
-  >
-    <svg class="icon" viewBox="0 0 16 16" aria-hidden="true">
-      {#if next === 'dark'}
-        <path d="M13.5 9.5A5.5 5.5 0 0 1 6.5 2.5a5.5 5.5 0 1 0 7 7Z" />
-      {:else}
-        <circle cx="8" cy="8" r="3" /><path
-          d="M8 1.5v1.5M8 13v1.5M1.5 8H3M13 8h1.5M3.4 3.4l1 1M11.6 11.6l1 1M3.4 12.6l1-1M11.6 4.4l1-1"
-        />
-      {/if}
-    </svg>
-  </button>
+  <div class="themes" role="radiogroup" aria-label={t('settings.theme')} data-testid="theme-select">
+    {#each THEMES as v (v)}
+      <button
+        type="button"
+        role="radio"
+        aria-checked={theme.value === v}
+        aria-label={t(`settings.theme.${v}`)}
+        title={t(`settings.theme.${v}`)}
+        data-value={v}
+        onclick={() => setTheme(v)}
+      >
+        <svg class="icon" viewBox="0 0 16 16" aria-hidden="true">
+          {#if v === 'system'}
+            <rect x="2" y="3" width="12" height="8" rx="1" /><path d="M6 14h4M8 11v3" />
+          {:else if v === 'light'}
+            <circle cx="8" cy="8" r="3" /><path
+              d="M8 1.5v1.5M8 13v1.5M1.5 8H3M13 8h1.5M3.4 3.4l1 1M11.6 11.6l1 1M3.4 12.6l1-1M11.6 4.4l1-1"
+            />
+          {:else}
+            <path d="M13.5 9.5A5.5 5.5 0 0 1 6.5 2.5a5.5 5.5 0 1 0 7 7Z" />
+          {/if}
+        </svg>
+      </button>
+    {/each}
+  </div>
 </div>
 
 <style>
@@ -64,8 +65,29 @@
     padding: var(--space-3);
     border-block-start: 1px solid var(--color-border);
   }
-  .theme {
+  .themes {
+    display: flex;
     margin-inline-start: auto;
+    padding: 2px;
+    border: 1px solid var(--color-input-border);
+    border-radius: var(--radius);
+    background: var(--color-surface-raised);
+  }
+  .themes button {
+    display: grid;
+    place-items: center;
+    inline-size: 1.75rem;
+    block-size: 1.6rem;
+    padding: 0;
+    color: var(--color-text-muted);
+    background: none;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+  }
+  .themes button[aria-checked='true'] {
+    color: var(--color-text);
+    background: var(--color-hover);
   }
   .link {
     text-decoration: none;

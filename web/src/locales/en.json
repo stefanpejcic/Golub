@@ -74,8 +74,6 @@
   "toast.trashed": "Moved to Trash.",
   "toast.deleted": "Deleted permanently.",
   "toast.moved": "Moved to {folder}.",
-  "theme.to_dark": "Switch to dark mode",
-  "theme.to_light": "Switch to light mode",
   "actions.archive": "Archive",
   "toast.archived": "Archived to {folder}.",
   "toast.trashed_many": {
