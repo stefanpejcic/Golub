@@ -133,3 +133,27 @@ test('plain text mode sends text with a signature', async ({ page }) => {
   await page.getByTestId('compose-send').click();
   await expect(page.getByTestId('toast')).toHaveText('Message sent.');
 });
+
+test('new mail appears without refreshing (IDLE push)', async ({ page, browser, baseURL }) => {
+  const bob = await signInAs(browser, baseURL!, BOB);
+  await bob.waitForTimeout(1500);
+  const subject = `Live ${Date.now()}`;
+  await signIn(page);
+  await page.getByTestId('compose-open').click();
+  await page.getByTestId('compose-to-input').fill(BOB);
+  await page.getByTestId('compose-subject').fill(subject);
+  await page.getByTestId('compose-send').click();
+  await expect(page.getByTestId('toast')).toHaveText('Message sent.');
+  // Polling runs once a minute; seeing it within 15 seconds without clicking Refresh means it was pushed.
+  await expect(bob.getByTestId('message').filter({ hasText: subject })).toHaveCount(1, { timeout: 15_000 });
+  await bob.context().close();
+});
+
+test('space turns a finished address into a chip', async ({ page }) => {
+  await signIn(page);
+  await page.getByTestId('compose-open').click();
+  const input = page.getByTestId('compose-to-input');
+  await input.pressSequentially('one@golub.test two@golub.test Carol Doe <carol@golub.test>');
+  await input.press('Enter');
+  await expect(page.getByTestId('recipient')).toHaveText(['one@golub.test', 'two@golub.test', 'Carol Doe <carol@golub.test>']);
+});

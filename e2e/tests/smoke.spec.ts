@@ -25,7 +25,7 @@ for (const theme of ['light', 'dark'] as const) {
       await expect(page.getByRole('heading')).toHaveText(titles[lang]);
 
       const bg = await page.evaluate(() => getComputedStyle(document.body).backgroundColor);
-      expect(bg).toBe(theme === 'dark' ? 'rgb(3, 7, 18)' : 'rgb(255, 255, 255)');
+      expect(bg).toBe(theme === 'dark' ? 'rgb(23, 23, 23)' : 'rgb(255, 255, 255)');
       expect(errors).toEqual([]);
     });
   }
