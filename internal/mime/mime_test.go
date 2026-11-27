@@ -168,3 +168,26 @@ func TestParsePriority(t *testing.T) {
 		}
 	}
 }
+
+func TestPGPDetection(t *testing.T) {
+	head := "From: a@golub.test\r\nTo: b@golub.test\r\nSubject: s\r\nMIME-Version: 1.0\r\n"
+	cases := map[string]string{
+		"encrypted":        head + "Content-Type: multipart/encrypted; protocol=\"application/pgp-encrypted\"; boundary=\"b\"\r\n\r\n--b\r\nContent-Type: application/pgp-encrypted\r\n\r\nVersion: 1\r\n--b\r\nContent-Type: application/octet-stream\r\n\r\n-----BEGIN PGP MESSAGE-----\r\n\r\nwV4D\r\n-----END PGP MESSAGE-----\r\n--b--\r\n",
+		"signed":           head + "Content-Type: multipart/signed; micalg=pgp-sha256; protocol=\"application/pgp-signature\"; boundary=\"b\"\r\n\r\n--b\r\nContent-Type: text/plain\r\n\r\nhello\r\n--b\r\nContent-Type: application/pgp-signature\r\n\r\n-----BEGIN PGP SIGNATURE-----\r\n\r\nwnUE\r\n-----END PGP SIGNATURE-----\r\n--b--\r\n",
+		"inline-encrypted": head + "Content-Type: text/plain\r\n\r\n-----BEGIN PGP MESSAGE-----\r\n\r\nwV4D\r\n-----END PGP MESSAGE-----\r\n",
+		"inline-signed":    head + "Content-Type: text/plain\r\n\r\n-----BEGIN PGP SIGNED MESSAGE-----\r\nHash: SHA256\r\n\r\nhello\r\n-----BEGIN PGP SIGNATURE-----\r\n\r\nwnUE\r\n-----END PGP SIGNATURE-----\r\n",
+		"":                 head + "Content-Type: text/plain\r\n\r\nWe talked about -----BEGIN PGP MESSAGE----- blocks today.\r\n",
+	}
+	for want, raw := range cases {
+		m, err := Parse([]byte(raw))
+		if err != nil {
+			t.Fatal(err)
+		}
+		if m.PGP != want {
+			t.Errorf("want %q, got %q", want, m.PGP)
+		}
+	}
+	if m, _ := Parse([]byte(cases["signed"])); !strings.Contains(m.Text, "hello") {
+		t.Error("a signed message still reads normally while the browser checks the signature")
+	}
+}

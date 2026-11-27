@@ -56,6 +56,7 @@ type messageView struct {
 	Priority      int               `json:"priority"`
 	Unsubscribe   mime.Unsubscribe  `json:"unsubscribe"`
 	ReceiptTo     string            `json:"receiptTo,omitempty"`
+	PGP           string            `json:"pgp,omitempty"`
 	Attachments   []mime.Attachment `json:"attachments"`
 }
 
@@ -123,7 +124,7 @@ func (a *authAPI) message(w http.ResponseWriter, r *http.Request, s auth.Session
 		UID: ref.uid, Folder: ref.folder, Subject: m.Subject,
 		From: m.From, To: m.To, Cc: m.Cc, ReplyTo: m.ReplyTo, Date: m.Date, MessageID: m.MessageID,
 		Seen: raw.Seen, Flagged: raw.Flagged, Text: m.Text, HTML: m.HTML != "",
-		Attachments: m.Attachments, Priority: m.Priority, Unsubscribe: m.Unsubscribe,
+		Attachments: m.Attachments, Priority: m.Priority, Unsubscribe: m.Unsubscribe, PGP: m.PGP,
 	}
 	if !raw.MDNSent {
 		v.ReceiptTo = m.ReceiptTo

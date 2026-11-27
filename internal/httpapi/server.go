@@ -98,6 +98,8 @@ func New(o Options) http.Handler {
 			mux.HandleFunc("GET /api/settings", a.withSession(a.getSettings))
 			mux.HandleFunc("POST /api/folders/import", a.withSession(a.importFolder))
 			mux.HandleFunc("GET /api/folders/export", a.withSession(a.exportFolder))
+			mux.HandleFunc("GET /api/pgp", a.withSession(a.getKeyring))
+			mux.HandleFunc("PUT /api/pgp", a.withSession(a.putKeyring))
 			mux.HandleFunc("GET /api/contacts", a.withSession(a.getContacts))
 			mux.HandleFunc("PUT /api/contacts", a.withSession(a.putContacts))
 			mux.HandleFunc("POST /api/contacts/import", a.withSession(a.importContacts))

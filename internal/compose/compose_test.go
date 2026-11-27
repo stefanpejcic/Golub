@@ -209,3 +209,69 @@ func TestBuildWithUnicodeDomain(t *testing.T) {
 		t.Fatalf("envelope %v", got)
 	}
 }
+
+const pgpMsg = "-----BEGIN PGP MESSAGE-----\n\nwV4D\n-----END PGP MESSAGE-----\n"
+const pgpSig = "-----BEGIN PGP SIGNATURE-----\n\nwnUE\n-----END PGP SIGNATURE-----\n"
+
+func pgpDraft() Draft {
+	return Draft{From: mail.Address{Name: "Ana", Address: "ana@golub.test"}, To: []mail.Address{{Address: "bob@golub.test"}}, Subject: "Plan", Priority: 1}
+}
+
+func TestBuildPGPEncrypted(t *testing.T) {
+	d := pgpDraft()
+	d.Text = "this plaintext must never be in the output"
+	d.PGP = &PGPBody{Encrypted: pgpMsg}
+	raw, _, err := Build(d)
+	if err != nil {
+		t.Fatal(err)
+	}
+	s := string(raw)
+	for _, want := range []string{
+		"Subject: Plan", "X-Priority: 1", "multipart/encrypted", `protocol="application/pgp-encrypted"`,
+		"Content-Type: application/pgp-encrypted", "Version: 1", "Content-Type: application/octet-stream", "-----BEGIN PGP MESSAGE-----",
+	} {
+		if !strings.Contains(s, want) {
+			t.Errorf("missing %q in\n%s", want, s)
+		}
+	}
+	if strings.Contains(s, "plaintext must never") || strings.Count(s, "Content-Type: multipart/") != 1 {
+		t.Errorf("only the encrypted body may be in the message:\n%s", s)
+	}
+}
+
+func TestBuildPGPSigned(t *testing.T) {
+	entity := "Content-Type: text/plain; charset=utf-8\r\nContent-Transfer-Encoding: base64\r\n\r\naGVsbG8=\r\n"
+	d := pgpDraft()
+	d.PGP = &PGPBody{SignedEntity: entity, Signature: pgpSig, MicAlg: "pgp-sha256"}
+	raw, _, err := Build(d)
+	if err != nil {
+		t.Fatal(err)
+	}
+	s := string(raw)
+	for _, want := range []string{"multipart/signed", "micalg=pgp-sha256", `protocol="application/pgp-signature"`, "Content-Type: application/pgp-signature", pgpSigCRLF()} {
+		if !strings.Contains(s, want) {
+			t.Errorf("missing %q in\n%s", want, s)
+		}
+	}
+	if !strings.Contains(s, "\r\n"+entity+"\r\n--") {
+		t.Errorf("the signed part has to go out byte for byte or the signature breaks:\n%q", s)
+	}
+}
+
+func pgpSigCRLF() string { return strings.ReplaceAll(pgpSig, "\n", "\r\n") }
+
+func TestBuildPGPRejectsBadInput(t *testing.T) {
+	for name, p := range map[string]PGPBody{
+		"not armored":        {Encrypted: "hello"},
+		"signature only":     {Signature: pgpSig, MicAlg: "pgp-sha256"},
+		"bad micalg":         {SignedEntity: "Content-Type: text/plain\r\n\r\nx\r\n", Signature: pgpSig, MicAlg: "md5; evil"},
+		"entity no headers":  {SignedEntity: "just text", Signature: pgpSig, MicAlg: "pgp-sha256"},
+		"both kinds at once": {Encrypted: pgpMsg, SignedEntity: "Content-Type: text/plain\r\n\r\nx\r\n", Signature: pgpSig, MicAlg: "pgp-sha256"},
+	} {
+		d := pgpDraft()
+		d.PGP = &p
+		if _, _, err := Build(d); err == nil {
+			t.Errorf("%s: expected error", name)
+		}
+	}
+}

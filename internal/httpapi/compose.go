@@ -36,6 +36,8 @@ const (
 	MaxOutgoing      = 25 << 20
 	maxRecipients    = 100
 	maxComposeFields = 1 << 20
+	// armored PGP is about a third bigger than what it encrypts
+	maxPGPBody = MaxOutgoing * 3 / 2
 )
 
 type partRef struct {
@@ -65,6 +67,8 @@ type composeRequest struct {
 	DraftUID   uint32       `json:"draftUid"`
 	Priority   string       `json:"priority"`
 	Receipt    bool         `json:"receipt"`
+	// PGP arrives as its own multipart part, it can be as big as the attachments it carries
+	PGP *compose.PGPBody `json:"-"`
 }
 
 type composeError struct {
@@ -108,7 +112,7 @@ func readCompose(w http.ResponseWriter, r *http.Request) (composeRequest, []comp
 	if mt != "multipart/form-data" {
 		return req, nil, decodeJSON(w, r, &req)
 	}
-	r.Body = http.MaxBytesReader(w, r.Body, MaxOutgoing+maxComposeFields)
+	r.Body = http.MaxBytesReader(w, r.Body, maxPGPBody+maxComposeFields)
 	mr, err := r.MultipartReader()
 	if err != nil {
 		writeError(w, http.StatusBadRequest, "request.invalid")
@@ -134,6 +138,14 @@ func readCompose(w http.ResponseWriter, r *http.Request) (composeRequest, []comp
 				return req, nil, false
 			}
 			gotMeta = true
+		case "pgp":
+			var body compose.PGPBody
+			b, err := io.ReadAll(io.LimitReader(p, maxPGPBody+1))
+			if err != nil || len(b) > maxPGPBody || json.Unmarshal(b, &body) != nil {
+				writeError(w, http.StatusRequestEntityTooLarge, "compose.too_large")
+				return req, nil, false
+			}
+			req.PGP = &body
 		case "attachment":
 			b, err := io.ReadAll(io.LimitReader(p, int64(MaxOutgoing-total+1)))
 			if err != nil {
@@ -230,6 +242,14 @@ func (a *authAPI) draftFrom(c *imapclient.Client, req composeRequest, files []co
 		size += len(f.Data)
 	}
 	parsed := map[string]*mime.Message{}
+	if req.PGP != nil {
+		// the browser encrypted or signed everything, attachments included; server-side parts would leak past it
+		if len(req.Attach) > 0 || len(files) > 0 {
+			return d, badRequest("compose.pgp_attachments", "")
+		}
+		d.PGP = req.PGP
+		return d, nil
+	}
 	for _, ref := range req.Attach {
 		key := ref.Folder + "\x00" + strconv.FormatUint(uint64(ref.UID), 10)
 		m := parsed[key]
@@ -342,6 +362,10 @@ func (a *authAPI) composeSend(w http.ResponseWriter, r *http.Request, s auth.Ses
 func (a *authAPI) composeDraft(w http.ResponseWriter, r *http.Request, s auth.Session) {
 	req, files, ok := readCompose(w, r)
 	if !ok {
+		return
+	}
+	if req.PGP != nil {
+		writeError(w, http.StatusBadRequest, "compose.pgp_draft")
 		return
 	}
 	var uid uint32

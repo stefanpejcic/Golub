@@ -23,10 +23,19 @@ func isNonexistent(err error) bool {
 // ContactsFolder holds the address book JSON, hidden the same way.
 const ContactsFolder = "golub-contacts"
 
+// KeysFolder holds the PGP keyring; private keys in it are always passphrase protected by the browser.
+const KeysFolder = "golub-pgp"
+
 // IsHidden reports folders Golub keeps for itself and never shows or lets the user touch.
 func IsHidden(name string) bool {
-	return name == SettingsFolder || name == ContactsFolder
+	return name == SettingsFolder || name == ContactsFolder || name == KeysFolder
 }
+
+// LoadKeys returns the stored keyring JSON, or nil when there is none yet.
+func LoadKeys(c *imapclient.Client) ([]byte, error) { return loadDoc(c, KeysFolder) }
+
+// SaveKeys replaces the stored keyring with data.
+func SaveKeys(c *imapclient.Client, data []byte) error { return saveDoc(c, KeysFolder, "keys", data) }
 
 // LoadSettings returns the stored settings JSON, or nil when none were saved yet.
 func LoadSettings(c *imapclient.Client) ([]byte, error) { return loadDoc(c, SettingsFolder) }

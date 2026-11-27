@@ -6,6 +6,7 @@ package mime
 import (
 	"bytes"
 	"errors"
+	stdmime "mime"
 	"net/mail"
 	"strings"
 	"time"
@@ -47,6 +48,8 @@ type Message struct {
 	MessageID   string
 	References  string
 	Unsubscribe Unsubscribe
+	// PGP is "encrypted" or "signed" for PGP/MIME, "inline-encrypted" or "inline-signed" for armored text, or empty
+	PGP         string
 	Priority    int
 	ReceiptTo   string
 	Text        string
@@ -87,6 +90,7 @@ func Parse(raw []byte) (*Message, error) {
 	if d, err := env.Date(); err == nil {
 		m.Date = d
 	}
+	m.PGP = detectPGP(env)
 	m.Unsubscribe = parseUnsubscribe(env.GetHeader("List-Unsubscribe"), env.GetHeader("List-Unsubscribe-Post"))
 	m.Priority = ParsePriority(env.GetHeader("X-Priority"), env.GetHeader("Importance"))
 	if a, err := mail.ParseAddress(env.GetHeader("Disposition-Notification-To")); err == nil {
@@ -208,4 +212,26 @@ func addresses(env *enmime.Envelope, key string) []Address {
 		out = append(out, Address{Name: a.Name, Address: addr})
 	}
 	return out
+}
+
+func detectPGP(env *enmime.Envelope) string {
+	// enmime leaves the parameters of a multipart root empty, so read them from the header
+	if mt, params, err := stdmime.ParseMediaType(env.GetHeader("Content-Type")); err == nil {
+		proto := strings.ToLower(params["protocol"])
+		switch {
+		case mt == "multipart/encrypted" && proto == "application/pgp-encrypted":
+			return "encrypted"
+		case mt == "multipart/signed" && proto == "application/pgp-signature":
+			return "signed"
+		}
+	}
+	// armor only counts at the start of a line, not mentioned in a sentence
+	text := "\n" + strings.ReplaceAll(env.Text, "\r\n", "\n")
+	switch {
+	case strings.Contains(text, "\n-----BEGIN PGP MESSAGE-----\n"):
+		return "inline-encrypted"
+	case strings.Contains(text, "\n-----BEGIN PGP SIGNED MESSAGE-----\n"):
+		return "inline-signed"
+	}
+	return ""
 }

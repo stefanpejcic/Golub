@@ -11,6 +11,7 @@ import (
 	"fmt"
 	stdmime "mime"
 	"net/mail"
+	"regexp"
 	"strings"
 	"time"
 	"unicode"
@@ -43,7 +44,22 @@ type Draft struct {
 	// Priority is 1 (high), 3 (normal) or 5 (low).
 	Priority       int
 	RequestReceipt bool
+	// PGP replaces the body with what the browser encrypted or signed; Text, HTML and Attachments are ignored then.
+	PGP *PGPBody
 }
+
+// PGPBody is a PGP/MIME body made in the browser (RFC 3156): an encrypted message, or a part and its detached signature.
+type PGPBody struct {
+	Encrypted    string `json:"encrypted,omitempty"`
+	SignedEntity string `json:"signedEntity,omitempty"`
+	Signature    string `json:"signature,omitempty"`
+	MicAlg       string `json:"micalg,omitempty"`
+}
+
+var (
+	errPGP   = errors.New("compose: invalid PGP body")
+	micAlgRe = regexp.MustCompile(`^pgp-(sha256|sha384|sha512|sha224|sha1)$`)
+)
 
 var errHeader = errors.New("compose: control characters in a header")
 
@@ -104,6 +120,9 @@ func Build(d Draft) ([]byte, string, error) {
 	}
 	if d.RequestReceipt {
 		b = b.Header("Disposition-Notification-To", (&mail.Address{Name: d.From.Name, Address: d.From.Address}).String())
+	}
+	if d.PGP != nil {
+		return buildPGP(b, d.PGP, id)
 	}
 	b = b.Text([]byte(d.Text))
 	if d.HTML != "" {
@@ -193,4 +212,84 @@ func BuildMDN(r MDN) ([]byte, error) {
 	}
 	fmt.Fprintf(&b, "Disposition: manual-action/MDN-sent-manually; displayed\r\n\r\n--%s--\r\n", boundary)
 	return b.Bytes(), nil
+}
+
+// buildPGP takes the headers the builder made and puts the PGP/MIME body under them.
+func buildPGP(b enmime.MailBuilder, p *PGPBody, id string) ([]byte, string, error) {
+	body, ctype, err := pgpBody(p)
+	if err != nil {
+		return nil, "", err
+	}
+	part, err := b.Text([]byte("x")).Build()
+	if err != nil {
+		return nil, "", err
+	}
+	var buf bytes.Buffer
+	if err := part.Encode(&buf); err != nil {
+		return nil, "", err
+	}
+	head, _, _ := strings.Cut(buf.String(), "\r\n\r\n")
+	var out strings.Builder
+	out.WriteString(dropHeaders(head, "content-type", "content-transfer-encoding"))
+	out.WriteString("\r\nContent-Type: " + ctype + "\r\n\r\n" + body)
+	return []byte(out.String()), id, nil
+}
+
+func pgpBody(p *PGPBody) (body, ctype string, err error) {
+	boundary := "golub-pgp-" + strings.Trim(strings.SplitN(newMessageID("x"), "@", 2)[0], "<")
+	crlf := func(s string) string {
+		s = strings.ReplaceAll(strings.ReplaceAll(s, "\r\n", "\n"), "\n", "\r\n")
+		return strings.TrimRight(s, "\r\n") + "\r\n"
+	}
+	switch {
+	case p.Encrypted != "" && p.SignedEntity == "" && p.Signature == "":
+		if !strings.HasPrefix(p.Encrypted, "-----BEGIN PGP MESSAGE-----") {
+			return "", "", errPGP
+		}
+		ctype = `multipart/encrypted; protocol="application/pgp-encrypted"; boundary="` + boundary + `"`
+		body = "This is an OpenPGP/MIME encrypted message (RFC 4880 and 3156)\r\n" +
+			"--" + boundary + "\r\nContent-Type: application/pgp-encrypted\r\nContent-Description: PGP/MIME version identification\r\n\r\nVersion: 1\r\n\r\n" +
+			"--" + boundary + "\r\nContent-Type: application/octet-stream; name=\"encrypted.asc\"\r\nContent-Description: OpenPGP encrypted message\r\nContent-Disposition: inline; filename=\"encrypted.asc\"\r\n\r\n" +
+			crlf(p.Encrypted) + "--" + boundary + "--\r\n"
+	case p.Encrypted == "" && p.SignedEntity != "" && p.Signature != "":
+		head, _, ok := strings.Cut(p.SignedEntity, "\r\n\r\n")
+		if !ok || !strings.HasPrefix(strings.ToLower(head), "content-type:") || !micAlgRe.MatchString(p.MicAlg) ||
+			!strings.HasPrefix(p.Signature, "-----BEGIN PGP SIGNATURE-----") || strings.Contains(p.SignedEntity, boundary) {
+			return "", "", errPGP
+		}
+		ctype = "multipart/signed; micalg=" + p.MicAlg + `; protocol="application/pgp-signature"; boundary="` + boundary + `"`
+		// the signed part goes out exactly as the browser signed it, a single changed byte breaks the signature
+		body = "This is an OpenPGP/MIME signed message (RFC 4880 and 3156)\r\n" +
+			"--" + boundary + "\r\n" + p.SignedEntity + "\r\n" +
+			"--" + boundary + "\r\nContent-Type: application/pgp-signature; name=\"signature.asc\"\r\nContent-Description: OpenPGP digital signature\r\nContent-Disposition: attachment; filename=\"signature.asc\"\r\n\r\n" +
+			crlf(p.Signature) + "--" + boundary + "--\r\n"
+	default:
+		return "", "", errPGP
+	}
+	return body, ctype, nil
+}
+
+// dropHeaders removes the named headers, folded continuation lines included.
+func dropHeaders(head string, names ...string) string {
+	var out []string
+	skip := false
+	for _, line := range strings.Split(head, "\r\n") {
+		if line != "" && (line[0] == ' ' || line[0] == '\t') {
+			if !skip {
+				out = append(out, line)
+			}
+			continue
+		}
+		name, _, _ := strings.Cut(line, ":")
+		skip = false
+		for _, n := range names {
+			if strings.EqualFold(strings.TrimSpace(name), n) {
+				skip = true
+			}
+		}
+		if !skip {
+			out = append(out, line)
+		}
+	}
+	return strings.Join(out, "\r\n")
 }
