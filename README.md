@@ -115,7 +115,7 @@ Then open `http://localhost:8080` and sign in with a mailbox address and passwor
 
 Put Golub behind your reverse proxy for HTTPS, and set `GOLUB_TRUST_PROXY` to the proxy's address so it sees the real client IP and protocol. Golub can also serve HTTPS itself with `GOLUB_TLS_CERT` and `GOLUB_TLS_KEY`.
 
-Images are published for `linux/amd64` and `linux/arm64`:
+Images are published for `linux/amd64` and `linux/arm64`.
 
 Images are signed with cosign and carry an SBOM and build provenance. `GET /healthz` reports the running version.
 
