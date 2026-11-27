@@ -203,8 +203,13 @@ test('login refuses an address without a dot in the domain and the bird hides it
   const page = await (await browser.newContext({ locale: 'en-US' })).newPage();
   await page.goto(baseURL!);
   await page.getByLabel('Email address').fill('alice@golub');
+  await page.getByLabel('Password').click();
+  await expect(page.getByTestId('login-bird')).toHaveClass(/peeking/);
   await page.getByLabel('Password').fill('x');
   await expect(page.getByTestId('login-bird')).toHaveClass(/covering/);
+  await page.getByLabel('Password').fill('');
+  await expect(page.getByTestId('login-bird')).toHaveClass(/peeking/);
+  await page.getByLabel('Password').fill('x');
   await page.getByRole('button', { name: 'Sign in' }).click();
   await expect(page.getByTestId('login-error')).toHaveText('Enter a full email address, for example name@example.com.');
   await page.getByLabel('Email address').click();

@@ -50,7 +50,7 @@
 <div class="screen">
   <main>
     <div class="brand" role="img" aria-label={t('app.name')}>
-      <LoginBird covering={hideEyes} />
+      <LoginBird mode={hideEyes ? (password ? 'cover' : 'peek') : 'open'} />
     </div>
     <form class="card" onsubmit={submit} data-testid="login-form">
       <h1>{t('login.title')}</h1>

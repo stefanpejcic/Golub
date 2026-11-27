@@ -1,10 +1,10 @@
 <!-- SPDX-License-Identifier: GPL-3.0-or-later -->
 <script lang="ts">
-  // The login mascot hides its eye behind a wing while the password field has focus.
-  let { covering = false, size = 96 }: { covering?: boolean; size?: number } = $props();
+  // The login mascot peeks over its wing at an empty password field and covers its eye while you type.
+  let { mode = 'open', size = 96 }: { mode?: 'open' | 'peek' | 'cover'; size?: number } = $props();
 </script>
 
-<svg class="bird" class:covering width={size} height={size} viewBox="0 0 128 128" aria-hidden="true" data-testid="login-bird">
+<svg class="bird" class:covering={mode === 'cover'} class:peeking={mode === 'peek'} width={size} height={size} viewBox="0 0 128 128" aria-hidden="true" data-testid="login-bird">
   <g stroke="#00ADD8" stroke-width="5" stroke-linecap="round">
   <path d="M4 62h16M10 74h14M4 86h18" />
   </g>
@@ -52,6 +52,10 @@
   }
   .covering .cover {
     transform: none;
+    opacity: 1;
+  }
+  .peeking .cover {
+    transform: translate(2px, 11px) rotate(22deg);
     opacity: 1;
   }
   @media (prefers-reduced-motion: reduce) {
