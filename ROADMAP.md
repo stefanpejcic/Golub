@@ -71,7 +71,7 @@ Stored per user in an unsubscribed IMAP folder `golub-settings` (one JSON messag
 - [x] Address book with groups, autocomplete, addresses collected from Sent, vCard import/export (stored in a hidden IMAP folder)
 - [x] Threaded view (IMAP THREAD)
 - [x] Advanced search: body text, all folders, date range, has attachments, unread, flagged
-- [ ] Import/export: .eml/.mbox upload into a folder, folder export
+- [x] Import/export: .eml/.mbox upload into a folder, folder export
 
 ## Release
 - [ ] Benchmark against Roundcube on the test server: image and download size in MB, RAM usage, latency

@@ -24,6 +24,44 @@
     }
   }
 
+  let importInput: HTMLInputElement;
+  let importTarget = '';
+  let importing = $state('');
+
+  function pickImport(folder: string) {
+    importTarget = folder;
+    importInput.click();
+  }
+
+  // Files go one at a time so a failure says which file stopped and keeps what came before it.
+  async function importFiles() {
+    const files = [...(importInput.files ?? [])];
+    importInput.value = '';
+    if (!files.length) return;
+    importing = importTarget;
+    let total = 0;
+    try {
+      for (const file of files) {
+        const res = await fetch(`/api/folders/import?folder=${encodeURIComponent(importTarget)}`, {
+          method: 'POST',
+          credentials: 'same-origin',
+          headers: { 'Content-Type': 'application/octet-stream' },
+          body: file,
+        });
+        const data = await res.json().catch(() => ({}));
+        total += data.imported ?? 0;
+        if (!res.ok) throw new ApiError(data.error ?? 'unknown', res.status);
+      }
+      toast.show(t('folders.imported', { count: total }));
+    } catch (e) {
+      toast.show(`${errorMessage(t, e instanceof ApiError ? e.code : 'unknown')} ${t('folders.imported', { count: total })}`, true);
+    } finally {
+      importing = '';
+      await mail.loadFolders();
+      if (importTarget === mail.folder) await mail.refresh();
+    }
+  }
+
   function create(e: SubmitEvent) {
     e.preventDefault();
     const name = newName.trim();
@@ -61,6 +99,7 @@
   <button class="btn btn-primary" type="submit" data-testid="folder-create">{t('folders.create')}</button>
 </form>
 
+<input bind:this={importInput} type="file" accept=".eml,.mbox,message/rfc822,application/mbox" multiple hidden onchange={importFiles} data-testid="folder-import-file" />
 <table>
   <thead>
     <tr>
@@ -113,6 +152,12 @@
           />
         </td>
         <td><div class="actions">
+          {#if f.selectable}
+            <button class="btn" type="button" disabled={!!importing} onclick={() => pickImport(f.name)} data-testid="folder-import"
+              >{importing === f.name ? t('common.loading') : t('folders.import')}</button
+            >
+            <a class="btn" href={`/api/folders/export?folder=${encodeURIComponent(f.name)}`} download data-testid="folder-export">{t('folders.export')}</a>
+          {/if}
           {#if renaming === f.name}
             <button class="btn" type="button" onclick={() => rename(f)}>{t('folders.save')}</button>
           {:else if !protectedFolder(f)}

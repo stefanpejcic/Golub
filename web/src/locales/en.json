@@ -386,5 +386,14 @@
   "search.filter.since": "From",
   "search.filter.before": "To",
   "search.filter.clear": "Clear",
-  "search.filter.apply": "Search"
+  "search.filter.apply": "Search",
+  "folders.import": "Import",
+  "folders.export": "Export",
+  "folders.imported": {
+    "one": "{count} message imported.",
+    "other": "{count} messages imported."
+  },
+  "errors.import.too_large": "That file is too large to import at once (200 MB). Split it into smaller files.",
+  "errors.import.empty": "No messages were found in that file.",
+  "errors.import.partial": "The import stopped part way."
 }

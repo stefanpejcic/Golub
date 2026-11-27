@@ -398,5 +398,15 @@
   "search.filter.since": "Od",
   "search.filter.before": "Do",
   "search.filter.clear": "Očisti",
-  "search.filter.apply": "Pretraži"
+  "search.filter.apply": "Pretraži",
+  "folders.import": "Uvezi",
+  "folders.export": "Izvezi",
+  "folders.imported": {
+    "one": "Uvezena je {count} poruka.",
+    "few": "Uvezene su {count} poruke.",
+    "other": "Uvezeno je {count} poruka."
+  },
+  "errors.import.too_large": "Fajl je prevelik za jedan uvoz (200 MB). Podelite ga na manje fajlove.",
+  "errors.import.empty": "U tom fajlu nema poruka.",
+  "errors.import.partial": "Uvoz je zaustavljen na pola."
 }
