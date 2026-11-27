@@ -12,11 +12,36 @@
     { title: 'settings.group.golub', items: ['about', 'shortcuts'] },
   ];
 
+  const order = groups.flatMap((g) => g.items);
+
+  function close() {
+    route.go(folderPath(mail.folder));
+    mail.open(mail.folder, 1, { replace: true });
+  }
+
   function back(e: MouseEvent) {
     if (e.metaKey || e.ctrlKey || e.shiftKey || e.button !== 0) return;
     e.preventDefault();
-    route.go(folderPath(mail.folder));
-    mail.open(mail.folder, 1, { replace: true });
+    close();
+  }
+
+  function editable(el: EventTarget | null) {
+    return el instanceof HTMLElement && (el.isContentEditable || /^(INPUT|TEXTAREA|SELECT)$/.test(el.tagName));
+  }
+
+  // Up and down walk the sections, Esc goes back to mail; typing in a field or an open dialog keeps the keys.
+  function onKey(e: KeyboardEvent) {
+    if (e.defaultPrevented || e.altKey || e.ctrlKey || e.metaKey || e.shiftKey || editable(e.target) || document.querySelector('dialog[open]')) return;
+    if (e.key === 'Escape') {
+      e.preventDefault();
+      close();
+      return;
+    }
+    if (e.key !== 'ArrowDown' && e.key !== 'ArrowUp') return;
+    e.preventDefault();
+    const i = order.indexOf(route.settingsSection ?? 'general');
+    const next = order[(i + (e.key === 'ArrowDown' ? 1 : order.length - 1)) % order.length];
+    route.go(`/settings/${next}`);
   }
 
   function go(e: MouseEvent, path: string) {
@@ -25,6 +50,8 @@
     route.go(path);
   }
 </script>
+
+<svelte:window onkeydown={onKey} />
 
 <nav aria-label={t('settings.title')}>
   <a class="back" href={folderPath(mail.folder)} onclick={back} data-testid="settings-back">

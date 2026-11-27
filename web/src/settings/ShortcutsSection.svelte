@@ -27,6 +27,14 @@
       ],
     },
     {
+      title: 'shortcuts.group.settings',
+      items: [
+        { keys: ['↓'], label: 'shortcuts.next_section' },
+        { keys: ['↑'], label: 'shortcuts.previous_section' },
+        { keys: ['Esc'], label: 'shortcuts.close_settings' },
+      ],
+    },
+    {
       title: 'shortcuts.group.compose',
       items: [
         { keys: [mod, 'Enter'], label: 'shortcuts.send' },

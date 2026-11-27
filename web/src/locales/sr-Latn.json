@@ -327,5 +327,9 @@
   "message.download": "Preuzmi",
   "common.close": "Zatvori",
   "common.loading": "Učitavanje…",
-  "settings.spellCheck": "Proveravaj pravopis tokom pisanja (koristi rečnik pregledača)"
+  "settings.spellCheck": "Proveravaj pravopis tokom pisanja (koristi rečnik pregledača)",
+  "shortcuts.group.settings": "Podešavanja",
+  "shortcuts.next_section": "Sledeća sekcija",
+  "shortcuts.previous_section": "Prethodna sekcija",
+  "shortcuts.close_settings": "Zatvori podešavanja i vrati se na poštu"
 }

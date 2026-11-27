@@ -107,3 +107,16 @@ test('invalid identity email is rejected with a clear message', async ({ page })
   await page.getByTestId('identities-save').click();
   await expect(page.getByTestId('identities-item')).toHaveCount(1);
 });
+
+test('arrow keys walk the settings sections and Esc goes back to mail', async ({ page }) => {
+  await openSettings(page, 'general');
+  await page.keyboard.press('ArrowDown');
+  await expect(page).toHaveURL(/\/settings\/mailbox$/);
+  await page.keyboard.press('ArrowUp');
+  await page.keyboard.press('ArrowUp');
+  await expect(page).toHaveURL(/\/settings\/shortcuts$/);
+  await expect(page.getByTestId('shortcuts')).toContainText('Next section');
+  await page.keyboard.press('Escape');
+  await expect(page).toHaveURL(/\/mail\/INBOX$/);
+  await expect(page.getByTestId('message').first()).toBeVisible();
+});

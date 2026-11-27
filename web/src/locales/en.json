@@ -318,5 +318,9 @@
   "message.download": "Download",
   "common.close": "Close",
   "common.loading": "Loading…",
-  "settings.spellCheck": "Check spelling while writing (uses the browser's dictionary)"
+  "settings.spellCheck": "Check spelling while writing (uses the browser's dictionary)",
+  "shortcuts.group.settings": "Settings",
+  "shortcuts.next_section": "Next section",
+  "shortcuts.previous_section": "Previous section",
+  "shortcuts.close_settings": "Close settings and go back to mail"
 }
