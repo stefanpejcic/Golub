@@ -66,6 +66,8 @@ func Build(d Draft) ([]byte, string, error) {
 			return nil, "", errHeader
 		}
 	}
+	d.To, d.Cc, d.Bcc, d.ReplyTo = asciiList(d.To), asciiList(d.Cc), asciiList(d.Bcc), asciiList(d.ReplyTo)
+	d.From = asciiList([]mail.Address{d.From})[0]
 	id := newMessageID(d.From.Address)
 	bcc := d.Bcc
 	// Drafts may have no recipients yet; the builder insists on one, and Bcc never reaches the headers.
@@ -125,12 +127,12 @@ func Build(d Draft) ([]byte, string, error) {
 	return buf.Bytes(), id, nil
 }
 
-// Recipients returns every envelope recipient once, lowercased.
+// Recipients returns every envelope recipient once, lowercased, with domains in IDNA form.
 func Recipients(d Draft) []string {
 	seen := map[string]bool{}
 	var out []string
 	for _, list := range [][]mail.Address{d.To, d.Cc, d.Bcc} {
-		for _, a := range list {
+		for _, a := range asciiList(list) {
 			addr := strings.ToLower(strings.TrimSpace(a.Address))
 			if addr != "" && !seen[addr] {
 				seen[addr] = true

@@ -20,9 +20,21 @@ import (
 
 // Errors mapped to API codes by the HTTP layer.
 var (
-	ErrAuth        = errors.New("smtp: authentication failed")
-	ErrUnavailable = errors.New("smtp: server unavailable")
+	ErrAuth            = errors.New("smtp: authentication failed")
+	ErrUnavailable     = errors.New("smtp: server unavailable")
+	ErrUTF8Unsupported = errors.New("smtp: server cannot deliver to non-ASCII mailboxes")
 )
+
+func hasUTF8(addrs ...string) bool {
+	for _, a := range addrs {
+		for i := 0; i < len(a); i++ {
+			if a[i] >= 0x80 {
+				return true
+			}
+		}
+	}
+	return false
+}
 
 // RecipientError reports an address the server refused.
 type RecipientError struct {
@@ -79,7 +91,14 @@ func (s *Sender) Send(ctx context.Context, user, pass, from string, to []string,
 	if err := c.Auth(sasl.NewPlainClient("", user, pass)); err != nil {
 		return fmt.Errorf("%w: %w", ErrAuth, err)
 	}
-	if err := c.Mail(from, nil); err != nil {
+	var opts *smtp.MailOptions
+	if hasUTF8(append([]string{from}, to...)...) {
+		if ok, _ := c.Extension("SMTPUTF8"); !ok {
+			return ErrUTF8Unsupported
+		}
+		opts = &smtp.MailOptions{UTF8: true}
+	}
+	if err := c.Mail(from, opts); err != nil {
 		return err
 	}
 	for _, rcpt := range to {

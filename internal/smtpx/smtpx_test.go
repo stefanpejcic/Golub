@@ -49,3 +49,22 @@ func TestSendErrors(t *testing.T) {
 		t.Errorf("unreachable: %v", err)
 	}
 }
+
+func TestSendUTF8Mailbox(t *testing.T) {
+	srv := smtptest.Start(t, map[string]string{"alice@golub.test": "secret"})
+	s := &Sender{Endpoint: srv.Endpoint, Timeout: 5 * time.Second}
+	err := s.Send(context.Background(), "alice@golub.test", "secret", "alice@golub.test", []string{"željko@xn--pota-h6a.rs"}, []byte("Subject: x\r\n\r\ny\r\n"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	if got := srv.Messages(); len(got) != 1 || got[0].To[0] != "željko@xn--pota-h6a.rs" {
+		t.Fatalf("%+v", got)
+	}
+
+	plain := smtptest.Start(t, map[string]string{"alice@golub.test": "secret"}, smtptest.WithoutUTF8())
+	s = &Sender{Endpoint: plain.Endpoint, Timeout: 5 * time.Second}
+	err = s.Send(context.Background(), "alice@golub.test", "secret", "alice@golub.test", []string{"željko@xn--pota-h6a.rs"}, []byte("x"))
+	if !errors.Is(err, ErrUTF8Unsupported) {
+		t.Fatalf("err = %v", err)
+	}
+}

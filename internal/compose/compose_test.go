@@ -172,3 +172,40 @@ func TestBuildMDN(t *testing.T) {
 		t.Fatalf("parse: %v %+v", err, m)
 	}
 }
+
+func TestASCIIAddress(t *testing.T) {
+	cases := []struct {
+		in, want string
+		utf8     bool
+	}{
+		{"ime@pošta.rs", "ime@xn--pota-h6a.rs", false},
+		{"željko@pošta.rs", "željko@xn--pota-h6a.rs", true},
+		{"bob@golub.test", "bob@golub.test", false},
+		{"Bob@Golub.Test", "Bob@golub.test", false},
+	}
+	for _, c := range cases {
+		got, utf8, err := ASCIIAddress(c.in)
+		if err != nil || got != c.want || utf8 != c.utf8 {
+			t.Errorf("%s -> %s %v %v", c.in, got, utf8, err)
+		}
+	}
+	if _, _, err := ASCIIAddress("no-at-sign"); err == nil {
+		t.Error("expected error")
+	}
+	if u := UnicodeAddress("ime@xn--pota-h6a.rs"); u != "ime@pošta.rs" {
+		t.Errorf("unicode = %s", u)
+	}
+}
+
+func TestBuildWithUnicodeDomain(t *testing.T) {
+	raw, _, err := Build(Draft{From: mail.Address{Address: "a@golub.test"}, To: []mail.Address{{Name: "Ime", Address: "ime@pošta.rs"}}, Subject: "x", Text: "y"})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !strings.Contains(string(raw), "ime@xn--pota-h6a.rs") {
+		t.Fatalf("%s", raw)
+	}
+	if got := Recipients(Draft{To: []mail.Address{{Address: "ime@pošta.rs"}}}); got[0] != "ime@xn--pota-h6a.rs" {
+		t.Fatalf("envelope %v", got)
+	}
+}

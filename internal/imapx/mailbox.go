@@ -16,6 +16,7 @@ import (
 
 	"github.com/emersion/go-imap/v2"
 	"github.com/emersion/go-imap/v2/imapclient"
+	"golang.org/x/net/idna"
 	"golang.org/x/text/encoding/htmlindex"
 
 	"github.com/stefanpejcic/golub/internal/mime"
@@ -329,7 +330,7 @@ func addresses(in []imap.Address) []Address {
 		if a.IsGroupStart() || a.IsGroupEnd() {
 			continue
 		}
-		out = append(out, Address{Name: a.Name, Address: a.Addr()})
+		out = append(out, Address{Name: a.Name, Address: unicodeAddr(a.Addr())})
 	}
 	return out
 }
@@ -351,4 +352,15 @@ func hasAttachment(bs imap.BodyStructure) bool {
 		return !found
 	})
 	return found
+}
+
+func unicodeAddr(addr string) string {
+	local, domain, ok := strings.Cut(addr, "@")
+	if !ok || !strings.Contains(strings.ToLower(domain), "xn--") {
+		return addr
+	}
+	if u, err := idna.Display.ToUnicode(domain); err == nil {
+		return local + "@" + u
+	}
+	return addr
 }

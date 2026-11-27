@@ -86,13 +86,23 @@ func (s *session) Data(r io.Reader) error {
 func (s *session) Reset()        {}
 func (s *session) Logout() error { return nil }
 
+// Option tweaks the test server.
+type Option func(*smtp.Server)
+
+// WithoutUTF8 turns off the SMTPUTF8 extension, like an older mail server.
+func WithoutUTF8() Option { return func(s *smtp.Server) { s.EnableSMTPUTF8 = false } }
+
 // Start serves SMTP on loopback for the duration of the test; users maps login to password.
-func Start(t testing.TB, users map[string]string) *Server {
+func Start(t testing.TB, users map[string]string, opts ...Option) *Server {
 	t.Helper()
 	s := &Server{users: users}
 	srv := smtp.NewServer(smtp.BackendFunc(func(*smtp.Conn) (smtp.Session, error) { return &session{srv: s}, nil }))
 	srv.AllowInsecureAuth = true
 	srv.Domain = "localhost"
+	srv.EnableSMTPUTF8 = true
+	for _, o := range opts {
+		o(srv)
+	}
 	l, err := (&net.ListenConfig{}).Listen(context.Background(), "tcp", "127.0.0.1:0")
 	if err != nil {
 		t.Fatal(err)

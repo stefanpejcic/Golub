@@ -306,5 +306,6 @@
   "list.dragging": {
     "one": "Move {count} message",
     "other": "Move {count} messages"
-  }
+  },
+  "errors.compose.utf8_unsupported": "The mail server cannot deliver to addresses with non-Latin characters before the @."
 }

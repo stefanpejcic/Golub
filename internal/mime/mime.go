@@ -11,6 +11,7 @@ import (
 	"time"
 
 	"github.com/jhillyerd/enmime/v2"
+	"golang.org/x/net/idna"
 )
 
 // Address is a display name and email.
@@ -198,7 +199,13 @@ func addresses(env *enmime.Envelope, key string) []Address {
 		return out
 	}
 	for _, a := range list {
-		out = append(out, Address{Name: a.Name, Address: a.Address})
+		addr := a.Address
+		if local, domain, ok := strings.Cut(addr, "@"); ok && strings.Contains(strings.ToLower(domain), "xn--") {
+			if u, err := idna.Display.ToUnicode(domain); err == nil {
+				addr = local + "@" + u
+			}
+		}
+		out = append(out, Address{Name: a.Name, Address: addr})
 	}
 	return out
 }

@@ -91,6 +91,8 @@ func (a *authAPI) writeComposeError(w http.ResponseWriter, r *http.Request, err 
 		writeJSON(w, ce.status, body)
 	case errors.As(err, &rej):
 		writeJSON(w, http.StatusUnprocessableEntity, map[string]string{"error": "compose.recipient_rejected", "address": rej.Address})
+	case errors.Is(err, smtpx.ErrUTF8Unsupported):
+		writeError(w, http.StatusUnprocessableEntity, "compose.utf8_unsupported")
 	case errors.Is(err, smtpx.ErrAuth), errors.Is(err, smtpx.ErrUnavailable):
 		slog.Error("smtp submission failed", "err", err)
 		writeError(w, http.StatusBadGateway, "compose.send_failed")

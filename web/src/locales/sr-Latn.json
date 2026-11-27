@@ -315,5 +315,6 @@
     "one": "Premesti {count} poruku",
     "few": "Premesti {count} poruke",
     "other": "Premesti {count} poruka"
-  }
+  },
+  "errors.compose.utf8_unsupported": "Server za poštu ne može da isporuči poruku na adresu sa nelatiničnim znakovima pre @."
 }
