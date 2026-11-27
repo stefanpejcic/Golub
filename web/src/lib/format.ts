@@ -8,9 +8,10 @@ export interface Address {
 const sameDay = (a: Date, b: Date) =>
   a.getFullYear() === b.getFullYear() && a.getMonth() === b.getMonth() && a.getDate() === b.getDate();
 
-export function formatListDate(locale: string, iso: string, now = new Date()): string {
+export function formatListDate(locale: string, iso: string, now = new Date(), pretty = true): string {
   const d = new Date(iso);
   if (Number.isNaN(d.getTime())) return '';
+  if (!pretty) return new Intl.DateTimeFormat(locale, { dateStyle: 'short', timeStyle: 'short' }).format(d);
   if (sameDay(d, now)) return new Intl.DateTimeFormat(locale, { timeStyle: 'short' }).format(d);
   if (d.getFullYear() === now.getFullYear()) {
     return new Intl.DateTimeFormat(locale, { month: 'short', day: 'numeric' }).format(d);

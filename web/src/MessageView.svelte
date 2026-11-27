@@ -4,16 +4,20 @@
   import { mail } from './lib/mail.svelte';
   import { formatFullDate, formatSize, type Address } from './lib/format';
   import { errorMessage } from './lib/errors';
+  import { settings } from './lib/settings.svelte';
   import { archiveMessages, flagMessages, folderLabel, moveMessages, removeMessages } from './lib/actions';
 
   const t = $derived(i18n.t);
   const m = $derived(mail.message);
 
   let showImages = $state(false);
+  let plain = $state(false);
   $effect(() => {
     void mail.uid;
-    showImages = false;
+    showImages = settings.value.remoteImages === 'always';
+    plain = settings.value.preferPlain;
   });
+  const asHtml = $derived(!!m?.html && !(plain && m.text.trim() !== ''));
 
   const query = $derived(m ? `folder=${encodeURIComponent(m.folder)}&uid=${m.uid}` : '');
   const bodyUrl = $derived(`/api/message/body?${query}${showImages ? '&images=1' : ''}`);
@@ -38,7 +42,8 @@
   }
 
   function people(list: Address[]): string {
-    return list.map((a) => (a.name ? `${a.name} <${a.address}>` : a.address)).join(', ');
+    const full = settings.value.showAddresses;
+    return list.map((a) => (a.name ? (full ? `${a.name} <${a.address}>` : a.name) : a.address)).join(', ');
   }
 </script>
 
@@ -143,7 +148,7 @@
       </dl>
     </header>
 
-    {#if m.html && m.blockedImages > 0 && !showImages}
+    {#if asHtml && m.blockedImages > 0 && !showImages}
       <div class="notice" data-testid="images-blocked">
         <span>{t('message.images_blocked', { count: m.blockedImages })}</span>
         <button type="button" class="btn" onclick={() => (showImages = true)} data-testid="show-images">
@@ -174,7 +179,7 @@
       </section>
     {/if}
 
-    {#if m.html}
+    {#if asHtml}
       <iframe
         title={t('message.body')}
         src={bodyUrl}

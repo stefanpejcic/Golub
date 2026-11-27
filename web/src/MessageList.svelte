@@ -4,6 +4,7 @@
   import { mail } from './lib/mail.svelte';
   import { displayName, formatListDate, formatFullDate, formatSize, messagePath } from './lib/format';
   import { errorMessage } from './lib/errors';
+  import { settings } from './lib/settings.svelte';
   import { archiveMessages, flagMessages, folderLabel, moveMessages, removeMessages } from './lib/actions';
 
   const t = $derived(i18n.t);
@@ -307,7 +308,7 @@
               <span class="dot" aria-hidden="true"></span>
               <span class="who">{who}</span>
               <time datetime={m.date} title={formatFullDate(i18n.locale, m.date)}>
-                {formatListDate(i18n.locale, m.date)}
+                {formatListDate(i18n.locale, m.date, undefined, settings.value.prettyDates)}
               </time>
               <span class="subject">
                 {#if m.flagged}
@@ -355,6 +356,27 @@
         </li>
       {/each}
     </ul>
+  {/if}
+  {#if mail.quota}
+    {@const pct = Math.min(100, Math.round((mail.quota.used / mail.quota.limit) * 100))}
+    <footer class="quota" data-testid="quota" title={t('quota.title', { percent: pct })}>
+      <div
+        class="bar"
+        role="meter"
+        aria-valuemin={0}
+        aria-valuemax={100}
+        aria-valuenow={pct}
+        aria-label={t('quota.label')}
+      >
+        <div class="fill" class:warn={pct >= 80} class:full={pct >= 95} data-pct={Math.ceil(pct / 5) * 5}></div>
+      </div>
+      <span>
+        {t('quota.usage', {
+          used: formatSize(i18n.locale, mail.quota.used),
+          limit: formatSize(i18n.locale, mail.quota.limit),
+        })}
+      </span>
+    </footer>
   {/if}
 </section>
 
@@ -469,6 +491,96 @@
   }
   .hidden {
     display: none;
+  }
+  .quota {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    flex: none;
+    padding: var(--space-2) var(--space-3);
+    font-size: 0.8rem;
+    color: var(--color-text-muted);
+    border-block-start: 1px solid var(--color-border);
+  }
+  .bar {
+    flex: 1;
+    block-size: 0.375rem;
+    overflow: hidden;
+    background: var(--color-border);
+    border-radius: 999px;
+  }
+  .fill {
+    block-size: 100%;
+    background: var(--color-accent);
+  }
+  .fill.warn {
+    background: #d97706;
+  }
+  .fill.full {
+    background: var(--color-danger);
+  }
+  .fill[data-pct='0'] {
+    inline-size: 0%;
+  }
+  .fill[data-pct='5'] {
+    inline-size: 5%;
+  }
+  .fill[data-pct='10'] {
+    inline-size: 10%;
+  }
+  .fill[data-pct='15'] {
+    inline-size: 15%;
+  }
+  .fill[data-pct='20'] {
+    inline-size: 20%;
+  }
+  .fill[data-pct='25'] {
+    inline-size: 25%;
+  }
+  .fill[data-pct='30'] {
+    inline-size: 30%;
+  }
+  .fill[data-pct='35'] {
+    inline-size: 35%;
+  }
+  .fill[data-pct='40'] {
+    inline-size: 40%;
+  }
+  .fill[data-pct='45'] {
+    inline-size: 45%;
+  }
+  .fill[data-pct='50'] {
+    inline-size: 50%;
+  }
+  .fill[data-pct='55'] {
+    inline-size: 55%;
+  }
+  .fill[data-pct='60'] {
+    inline-size: 60%;
+  }
+  .fill[data-pct='65'] {
+    inline-size: 65%;
+  }
+  .fill[data-pct='70'] {
+    inline-size: 70%;
+  }
+  .fill[data-pct='75'] {
+    inline-size: 75%;
+  }
+  .fill[data-pct='80'] {
+    inline-size: 80%;
+  }
+  .fill[data-pct='85'] {
+    inline-size: 85%;
+  }
+  .fill[data-pct='90'] {
+    inline-size: 90%;
+  }
+  .fill[data-pct='95'] {
+    inline-size: 95%;
+  }
+  .fill[data-pct='100'] {
+    inline-size: 100%;
   }
   .search {
     position: relative;

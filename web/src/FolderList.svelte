@@ -24,7 +24,7 @@
 
 <nav aria-label={t('folders.label')}>
   <ul>
-    {#each mail.folders as f (f.name)}
+    {#each mail.folders.filter((x) => x.subscribed || x.special === 'inbox') as f (f.name)}
       <li data-depth={Math.min(depth(f), 4)}>
         {#if f.selectable}
           <a

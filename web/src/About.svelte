@@ -5,7 +5,6 @@
   import Logo from './Logo.svelte';
 
   const t = $derived(i18n.t);
-  let dialog: HTMLDialogElement;
   let version = $state('');
 
   const credits = [
@@ -17,15 +16,14 @@
     { name: 'Inter', url: 'https://rsms.me/inter/' },
   ];
 
-  export async function open() {
-    dialog.showModal();
-    if (!version) {
-      version = (await api<{ version: string }>('GET', '/healthz').catch(() => ({ version: '' }))).version;
-    }
-  }
+  $effect(() => {
+    api<{ version: string }>('GET', '/healthz')
+      .then((r) => (version = r.version))
+      .catch(() => undefined);
+  });
 </script>
 
-<dialog bind:this={dialog} aria-labelledby="about-title" data-testid="about">
+<section aria-labelledby="about-title" data-testid="about">
   <div class="head">
     <Logo size={48} />
     <div>
@@ -47,23 +45,11 @@
       <li><a href={c.url} target="_blank" rel="noopener noreferrer">{c.name}</a></li>
     {/each}
   </ul>
-  <form method="dialog">
-    <button class="btn btn-primary" data-testid="about-close">{t('about.close')}</button>
-  </form>
-</dialog>
+</section>
 
 <style>
-  dialog {
-    inline-size: min(100% - 2rem, 26rem);
-    padding: var(--space-4);
-    color: var(--color-text);
-    background: var(--color-surface-raised);
-    border: 1px solid var(--color-border);
-    border-radius: 8px;
-    box-shadow: var(--shadow);
-  }
-  dialog::backdrop {
-    background: rgb(0 0 0 / 0.4);
+  section {
+    max-inline-size: 30rem;
   }
   .head {
     display: flex;
@@ -96,10 +82,5 @@
     margin: 0;
     padding: 0;
     list-style: none;
-  }
-  form {
-    display: flex;
-    justify-content: flex-end;
-    margin-block-start: var(--space-4);
   }
 </style>

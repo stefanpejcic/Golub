@@ -50,10 +50,11 @@
 
 ## Next: Settings
 Stored per user in an unsubscribed IMAP folder `golub-settings` (one JSON message), since the reference server has no IMAP METADATA. Nothing is written by Golub itself.
-- [ ] Settings store (load/save, defaults, validation) and `/api/settings`
-- [ ] Settings page bottom-left: Preferences (general, mailbox view, displaying, composing, special folders, server), Folders, Identities, Responses, About
-- [ ] Folder management: create, rename, delete, subscribe, empty
-- [ ] Apply preferences: page size, mark-as-read timing, prefer plain text, remote images, show addresses, pretty dates, delete mode, special folder overrides
+- [x] Settings store (load/save, defaults, validation) and `/api/settings`
+- [x] Settings page bottom-left: Preferences (general, mailbox view, displaying, composing, special folders, server), Folders, Identities, Responses, About
+- [x] Folder management: create, rename, delete, subscribe, empty
+- [x] Apply preferences: page size, mark-as-read timing, prefer plain text, remote images, show addresses, pretty dates, delete mode, special folder overrides
+- [x] Quota usage bar under the message list (IMAP QUOTA)
 - [ ] Filters and out-of-office via ManageSieve (needs ManageSieve enabled on the mail server)
 
 ## UI backlog (requested)

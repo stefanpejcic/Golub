@@ -41,7 +41,8 @@ export const session = {
   async login(email: string, password: string) {
     adopt(await api<SessionInfo>('POST', '/api/login', { email, password, locale: i18n.locale, theme: theme.value }));
   },
-  async logout() {
+  async logout(beforeLogout?: () => Promise<void>) {
+    await beforeLogout?.().catch(() => undefined);
     await api('POST', '/api/logout').catch(() => undefined);
     state.info = null;
     state.status = 'anonymous';

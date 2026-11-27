@@ -3,6 +3,8 @@
 import { api, ApiError } from './api';
 import { folderPath, messagePath, parseMailPath, type Address } from './format';
 import { session } from './session.svelte';
+import { settings } from './settings.svelte';
+import { route } from './route.svelte';
 
 export interface Folder {
   name: string;
@@ -11,6 +13,7 @@ export interface Folder {
   unread: number;
   total: number;
   selectable: boolean;
+  subscribed: boolean;
 }
 
 export interface Summary {
@@ -58,7 +61,6 @@ interface MessagePage {
   messages: Summary[];
 }
 
-const PAGE_SIZE = 50;
 
 const state = $state({
   folders: [] as Folder[],
@@ -73,6 +75,7 @@ const state = $state({
   messageLoading: false,
   messageError: '',
   query: '',
+  quota: null as { used: number; limit: number } | null,
   selected: [] as number[],
   anchor: null as number | null,
 });
@@ -88,6 +91,7 @@ function fail(e: unknown): string {
 }
 
 let messageSeq = 0;
+let markTimer: ReturnType<typeof setTimeout> | undefined;
 
 function readLocation(): { folder: string; page: number; uid: number | null; query: string } {
   const parsed = parseMailPath(location.pathname);
@@ -97,6 +101,8 @@ function readLocation(): { folder: string; page: number; uid: number | null; que
 }
 
 function writeLocation(folder: string, page: number, replace: boolean, uid: number | null = null) {
+  // Background mailbox loads must not pull the user out of settings.
+  if (location.pathname.startsWith('/settings')) return;
   const base = uid === null ? folderPath(folder) : messagePath(folder, uid);
   const params = [page > 1 ? `page=${page}` : '', state.query ? `q=${encodeURIComponent(state.query)}` : '']
     .filter(Boolean)
@@ -105,6 +111,7 @@ function writeLocation(folder: string, page: number, replace: boolean, uid: numb
   if (url === location.pathname + location.search) return;
   if (replace) history.replaceState(null, '', url);
   else history.pushState(null, '', url);
+  route.sync();
 }
 
 export const mail = {
@@ -118,7 +125,7 @@ export const mail = {
     return state.page;
   },
   get pageSize() {
-    return PAGE_SIZE;
+    return settings.value.pageSize;
   },
   get total() {
     return state.total;
@@ -186,12 +193,19 @@ export const mail = {
     return state.folders.find((f) => f.name === state.folder);
   },
 
+  get quota() {
+    return state.quota;
+  },
+
   async loadFolders() {
     try {
       state.folders = (await api<{ folders: Folder[] }>('GET', '/api/folders')).folders;
     } catch (e) {
       state.error = fail(e);
     }
+    api<{ supported: boolean; used?: number; limit?: number }>('GET', '/api/quota')
+      .then((q) => (state.quota = q.supported ? { used: q.used!, limit: q.limit! } : null))
+      .catch(() => undefined);
   },
 
   async open(folder: string, page = 1, opts: { replace?: boolean; history?: boolean } = {}) {
@@ -211,7 +225,7 @@ export const mail = {
     if (opts.history !== false) writeLocation(folder, page, opts.replace ?? false);
     try {
       const search = state.query ? `&q=${encodeURIComponent(state.query)}` : '';
-      const q = `folder=${encodeURIComponent(folder)}&page=${page}&size=${PAGE_SIZE}${search}`;
+      const q = `folder=${encodeURIComponent(folder)}&page=${page}&size=${settings.value.pageSize}${search}`;
       const res = await api<MessagePage>('GET', `/api/messages?${q}`);
       if (mine !== seq) return;
       state.total = res.total;
@@ -237,14 +251,24 @@ export const mail = {
     state.messageLoading = true;
     if (opts.history !== false) writeLocation(folder, state.page, opts.replace ?? false, uid);
     try {
-      const m = await api<MessageView>('GET', `/api/message?folder=${encodeURIComponent(folder)}&uid=${uid}`);
+      const mode = settings.value.markRead;
+      const seen = mode === 'immediately' ? '' : '&seen=0';
+      const m = await api<MessageView>('GET', `/api/message?folder=${encodeURIComponent(folder)}&uid=${uid}${seen}`);
       if (mine !== messageSeq) return;
       state.message = m;
       const row = state.messages.find((r) => r.uid === uid);
-      if (row && !row.seen) {
+      if (mode === 'immediately' && row && !row.seen) {
         row.seen = true;
         const f = state.folders.find((x) => x.name === folder);
         if (f && f.unread > 0) f.unread--;
+      }
+      if (mode === 'delay' && !m.seen) {
+        clearTimeout(markTimer);
+        markTimer = setTimeout(() => {
+          if (state.uid === uid && state.folder === folder && state.message && !state.message.seen) {
+            this.setFlag([uid], 'seen', true).catch(() => undefined);
+          }
+        }, settings.value.markReadDelay * 1000);
       }
     } catch (e) {
       if (mine === messageSeq) state.messageError = fail(e);
@@ -312,6 +336,30 @@ export const mail = {
     return res.trashed;
   },
 
+  async createFolder(name: string) {
+    await api('POST', '/api/folders/create', { name });
+    await this.loadFolders();
+  },
+  async folderOp(op: 'rename' | 'delete' | 'empty' | 'subscribe', name: string, extra: Record<string, unknown> = {}) {
+    await api('POST', `/api/folders/${op}`, { name, ...extra });
+    await this.loadFolders();
+  },
+
+  // Quietly refreshes counters and the visible page without touching selection or the open message.
+  async refresh() {
+    if (state.loading) return;
+    await this.loadFolders();
+    const search = state.query ? `&q=${encodeURIComponent(state.query)}` : '';
+    const q = `folder=${encodeURIComponent(state.folder)}&page=${state.page}&size=${settings.value.pageSize}${search}`;
+    try {
+      const res = await api<MessagePage>('GET', `/api/messages?${q}`);
+      state.total = res.total;
+      state.messages = res.messages;
+    } catch (e) {
+      fail(e);
+    }
+  },
+
   start() {
     const { folder, page, uid, query } = readLocation();
     state.folder = folder;
@@ -320,6 +368,7 @@ export const mail = {
     this.open(folder, page, { replace: true, history: uid === null });
     if (uid !== null) this.openMessage(uid, { history: false });
     const onPop = () => {
+      if (!location.pathname.startsWith('/mail')) return;
       const loc = readLocation();
       if (loc.folder !== state.folder || loc.page !== state.page || loc.query !== state.query) {
         state.folder = loc.folder;
@@ -330,6 +379,11 @@ export const mail = {
       else if (loc.uid !== state.uid) this.openMessage(loc.uid, { history: false });
     };
     addEventListener('popstate', onPop);
-    return () => removeEventListener('popstate', onPop);
+    const every = settings.value.refreshInterval;
+    const timer = every > 0 ? setInterval(() => document.visibilityState === 'visible' && this.refresh(), every * 1000) : undefined;
+    return () => {
+      removeEventListener('popstate', onPop);
+      clearInterval(timer);
+    };
   },
 };

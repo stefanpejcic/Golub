@@ -9,13 +9,27 @@
   import Toast from './Toast.svelte';
   import Logo from './Logo.svelte';
   import { session } from './lib/session.svelte';
+  import { settings } from './lib/settings.svelte';
+  import { route } from './lib/route.svelte';
+  import SettingsNav from './settings/SettingsNav.svelte';
+  import SettingsPage from './settings/SettingsPage.svelte';
 
   const t = $derived(i18n.t);
 
-  $effect(() => mail.start());
+  $effect(() => {
+    let stop: (() => void) | undefined;
+    let alive = true;
+    settings.load().then(() => {
+      if (alive) stop = mail.start();
+    });
+    return () => {
+      alive = false;
+      stop?.();
+    };
+  });
 </script>
 
-<div class="mailbox" class:has-message={mail.uid !== null}>
+<div class="mailbox" class:has-message={mail.uid !== null} class:in-settings={route.settingsSection !== null}>
   <aside>
     <div class="brand">
       <Logo size={28} />
@@ -26,10 +40,19 @@
       <span data-testid="user-email" title={session.info?.email}>{session.info?.email}</span>
     </div>
     <div class="folders">
-      <FolderList />
+      {#if route.settingsSection}
+        <SettingsNav />
+      {:else}
+        <FolderList />
+      {/if}
     </div>
     <Prefs />
   </aside>
+  {#if route.settingsSection}
+    <main class="settings-pane">
+      <SettingsPage />
+    </main>
+  {:else}
   <main class="list-pane">
     <MessageList />
   </main>
@@ -48,6 +71,7 @@
       </div>
     {/if}
   </section>
+  {/if}
 </div>
 
 <Toast />
@@ -102,6 +126,11 @@
   .list-pane {
     min-block-size: 0;
     border-inline-end: 1px solid var(--color-border);
+  }
+  .settings-pane {
+    grid-column: 2 / -1;
+    min-block-size: 0;
+    min-inline-size: 0;
   }
   .preview-pane {
     display: flex;
