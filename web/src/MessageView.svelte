@@ -12,6 +12,7 @@
   let { standalone = false, onloaded }: { standalone?: boolean; onloaded?: () => void } = $props();
   const t = $derived(i18n.t);
   let headers = $state('');
+  let picker = $state<'' | 'move' | 'copy'>('');
   let showHeaders = $state(false);
   const m = $derived(mail.message);
 
@@ -162,38 +163,51 @@
               {t('actions.new_window')}
             </button>
             <div class="sep"></div>
-            <label class="item pick">
-              <span>{t('actions.move_to')}</span>
-              <select
-                class="input"
-                onchange={(e) => {
-                  move(e.currentTarget.value);
-                  close();
-                }}
-                data-testid="action-move"
-              >
-                <option value=""></option>
+            <button
+              class="item"
+              role="menuitem"
+              aria-expanded={picker === 'move'}
+              onclick={() => (picker = picker === 'move' ? '' : 'move')}
+              data-testid="action-move"
+            >
+              {t('actions.move_to')}
+            </button>
+            {#if picker === 'move'}
+              <div class="folders" role="group" aria-label={t('actions.move_to')}>
                 {#each targets as f (f.name)}
-                  <option value={f.name}>{folderLabel(f.name)}</option>
+                  <button class="item sub" role="menuitem" onclick={() => (move(f.name), (picker = ''), close())} data-folder={f.name}>
+                    {folderLabel(f.name)}
+                  </button>
                 {/each}
-              </select>
-            </label>
-            <label class="item pick">
-              <span>{t('actions.copy_to')}</span>
-              <select
-                class="input"
-                onchange={(e) => {
-                  if (m && e.currentTarget.value) copyMessages([m.uid], e.currentTarget.value);
-                  close();
-                }}
-                data-testid="action-copy"
-              >
-                <option value=""></option>
+              </div>
+            {/if}
+            <button
+              class="item"
+              role="menuitem"
+              aria-expanded={picker === 'copy'}
+              onclick={() => (picker = picker === 'copy' ? '' : 'copy')}
+              data-testid="action-copy"
+            >
+              {t('actions.copy_to')}
+            </button>
+            {#if picker === 'copy'}
+              <div class="folders" role="group" aria-label={t('actions.copy_to')}>
                 {#each targets as f (f.name)}
-                  <option value={f.name}>{folderLabel(f.name)}</option>
+                  <button
+                    class="item sub"
+                    role="menuitem"
+                    onclick={() => {
+                      if (m) copyMessages([m.uid], f.name);
+                      picker = '';
+                      close();
+                    }}
+                    data-folder={f.name}
+                  >
+                    {folderLabel(f.name)}
+                  </button>
                 {/each}
-              </select>
-            </label>
+              </div>
+            {/if}
           {/snippet}
         </Menu>
       </div>
@@ -384,14 +398,16 @@
     border: 1px solid var(--color-border);
     border-radius: var(--radius);
   }
-  .pick {
-    flex-direction: column;
-    align-items: stretch;
-    gap: var(--space-1);
-    cursor: default;
+  .folders {
+    max-block-size: 14rem;
+    overflow-y: auto;
   }
-  .pick .input {
-    padding-block: 0.3rem;
+  .folders :global(.sub) {
+    padding-inline-start: var(--space-4);
+    color: var(--color-text-muted);
+  }
+  .folders :global(.sub:hover) {
+    color: var(--color-text);
   }
   @media print {
     .page-header,
