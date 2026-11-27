@@ -236,12 +236,6 @@ Off unless the admin points Golub at an OpenAI-compatible endpoint, so a local O
 - Explain why a message looks like phishing or spam
 - Admin limits: per-user rate limit, maximum input size, attachments and quoted history left out
 
-**Later**
-- PGP
-- Dark view for HTML mail
-- Right-to-left languages
-- Documentation site, project website and a public live demo
-
 ## License
 
 GPL-3.0-or-later. See [LICENSE](LICENSE).
