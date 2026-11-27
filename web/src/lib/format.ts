@@ -32,12 +32,32 @@ export function folderPath(name: string): string {
   return `/mail/${encodeURIComponent(name)}`;
 }
 
-export function folderFromPath(path: string): string | null {
-  const m = /^\/mail\/(.+)$/.exec(path);
+export function messagePath(folder: string, uid: number): string {
+  return `${folderPath(folder)}/${uid}`;
+}
+
+export function parseMailPath(path: string): { folder: string; uid: number | null } | null {
+  const m = /^\/mail\/([^/]+)(?:\/(\d+))?\/?$/.exec(path);
   if (!m) return null;
   try {
-    return decodeURIComponent(m[1]);
+    return { folder: decodeURIComponent(m[1]), uid: m[2] ? Number(m[2]) : null };
   } catch {
     return null;
   }
+}
+
+export function formatSize(locale: string, bytes: number): string {
+  const units = ['byte', 'kilobyte', 'megabyte', 'gigabyte'] as const;
+  let v = bytes;
+  let i = 0;
+  while (v >= 1024 && i < units.length - 1) {
+    v /= 1024;
+    i++;
+  }
+  return new Intl.NumberFormat(locale, {
+    style: 'unit',
+    unit: units[i],
+    unitDisplay: 'short',
+    maximumFractionDigits: i === 0 || v >= 10 ? 0 : 1,
+  }).format(v);
 }

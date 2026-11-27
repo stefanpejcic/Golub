@@ -41,5 +41,26 @@
   "list.no_subject": "(bez naslova)",
   "list.attachment": "Ima priloge",
   "list.flagged": "Označeno",
-  "errors.folder.not_found": "Ova fascikla ne postoji."
+  "errors.folder.not_found": "Ova fascikla ne postoji.",
+  "message.back": "Nazad na listu",
+  "message.from": "Od",
+  "message.to": "Za",
+  "message.cc": "Kopija",
+  "message.date": "Datum",
+  "message.attachments": {
+    "one": "{count} prilog",
+    "few": "{count} priloga",
+    "other": "{count} priloga"
+  },
+  "message.images_blocked": {
+    "one": "{count} slika sa interneta je sakrivena radi zaštite privatnosti.",
+    "few": "{count} slike sa interneta su sakrivene radi zaštite privatnosti.",
+    "other": "{count} slika sa interneta je sakriveno radi zaštite privatnosti."
+  },
+  "message.show_images": "Prikaži slike",
+  "message.body": "Sadržaj poruke",
+  "errors.message.not_found": "Ova poruka više ne postoji.",
+  "errors.message.too_large": "Ova poruka je prevelika za prikaz.",
+  "errors.message.unreadable": "Ova poruka ne može da se pročita.",
+  "errors.message.part_not_found": "Ovaj prilog više ne postoji."
 }

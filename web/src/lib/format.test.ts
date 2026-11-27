@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 import { describe, expect, it } from 'vitest';
-import { formatListDate as raw, displayName, folderPath, folderFromPath } from './format';
+import { formatListDate as raw, displayName, folderPath, messagePath, parseMailPath, formatSize } from './format';
 
 const now = new Date('2026-11-27T15:00:00');
 
@@ -32,14 +32,26 @@ describe('displayName', () => {
   });
 });
 
-describe('folder paths', () => {
-  it('round-trips names with slashes and unicode', () => {
+describe('mail paths', () => {
+  it('round-trips folder names with slashes and unicode', () => {
     for (const name of ['INBOX', 'Archive/2025', 'Posao & Lično', '100%']) {
-      expect(folderFromPath(folderPath(name))).toBe(name);
+      expect(parseMailPath(folderPath(name))).toEqual({ folder: name, uid: null });
+      expect(parseMailPath(messagePath(name, 42))).toEqual({ folder: name, uid: 42 });
     }
   });
   it('returns null outside /mail/', () => {
-    expect(folderFromPath('/')).toBeNull();
-    expect(folderFromPath('/mail/')).toBeNull();
+    expect(parseMailPath('/')).toBeNull();
+    expect(parseMailPath('/mail/')).toBeNull();
+    expect(parseMailPath('/mail/INBOX/abc')).toBeNull();
+  });
+});
+
+describe('formatSize', () => {
+  const f = (l: string, b: number) => formatSize(l, b).replace(/\s/g, ' ');
+  it('picks a sensible unit', () => {
+    expect(f('en', 512)).toBe('512 byte');
+    expect(f('en', 1536)).toBe('1.5 kB');
+    expect(f('en', 25 * 1024 * 1024)).toBe('25 MB');
+    expect(f('sr-Latn', 1536)).toBe('1,5 kB');
   });
 });

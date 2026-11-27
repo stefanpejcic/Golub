@@ -3,6 +3,7 @@
   import { mail } from './lib/mail.svelte';
   import FolderList from './FolderList.svelte';
   import MessageList from './MessageList.svelte';
+  import MessageView from './MessageView.svelte';
 
   $effect(() => mail.start());
 </script>
@@ -11,7 +12,11 @@
   <aside>
     <FolderList />
   </aside>
-  <MessageList />
+  {#if mail.uid !== null}
+    <MessageView />
+  {:else}
+    <MessageList />
+  {/if}
 </div>
 
 <style>

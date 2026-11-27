@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 import { api, ApiError } from './api';
-import { folderFromPath, folderPath, type Address } from './format';
+import { folderPath, messagePath, parseMailPath, type Address } from './format';
 import { session } from './session.svelte';
 
 export interface Folder {
@@ -26,6 +26,31 @@ export interface Summary {
   size: number;
 }
 
+export interface Attachment {
+  id: string;
+  filename: string;
+  contentType: string;
+  size: number;
+  inline: boolean;
+}
+
+export interface MessageView {
+  uid: number;
+  folder: string;
+  subject: string;
+  from: Address[];
+  to: Address[];
+  cc: Address[];
+  replyTo: Address[];
+  date: string;
+  seen: boolean;
+  flagged: boolean;
+  text: string;
+  html: boolean;
+  blockedImages: number;
+  attachments: Attachment[];
+}
+
 interface MessagePage {
   total: number;
   page: number;
@@ -43,6 +68,10 @@ const state = $state({
   messages: [] as Summary[],
   loading: false,
   error: '',
+  uid: null as number | null,
+  message: null as MessageView | null,
+  messageLoading: false,
+  messageError: '',
 });
 
 let seq = 0;
@@ -55,14 +84,17 @@ function fail(e: unknown): string {
   return 'unknown';
 }
 
-function readLocation(): { folder: string; page: number } {
-  const folder = folderFromPath(location.pathname) ?? 'INBOX';
+let messageSeq = 0;
+
+function readLocation(): { folder: string; page: number; uid: number | null } {
+  const parsed = parseMailPath(location.pathname);
   const page = Math.max(1, Number(new URLSearchParams(location.search).get('page')) || 1);
-  return { folder, page };
+  return { folder: parsed?.folder ?? 'INBOX', uid: parsed?.uid ?? null, page };
 }
 
-function writeLocation(folder: string, page: number, replace: boolean) {
-  const url = folderPath(folder) + (page > 1 ? `?page=${page}` : '');
+function writeLocation(folder: string, page: number, replace: boolean, uid: number | null = null) {
+  const base = uid === null ? folderPath(folder) : messagePath(folder, uid);
+  const url = base + (page > 1 ? `?page=${page}` : '');
   if (url === location.pathname + location.search) return;
   if (replace) history.replaceState(null, '', url);
   else history.pushState(null, '', url);
@@ -93,6 +125,18 @@ export const mail = {
   get error() {
     return state.error;
   },
+  get uid() {
+    return state.uid;
+  },
+  get message() {
+    return state.message;
+  },
+  get messageLoading() {
+    return state.messageLoading;
+  },
+  get messageError() {
+    return state.messageError;
+  },
   get current(): Folder | undefined {
     return state.folders.find((f) => f.name === state.folder);
   },
@@ -107,6 +151,11 @@ export const mail = {
 
   async open(folder: string, page = 1, opts: { replace?: boolean; history?: boolean } = {}) {
     const mine = ++seq;
+    if (opts.history !== false) {
+      messageSeq++;
+      state.uid = null;
+      state.message = null;
+    }
     state.folder = folder;
     state.page = page;
     state.loading = true;
@@ -128,13 +177,51 @@ export const mail = {
     }
   },
 
+  async openMessage(uid: number, opts: { history?: boolean } = {}) {
+    const mine = ++messageSeq;
+    const folder = state.folder;
+    state.uid = uid;
+    state.message = null;
+    state.messageError = '';
+    state.messageLoading = true;
+    if (opts.history !== false) writeLocation(folder, state.page, false, uid);
+    try {
+      const m = await api<MessageView>('GET', `/api/message?folder=${encodeURIComponent(folder)}&uid=${uid}`);
+      if (mine !== messageSeq) return;
+      state.message = m;
+      const row = state.messages.find((r) => r.uid === uid);
+      if (row && !row.seen) {
+        row.seen = true;
+        const f = state.folders.find((x) => x.name === folder);
+        if (f && f.unread > 0) f.unread--;
+      }
+    } catch (e) {
+      if (mine === messageSeq) state.messageError = fail(e);
+    } finally {
+      if (mine === messageSeq) state.messageLoading = false;
+    }
+  },
+
+  closeMessage(opts: { history?: boolean } = {}) {
+    messageSeq++;
+    state.uid = null;
+    state.message = null;
+    state.messageError = '';
+    if (opts.history !== false) writeLocation(state.folder, state.page, false);
+  },
+
   start() {
-    const { folder, page } = readLocation();
+    const { folder, page, uid } = readLocation();
     this.loadFolders();
-    this.open(folder, page, { replace: true });
+    this.open(folder, page, { replace: true, history: uid === null });
+    if (uid !== null) this.openMessage(uid, { history: false });
     const onPop = () => {
       const loc = readLocation();
-      this.open(loc.folder, loc.page, { history: false });
+      if (loc.folder !== state.folder || loc.page !== state.page) {
+        this.open(loc.folder, loc.page, { history: false });
+      }
+      if (loc.uid === null) this.closeMessage({ history: false });
+      else if (loc.uid !== state.uid) this.openMessage(loc.uid, { history: false });
     };
     addEventListener('popstate', onPop);
     return () => removeEventListener('popstate', onPop);

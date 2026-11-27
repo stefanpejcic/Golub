@@ -2,7 +2,7 @@
 <script lang="ts">
   import { i18n } from './lib/locale.svelte';
   import { mail } from './lib/mail.svelte';
-  import { displayName, formatListDate, formatFullDate } from './lib/format';
+  import { displayName, formatListDate, formatFullDate, messagePath } from './lib/format';
   import { errorMessage } from './lib/errors';
 
   const t = $derived(i18n.t);
@@ -15,6 +15,12 @@
   const hasPrev = $derived(mail.page > 1);
   const hasNext = $derived(last < mail.total);
   const numbers = $derived(new Intl.NumberFormat(i18n.locale));
+
+  function open(e: MouseEvent, uid: number) {
+    if (e.metaKey || e.ctrlKey || e.shiftKey || e.button !== 0) return;
+    e.preventDefault();
+    mail.openMessage(uid);
+  }
 </script>
 
 <section class="list" aria-busy={mail.loading}>
@@ -56,6 +62,7 @@
       {#each mail.messages as m (m.uid)}
         {@const who = showRecipients ? m.to.map(displayName).join(', ') : displayName(m.from[0])}
         <li class:unread={!m.seen} data-testid="message" data-uid={m.uid}>
+          <a class="row" href={messagePath(mail.folder, m.uid)} onclick={(e) => open(e, m.uid)}>
           <span class="who">{who}</span>
           <span class="subject">
             {#if m.flagged}
@@ -75,6 +82,7 @@
               {formatListDate(i18n.locale, m.date)}
             </time>
           </span>
+          </a>
         </li>
       {/each}
     </ul>
@@ -137,14 +145,21 @@
     padding: 0;
   }
   li {
+    border-block-end: 1px solid var(--color-border);
+    color: var(--color-text-muted);
+  }
+  .row {
     display: grid;
     grid-template-columns: minmax(8rem, 14rem) 1fr auto;
     gap: var(--space-3);
     align-items: center;
     padding-block: var(--space-2);
     padding-inline: var(--space-3);
-    border-block-end: 1px solid var(--color-border);
-    color: var(--color-text-muted);
+    color: inherit;
+    text-decoration: none;
+  }
+  .row:hover {
+    background: var(--color-surface);
   }
   li.unread {
     color: var(--color-unread);
@@ -179,7 +194,7 @@
     color: var(--color-danger);
   }
   @media (max-width: 40rem) {
-    li {
+    .row {
       grid-template-columns: 1fr auto;
     }
     .subject {

@@ -40,5 +40,24 @@
   "list.no_subject": "(no subject)",
   "list.attachment": "Has attachments",
   "list.flagged": "Flagged",
-  "errors.folder.not_found": "This folder does not exist."
+  "errors.folder.not_found": "This folder does not exist.",
+  "message.back": "Back to list",
+  "message.from": "From",
+  "message.to": "To",
+  "message.cc": "Cc",
+  "message.date": "Date",
+  "message.attachments": {
+    "one": "{count} attachment",
+    "other": "{count} attachments"
+  },
+  "message.images_blocked": {
+    "one": "{count} remote image was hidden to protect your privacy.",
+    "other": "{count} remote images were hidden to protect your privacy."
+  },
+  "message.show_images": "Show images",
+  "message.body": "Message content",
+  "errors.message.not_found": "This message no longer exists.",
+  "errors.message.too_large": "This message is too large to display.",
+  "errors.message.unreadable": "This message could not be read.",
+  "errors.message.part_not_found": "This attachment no longer exists."
 }
