@@ -111,7 +111,7 @@
             data-testid="folder-subscribe"
           />
         </td>
-        <td class="actions">
+        <td><div class="actions">
           {#if renaming === f.name}
             <button class="btn" type="button" onclick={() => rename(f)}>{t('folders.save')}</button>
           {:else if !protectedFolder(f)}
@@ -145,7 +145,7 @@
               data-testid="folder-delete">{t('folders.delete')}</button
             >
           {/if}
-        </td>
+        </div></td>
       </tr>
     {/each}
   </tbody>
