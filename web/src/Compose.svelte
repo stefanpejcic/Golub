@@ -72,6 +72,8 @@
   let inReplyTo = '';
   let references: string[] = [];
   let draftUid = $state(fromDraft ? srcUid : 0);
+  let priority = $state<'normal' | 'high' | 'low'>('normal');
+  let receipt = $state(false);
   let dirty = $state(false);
   let busy = $state<'' | 'send' | 'draft'>('');
   let ready = $state(false);
@@ -109,6 +111,11 @@
     const sigOn = mode === 'new' || (settings.value.signatureOnReply && mode !== 'edit');
     const position = settings.value.replyPosition;
 
+    if (!src) {
+      const prefillTo = initial.get('to');
+      if (prefillTo) to = [prefillTo];
+      subject = initial.get('subject') ?? '';
+    }
     if (src) {
       subject = src.subject;
       to = src.to;
@@ -248,6 +255,8 @@
       attach: refs.map(({ folder, uid, part }) => ({ folder, uid, part })),
       answered: srcUid && (mode === 'reply' || mode === 'replyAll' || mode === 'forward') ? { folder: srcFolder, uid: srcUid, forwarded: mode === 'forward' } : undefined,
       draftUid: draftUid || undefined,
+      priority: priority === 'normal' ? undefined : priority,
+      receipt: receipt || undefined,
     };
     const form = new FormData();
     form.append('message', JSON.stringify(meta));
@@ -451,6 +460,15 @@
         {/snippet}
       </Menu>
     {/if}
+    <select class="input prio" bind:value={priority} aria-label={t('compose.priority')} data-testid="compose-priority">
+      <option value="normal">{t('compose.priority_normal')}</option>
+      <option value="high">{t('message.priority_high')}</option>
+      <option value="low">{t('message.priority_low')}</option>
+    </select>
+    <label class="receipt">
+      <input type="checkbox" bind:checked={receipt} data-testid="compose-receipt" />
+      <span>{t('compose.request_receipt')}</span>
+    </label>
     <button type="button" class="tool text attach" onclick={() => fileInput.click()} data-testid="compose-attach">
       <svg class="icon" viewBox="0 0 16 16" aria-hidden="true"><path d="M11 5 6 10a1.5 1.5 0 0 0 2 2l5-5a3 3 0 0 0-4-4L4 8a4.5 4.5 0 0 0 6 6l4-4" /></svg>
       {t('compose.attach')}
@@ -623,6 +641,18 @@
   }
   .attach {
     margin-inline-start: auto;
+  }
+  .prio {
+    inline-size: auto;
+    margin-inline-start: var(--space-2);
+    padding-block: 0.3rem;
+  }
+  .receipt {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-1);
+    margin-inline-start: var(--space-2);
+    color: var(--color-text-muted);
   }
   .sep {
     inline-size: 1px;

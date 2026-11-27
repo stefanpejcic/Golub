@@ -294,5 +294,21 @@
     "one": "Blokiran {count} piksel za praćenje",
     "few": "Blokirana {count} piksela za praćenje",
     "other": "Blokirano {count} piksela za praćenje"
-  }
+  },
+  "select.mark_all_read": "Označi sve u fascikli kao pročitano",
+  "message.priority_high": "Visok prioritet",
+  "message.priority_low": "Nizak prioritet",
+  "message.unsubscribe": "Odjavi se sa liste",
+  "message.unsubscribe_confirm": "Odjaviti se sa ove liste?",
+  "message.unsubscribed": "Odjavljeni ste.",
+  "message.receipt_request": "Pošiljalac traži potvrdu o čitanju ({address}).",
+  "message.receipt_send": "Pošalji potvrdu",
+  "message.receipt_ignore": "Zanemari",
+  "message.receipt_sent": "Potvrda o čitanju je poslata.",
+  "compose.priority": "Prioritet",
+  "compose.priority_normal": "Normalan prioritet",
+  "compose.request_receipt": "Zatraži potvrdu o čitanju",
+  "errors.unsubscribe.failed": "Lista nije prihvatila zahtev za odjavu.",
+  "errors.unsubscribe.not_one_click": "Ova lista ne podržava odjavu jednim klikom.",
+  "errors.receipt.not_requested": "Ova poruka nije tražila potvrdu."
 }

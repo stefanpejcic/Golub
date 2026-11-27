@@ -286,5 +286,21 @@
   "message.trackers_blocked": {
     "one": "{count} tracking pixel blocked",
     "other": "{count} tracking pixels blocked"
-  }
+  },
+  "select.mark_all_read": "Mark all in folder as read",
+  "message.priority_high": "High priority",
+  "message.priority_low": "Low priority",
+  "message.unsubscribe": "Unsubscribe",
+  "message.unsubscribe_confirm": "Unsubscribe from this mailing list?",
+  "message.unsubscribed": "You are unsubscribed.",
+  "message.receipt_request": "The sender asked for a read receipt ({address}).",
+  "message.receipt_send": "Send receipt",
+  "message.receipt_ignore": "Ignore",
+  "message.receipt_sent": "Read receipt sent.",
+  "compose.priority": "Priority",
+  "compose.priority_normal": "Normal priority",
+  "compose.request_receipt": "Request read receipt",
+  "errors.unsubscribe.failed": "The list did not accept the unsubscribe request.",
+  "errors.unsubscribe.not_one_click": "This list does not support one-click unsubscribe.",
+  "errors.receipt.not_requested": "This message did not ask for a receipt."
 }

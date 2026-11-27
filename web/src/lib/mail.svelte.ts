@@ -28,6 +28,7 @@ export interface Summary {
   answered: boolean;
   attachments: boolean;
   size: number;
+  priority: number;
 }
 
 export interface Attachment {
@@ -53,6 +54,9 @@ export interface MessageView {
   html: boolean;
   blockedImages: number;
   trackers: number;
+  priority: number;
+  unsubscribe: { mailto?: string; url?: string; oneClick?: boolean };
+  receiptTo?: string;
   attachments: Attachment[];
 }
 
@@ -382,9 +386,10 @@ export const mail = {
     await api('POST', '/api/folders/create', { name });
     await this.loadFolders();
   },
-  async folderOp(op: 'rename' | 'delete' | 'empty' | 'subscribe', name: string, extra: Record<string, unknown> = {}) {
+  async folderOp(op: 'rename' | 'delete' | 'empty' | 'subscribe' | 'markread', name: string, extra: Record<string, unknown> = {}) {
     await api('POST', `/api/folders/${op}`, { name, ...extra });
     await this.loadFolders();
+    if (name === state.folder && (op === 'markread' || op === 'empty')) await this.refresh();
   },
 
   async refresh() {

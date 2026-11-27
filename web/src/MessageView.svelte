@@ -6,6 +6,8 @@
   import { errorMessage } from './lib/errors';
   import { settings } from './lib/settings.svelte';
   import { route } from './lib/route.svelte';
+  import { api, ApiError } from './lib/api';
+  import { toast } from './lib/toast.svelte';
   import { archiveMessages, copyMessages, flagMessages, folderLabel, moveMessages, removeMessages } from './lib/actions';
   import Menu from './Menu.svelte';
 
@@ -25,6 +27,41 @@
     showHeaders = false;
     headers = '';
   });
+
+  async function unsubscribe() {
+    if (!m) return;
+    const u = m.unsubscribe;
+    if (u.oneClick) {
+      if (!confirm(t('message.unsubscribe_confirm'))) return;
+      try {
+        await api('POST', '/api/message/unsubscribe', { folder: m.folder, uid: m.uid });
+        toast.show(t('message.unsubscribed'));
+      } catch (e) {
+        toast.show(errorMessage(t, e instanceof ApiError ? e.code : 'unknown'), true);
+      }
+    } else if (u.mailto) {
+      const target = new URL(u.mailto);
+      const params = new URLSearchParams({ to: decodeURIComponent(target.pathname), subject: target.searchParams.get('subject') ?? 'unsubscribe' });
+      route.go(`/compose?${params}`);
+    } else if (u.url) {
+      window.open(u.url, '_blank', 'noopener,noreferrer');
+    }
+  }
+
+  let receiptBusy = $state(false);
+  async function answerReceipt(send: boolean) {
+    if (!m) return;
+    receiptBusy = true;
+    try {
+      await api('POST', '/api/message/receipt', { folder: m.folder, uid: m.uid, send });
+      m.receiptTo = undefined;
+      if (send) toast.show(t('message.receipt_sent'));
+    } catch (e) {
+      toast.show(errorMessage(t, e instanceof ApiError ? e.code : 'unknown'), true);
+    } finally {
+      receiptBusy = false;
+    }
+  }
 
   async function toggleHeaders() {
     showHeaders = !showHeaders;
@@ -260,7 +297,10 @@
           <svg class="icon" viewBox="0 0 16 16" aria-hidden="true"><rect x="2.5" y="2.5" width="11" height="11" rx="1.5" /><path d="M5 6h6M5 8.5h6M5 11h3" /></svg>
         </button>
       </div>
-      <h1 data-testid="message-subject">{m.subject || t('list.no_subject')}</h1>
+      <h1 data-testid="message-subject">
+        {#if m.priority === 1}<span class="prio-badge" data-testid="priority-high">{t('message.priority_high')}</span>{/if}
+        {m.subject || t('list.no_subject')}
+      </h1>
       <dl>
         <dt>{t('message.from')}</dt>
         <dd data-testid="message-from">{people(m.from)}</dd>
@@ -275,6 +315,9 @@
         <dt>{t('message.date')}</dt>
         <dd><time datetime={m.date}>{formatFullDate(i18n.locale, m.date)}</time></dd>
       </dl>
+      {#if m.unsubscribe.mailto || m.unsubscribe.url}
+        <button type="button" class="link-btn" onclick={unsubscribe} data-testid="unsubscribe">{t('message.unsubscribe')}</button>
+      {/if}
       {#if m.trackers > 0}
         <p class="trackers" data-testid="trackers">
           <svg class="icon" viewBox="0 0 16 16" aria-hidden="true"><path d="M8 1.5 2.5 3.5v4c0 3.3 2.3 5.9 5.5 7 3.2-1.1 5.5-3.7 5.5-7v-4Z" /><path d="m5.5 8 2 2 3-3.5" /></svg>
@@ -286,6 +329,15 @@
       {/if}
     </header>
 
+    {#if m.receiptTo}
+      <div class="notice" data-testid="receipt-request">
+        <span>{t('message.receipt_request', { address: m.receiptTo })}</span>
+        <span class="notice-buttons">
+          <button type="button" class="btn" disabled={receiptBusy} onclick={() => answerReceipt(false)} data-testid="receipt-ignore">{t('message.receipt_ignore')}</button>
+          <button type="button" class="btn btn-primary" disabled={receiptBusy} onclick={() => answerReceipt(true)} data-testid="receipt-send">{t('message.receipt_send')}</button>
+        </span>
+      </div>
+    {/if}
     {#if asHtml && m.blockedImages > 0 && !showImages}
       <div class="notice" data-testid="images-blocked">
         <span>{t('message.images_blocked', { count: m.blockedImages })}</span>
@@ -391,6 +443,31 @@
   }
   header h1 {
     padding-inline-end: 5rem;
+  }
+  .prio-badge {
+    margin-inline-end: var(--space-2);
+    padding: 0.1rem 0.5rem;
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: #fff;
+    vertical-align: middle;
+    background: var(--color-danger);
+    border-radius: 999px;
+  }
+  .link-btn {
+    margin-block-start: var(--space-2);
+    padding: 0;
+    font: inherit;
+    font-size: 0.85rem;
+    color: var(--color-link);
+    text-decoration: underline;
+    background: none;
+    border: none;
+    cursor: pointer;
+  }
+  .notice-buttons {
+    display: flex;
+    gap: var(--space-2);
   }
   .trackers {
     display: flex;

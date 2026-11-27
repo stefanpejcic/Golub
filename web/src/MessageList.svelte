@@ -260,6 +260,16 @@
   {/if}
   <header class="page-header" class:hidden={bulk}>
     <h1 class="page-title" data-testid="folder-title">{title}</h1>
+    {#if (mail.current?.special === 'trash' || mail.current?.special === 'junk') && mail.total > 0}
+      <button
+        type="button"
+        class="btn empty-folder"
+        onclick={() =>
+          confirm(t('folders.empty_confirm', { folder: title })) &&
+          mail.folderOp('empty', mail.folder).catch(() => undefined)}
+        data-testid="empty-folder">{t('folders.empty')}</button
+      >
+    {/if}
     <div class="pager">
       {#if mail.total > 0}
         <span data-testid="range">
@@ -335,6 +345,15 @@
                 {formatListDate(i18n.locale, m.date, undefined, settings.value.prettyDates)}
               </time>
               <span class="subject">
+                {#if m.priority === 1}
+                  <svg class="icon prio high" viewBox="0 0 16 16" role="img" aria-label={t('message.priority_high')}>
+                    <path d="M8 2.5v7M8 12.5v.5" />
+                  </svg>
+                {:else if m.priority === 5}
+                  <svg class="icon prio low" viewBox="0 0 16 16" role="img" aria-label={t('message.priority_low')}>
+                    <path d="M8 3v10M4 9l4 4 4-4" />
+                  </svg>
+                {/if}
                 {#if m.flagged}
                   <svg class="icon flag" viewBox="0 0 16 16" role="img" aria-label={t('list.flagged')}>
                     <path d="M4 14V2h8l-2 3 2 3H4" />
@@ -746,6 +765,18 @@
   .flag {
     color: var(--color-danger);
     fill: currentColor;
+  }
+  .prio.high {
+    color: var(--color-danger);
+    stroke-width: 2.4;
+  }
+  .prio.low {
+    color: var(--color-text-muted);
+  }
+  .empty-folder {
+    margin-inline-start: auto;
+    padding-block: 0.25rem;
+    font-size: 0.85rem;
   }
   .state {
     flex: 1;

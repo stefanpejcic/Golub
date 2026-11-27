@@ -51,6 +51,16 @@
       <button class="item" role="menuitem" onclick={() => (mail.invertSelection(), close())} data-testid="select-invert">{t('select.invert')}</button>
       <div class="sep"></div>
       <button class="item" role="menuitem" onclick={() => (mail.selectWhere(() => false), close())} data-testid="select-none">{t('select.none')}</button>
+      <div class="sep"></div>
+      <button
+        class="item"
+        role="menuitem"
+        onclick={() => {
+          close();
+          mail.folderOp('markread', mail.folder).catch(() => toast.show(t('errors.unknown'), true));
+        }}
+        data-testid="mark-all-read">{t('select.mark_all_read')}</button
+      >
     {/snippet}
   </Menu>
 
