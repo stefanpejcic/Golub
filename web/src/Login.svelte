@@ -5,6 +5,8 @@
   import { ApiError } from './lib/api';
   import { errorMessage } from './lib/errors';
   import LoginBird from './LoginBird.svelte';
+  import Logo from './Logo.svelte';
+  import { brand } from './lib/brand.svelte';
   import { isBareAddress } from './lib/compose';
   import { loadMailbox } from './lib/inside';
   import ThemeSwitch from './ThemeSwitch.svelte';
@@ -50,8 +52,12 @@
 
 <div class="screen">
   <main>
-    <div class="brand" role="img" aria-label={t('app.name')}>
-      <LoginBird mode={hideEyes ? (password ? 'cover' : 'peek') : 'open'} />
+    <div class="brand" role="img" aria-label={brand.name}>
+      {#if brand.logo}
+        <Logo size={72} />
+      {:else}
+        <LoginBird mode={hideEyes ? (password ? 'cover' : 'peek') : 'open'} />
+      {/if}
     </div>
     <form class="card" onsubmit={submit} data-testid="login-form">
       <h1>{t('login.title')}</h1>
