@@ -53,7 +53,9 @@ test('more menu: copy keeps the original, edit as new opens the composer', async
   await signIn(page);
   await openBySubject(page, 'Inline image');
   await page.getByTestId('action-more').click();
-  await page.getByTestId('action-copy').selectOption('Junk');
+  await expect(page.getByTestId('action-more-menu').locator('[data-folder]')).toHaveCount(0);
+  await page.getByTestId('action-copy').click();
+  await page.getByTestId('action-more-menu').locator('[data-folder=Junk]').click();
   await expect(page.getByTestId('toast')).toHaveText('Copied to Spam.');
   await expect(page.getByTestId('message-subject')).toHaveText('Inline image');
   await page.locator('[data-testid=folder][data-folder=Junk]').click();

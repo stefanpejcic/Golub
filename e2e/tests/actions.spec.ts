@@ -48,14 +48,16 @@ test('flag and unflag', async ({ page }) => {
 test('move to another folder and back', async ({ page }) => {
   await openActions(page, 'Action 3');
   await page.getByTestId('action-more').click();
-  await page.getByTestId('action-move').selectOption('Junk');
+  await page.getByTestId('action-move').click();
+  await page.getByTestId('action-more-menu').locator('[data-folder=Junk]').click();
   await expect(page.getByTestId('toast')).toHaveText('Moved to Spam.');
   await expect(row(page, 'Action 3')).toHaveCount(0);
 
   await page.locator('[data-testid=folder][data-folder=Junk]').click();
   await row(page, 'Action 3').getByRole('link').click();
   await page.getByTestId('action-more').click();
-  await page.getByTestId('action-move').selectOption('Actions');
+  await page.getByTestId('action-move').click();
+  await page.getByTestId('action-more-menu').locator('[data-folder=Actions]').click();
   await expect(page.getByTestId('toast')).toHaveText('Moved to Actions.');
   await page.locator('[data-testid=folder][data-folder=Actions]').click();
   await expect(row(page, 'Action 3')).toHaveCount(1);
