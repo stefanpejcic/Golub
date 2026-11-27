@@ -44,7 +44,7 @@
 ### 9. Hardening
 - [x] Perf budgets in CI (Server-Timing, 50k folder: first page, deep page, open)
 - [x] Logo: carrier pigeon mascot in Go cyan with speed lines, plus a head mark for small sizes
-- [ ] Tag `v0.1.0` (see Release below)
+- [x] Tag `v0.1.0` (see Release below)
 
 ## Next: Settings
 Stored per user in an unsubscribed IMAP folder `golub-settings` (one JSON message), since the reference server has no IMAP METADATA. Nothing is written by Golub itself.
@@ -65,9 +65,9 @@ Stored per user in an unsubscribed IMAP folder `golub-settings` (one JSON messag
 - [x] Mobile layout with a folder select and full-screen message
 - [x] Branding through env vars: name, logo, accent colour
 - [x] In-app confirm and prompt dialogs
-- [ ] Attachment previews (images, PDF, text)
-- [ ] Spell checking via the browser
-- [ ] Cache sorted UIDs per connection so paging and search on very large folders skip the full SORT
+- [x] Attachment previews (images, PDF, text)
+- [x] Spell checking via the browser
+- [x] Cache sorted UIDs per connection so paging and search on very large folders skip the full SORT
 - [x] Address book with groups, autocomplete, addresses collected from Sent, vCard import/export (stored in a hidden IMAP folder)
 - [x] Threaded view (IMAP THREAD)
 - [x] Advanced search: body text, all folders, date range, has attachments, unread, flagged
@@ -77,7 +77,7 @@ Stored per user in an unsubscribed IMAP folder `golub-settings` (one JSON messag
 - [ ] Benchmark against Roundcube on the test server: image and download size in MB, RAM usage, latency
 - [ ] README: benchmark results and the Roundcube comparison
 - [x] README rewrite: privacy first, feature list, quick start, SSO
-- [ ] Tag `v0.1.0`, publish the Docker image and test it on the server
+- [x] Tag `v0.1.0`, publish the Docker image and test it on the server
 
 ## Future versions
 
