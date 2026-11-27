@@ -5,6 +5,7 @@
   import { displayName, formatListDate, formatFullDate, formatSize, messagePath } from './lib/format';
   import { errorMessage } from './lib/errors';
   import { settings } from './lib/settings.svelte';
+  import ListToolbar from './ListToolbar.svelte';
   import { archiveMessages, flagMessages, folderLabel, moveMessages, removeMessages } from './lib/actions';
 
   const t = $derived(i18n.t);
@@ -141,6 +142,7 @@
 <svelte:window onkeydown={onKey} />
 
 <section class="list" aria-busy={mail.loading}>
+  <ListToolbar />
   <form
     class="search"
     role="search"
@@ -488,6 +490,7 @@
     display: none;
   }
   .quota {
+    margin-block-start: auto;
     display: flex;
     align-items: center;
     gap: var(--space-2);
@@ -692,6 +695,8 @@
     fill: currentColor;
   }
   .state {
+    flex: 1;
+    margin: 0;
     padding: var(--space-4);
     color: var(--color-text-muted);
   }

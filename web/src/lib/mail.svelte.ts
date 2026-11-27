@@ -14,6 +14,7 @@ export interface Folder {
   total: number;
   selectable: boolean;
   subscribed: boolean;
+  size?: number;
 }
 
 export interface Summary {
@@ -68,7 +69,7 @@ const state = $state({
   page: 1,
   total: 0,
   messages: [] as Summary[],
-  loading: false,
+  loading: true,
   error: '',
   uid: null as number | null,
   message: null as MessageView | null,
@@ -91,6 +92,10 @@ function fail(e: unknown): string {
 }
 
 let messageSeq = 0;
+
+function sortParams(): string {
+  return `&sort=${settings.value.sortBy}&order=${settings.value.sortDesc ? 'desc' : 'asc'}`;
+}
 let markTimer: ReturnType<typeof setTimeout> | undefined;
 
 function readLocation(): { folder: string; page: number; uid: number | null; query: string } {
@@ -186,6 +191,12 @@ export const mail = {
   selectAll() {
     state.selected = state.messages.map((m) => m.uid);
   },
+  selectWhere(pick: (m: Summary) => boolean) {
+    state.selected = state.messages.filter(pick).map((m) => m.uid);
+  },
+  invertSelection() {
+    state.selected = state.messages.filter((m) => !state.selected.includes(m.uid)).map((m) => m.uid);
+  },
   clearSelection() {
     state.selected = state.uid !== null ? [state.uid] : [];
   },
@@ -225,7 +236,7 @@ export const mail = {
     if (opts.history !== false) writeLocation(folder, page, opts.replace ?? false);
     try {
       const search = state.query ? `&q=${encodeURIComponent(state.query)}` : '';
-      const q = `folder=${encodeURIComponent(folder)}&page=${page}&size=${settings.value.pageSize}${search}`;
+      const q = `folder=${encodeURIComponent(folder)}&page=${page}&size=${settings.value.pageSize}${search}${sortParams()}`;
       const res = await api<MessagePage>('GET', `/api/messages?${q}`);
       if (mine !== seq) return;
       state.total = res.total;
@@ -350,7 +361,7 @@ export const mail = {
     if (state.loading) return;
     await this.loadFolders();
     const search = state.query ? `&q=${encodeURIComponent(state.query)}` : '';
-    const q = `folder=${encodeURIComponent(state.folder)}&page=${state.page}&size=${settings.value.pageSize}${search}`;
+    const q = `folder=${encodeURIComponent(state.folder)}&page=${state.page}&size=${settings.value.pageSize}${search}${sortParams()}`;
     try {
       const res = await api<MessagePage>('GET', `/api/messages?${q}`);
       state.total = res.total;

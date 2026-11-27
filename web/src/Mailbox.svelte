@@ -11,6 +11,7 @@
   import { session } from './lib/session.svelte';
   import { settings } from './lib/settings.svelte';
   import { route } from './lib/route.svelte';
+  import { folderPath } from './lib/format';
   import SettingsNav from './settings/SettingsNav.svelte';
   import SettingsPage from './settings/SettingsPage.svelte';
 
@@ -46,7 +47,12 @@
         onclick={(e) => {
           if (e.metaKey || e.ctrlKey || e.shiftKey || e.button !== 0) return;
           e.preventDefault();
-          route.go('/settings/general');
+          if (route.settingsSection) {
+            route.go(folderPath(mail.folder));
+            mail.open(mail.folder, 1, { replace: true });
+          } else {
+            route.go('/settings/general');
+          }
         }}
         data-testid="settings-open"
       >
@@ -78,14 +84,14 @@
   <section class="preview-pane">
     {#if mail.selected.length > 1}
       <div class="placeholder" data-testid="multi-selected">
-        <Logo size={56} />
+        <Logo size={120} variant="mascot" />
         <p>{t('list.selected', { count: mail.selected.length })}</p>
       </div>
     {:else if mail.uid !== null}
       <MessageView />
     {:else}
       <div class="placeholder" data-testid="no-message">
-        <Logo size={56} />
+        <Logo size={120} variant="mascot" />
         <p>{t('message.none_selected')}</p>
       </div>
     {/if}
@@ -181,7 +187,8 @@
     opacity: 0.8;
   }
   .placeholder :global(.logo) {
-    color: var(--color-border);
+    opacity: 0.35;
+    filter: grayscale(0.4);
   }
   /* Too narrow for three columns: show either the list or the open message. */
   @media (max-width: 64rem) {

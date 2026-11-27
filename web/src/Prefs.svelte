@@ -20,8 +20,10 @@
   }
 
   function toggle() {
-    theme.set(next);
-    session.savePrefs({ theme: next });
+    // Read once: `next` is derived from the theme and flips as soon as it is set.
+    const value = next;
+    theme.set(value);
+    session.savePrefs({ theme: value });
   }
 </script>
 
