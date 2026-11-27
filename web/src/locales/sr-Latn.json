@@ -1,0 +1,11 @@
+{
+  "app.name": "Golub",
+  "shell.placeholder": "Ovde će se prikazati vaše poštansko sanduče.",
+  "settings.theme": "Tema",
+  "settings.theme.system": "Sistemska",
+  "settings.theme.light": "Svetla",
+  "settings.theme.dark": "Tamna",
+  "settings.language": "Jezik",
+  "language.en": "English",
+  "language.sr-Latn": "Srpski (latinica)"
+}

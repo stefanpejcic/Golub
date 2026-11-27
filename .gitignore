@@ -1,8 +1,8 @@
 /golub
 /bin/
 /web/node_modules/
-/web/dist/*
-!/web/dist/.gitkeep
+/internal/ui/dist/*
+!/internal/ui/dist/.gitkeep
 /e2e/node_modules/
 /e2e/test-results/
 /e2e/playwright-report/

@@ -1,0 +1,11 @@
+{
+  "app.name": "Golub",
+  "shell.placeholder": "Your mailbox will appear here.",
+  "settings.theme": "Theme",
+  "settings.theme.system": "System",
+  "settings.theme.light": "Light",
+  "settings.theme.dark": "Dark",
+  "settings.language": "Language",
+  "language.en": "English",
+  "language.sr-Latn": "Srpski (latinica)"
+}
