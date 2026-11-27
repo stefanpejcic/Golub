@@ -30,18 +30,12 @@ type Raw struct {
 	Flagged bool
 }
 
-func uidSet(uid uint32) imap.UIDSet {
-	var s imap.UIDSet
-	s.AddNum(imap.UID(uid))
-	return s
-}
-
 // FetchRaw downloads a message without touching its \Seen flag.
 func FetchRaw(c *imapclient.Client, folder string, uid uint32, maxSize int64) (Raw, error) {
 	if _, err := c.Select(folder, nil).Wait(); err != nil {
 		return Raw{}, err
 	}
-	set := uidSet(uid)
+	set := uidSetOf([]uint32{uid})
 	meta, err := c.Fetch(set, &imap.FetchOptions{UID: true, Flags: true, RFC822Size: true}).Collect()
 	if err != nil {
 		return Raw{}, err
@@ -74,12 +68,5 @@ func FetchRaw(c *imapclient.Client, folder string, uid uint32, maxSize int64) (R
 
 // SetFlag adds or removes a flag on one message.
 func SetFlag(c *imapclient.Client, folder string, uid uint32, flag imap.Flag, on bool) error {
-	if _, err := c.Select(folder, nil).Wait(); err != nil {
-		return err
-	}
-	op := imap.StoreFlagsDel
-	if on {
-		op = imap.StoreFlagsAdd
-	}
-	return c.Store(uidSet(uid), &imap.StoreFlags{Op: op, Silent: true, Flags: []imap.Flag{flag}}, nil).Close()
+	return SetFlags(c, folder, []uint32{uid}, flag, on)
 }
