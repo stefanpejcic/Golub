@@ -68,5 +68,17 @@ Stored per user in an unsubscribed IMAP folder `golub-settings` (one JSON messag
 - [ ] BIMI logos for senders whose mail passed DMARC (checked from the server's Authentication-Results), loaded through the proxy as images only
 - [ ] Optional Gravatar (off by default, through the proxy), in-memory cache
 
+## Proposed for 1.0 (awaiting review)
+- [ ] Address book with groups, autocomplete, addresses collected from Sent, vCard import/export (stored in a hidden IMAP folder)
+- [ ] Threaded view (IMAP THREAD)
+- [ ] Drag and drop messages onto folders
+- [ ] Advanced search: body text, all folders, date range, has attachments, unread, flagged
+- [ ] Attachment previews (images, PDF, text)
+- [ ] Spell checking via the browser
+- [ ] Import/export: .eml/.mbox upload into a folder, folder export
+- [ ] IDNA and SMTPUTF8 addresses
+- [ ] Mobile layout with a slide-out folder panel
+- [ ] Branding through env vars: name, logo, accent colour
+
 ## Later
 Search, threading, contacts, multiple identities, drag and drop, PGP, dark message view for HTML mail, RTL locales.
