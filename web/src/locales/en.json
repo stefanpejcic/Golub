@@ -7,5 +7,20 @@
   "settings.theme.dark": "Dark",
   "settings.language": "Language",
   "language.en": "English",
-  "language.sr-Latn": "Srpski (latinica)"
+  "language.sr-Latn": "Srpski (latinica)",
+  "login.title": "Sign in to your mailbox",
+  "login.email": "Email address",
+  "login.password": "Password",
+  "login.submit": "Sign in",
+  "login.submitting": "Signing in…",
+  "auth.logout": "Sign out",
+  "errors.auth.invalid_credentials": "Wrong email address or password.",
+  "errors.auth.rate_limited": "Too many failed attempts. Try again in a few minutes.",
+  "errors.auth.sso_invalid": "The sign-in link is invalid or has expired. Please sign in again.",
+  "errors.auth.required": "Please sign in.",
+  "errors.mail.unavailable": "The mail server is not reachable right now. Try again later.",
+  "errors.request.invalid": "Please fill in all fields.",
+  "errors.network": "No connection to the server.",
+  "errors.server.error": "Something went wrong on the server.",
+  "errors.unknown": "Something went wrong."
 }

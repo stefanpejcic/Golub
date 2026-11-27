@@ -7,5 +7,20 @@
   "settings.theme.dark": "Tamna",
   "settings.language": "Jezik",
   "language.en": "English",
-  "language.sr-Latn": "Srpski (latinica)"
+  "language.sr-Latn": "Srpski (latinica)",
+  "login.title": "Prijavite se na poštansko sanduče",
+  "login.email": "Adresa e-pošte",
+  "login.password": "Lozinka",
+  "login.submit": "Prijava",
+  "login.submitting": "Prijavljivanje…",
+  "auth.logout": "Odjava",
+  "errors.auth.invalid_credentials": "Pogrešna adresa e-pošte ili lozinka.",
+  "errors.auth.rate_limited": "Previše neuspešnih pokušaja. Pokušajte ponovo za nekoliko minuta.",
+  "errors.auth.sso_invalid": "Link za prijavu nije važeći ili je istekao. Prijavite se ponovo.",
+  "errors.auth.required": "Prijavite se.",
+  "errors.mail.unavailable": "Server e-pošte trenutno nije dostupan. Pokušajte kasnije.",
+  "errors.request.invalid": "Popunite sva polja.",
+  "errors.network": "Nema veze sa serverom.",
+  "errors.server.error": "Došlo je do greške na serveru.",
+  "errors.unknown": "Došlo je do greške."
 }
