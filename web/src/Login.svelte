@@ -42,9 +42,8 @@
 
 <div class="screen">
   <main>
-    <div class="brand">
+    <div class="brand" role="img" aria-label={t('app.name')}>
       <Logo size={96} variant="mascot" />
-      <span>{t('app.name')}</span>
     </div>
     <form class="card" onsubmit={submit} data-testid="login-form">
       <h1>{t('login.title')}</h1>
