@@ -48,8 +48,15 @@
 - [ ] Final logo (current hexagon envelope is a placeholder)
 - [ ] Tag `v0.1.0`
 
+## Next: Settings
+Stored per user in an unsubscribed IMAP folder `golub-settings` (one JSON message), since the reference server has no IMAP METADATA. Nothing is written by Golub itself.
+- [ ] Settings store (load/save, defaults, validation) and `/api/settings`
+- [ ] Settings page bottom-left: Preferences (general, mailbox view, displaying, composing, special folders, server), Folders, Identities, Responses, About
+- [ ] Folder management: create, rename, delete, subscribe, empty
+- [ ] Apply preferences: page size, mark-as-read timing, prefer plain text, remote images, show addresses, pretty dates, delete mode, special folder overrides
+- [ ] Filters and out-of-office via ManageSieve (needs ManageSieve enabled on the mail server)
+
 ## UI backlog (requested)
-- [ ] Settings page linked bottom-left (sections to be picked from the Roundcube list); About and language move there
 - [ ] Message header: icons on the right for all headers and plain text / HTML view
 - [ ] Message toolbar: Reply, Reply all, Forward, Delete, More (print, download .eml, edit as new, show source, move to, copy to, open in new window)
 - [ ] Resizable folder / list / preview columns, widths remembered in the browser
