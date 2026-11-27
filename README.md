@@ -9,6 +9,16 @@
   No database, no tracking, nothing stored on the server.
 </p>
 
+<p align="center">
+  <a href="https://github.com/stefanpejcic/Golub/releases"><img alt="Release" src="https://img.shields.io/github/v/release/stefanpejcic/Golub"></a>
+  <a href="https://github.com/stefanpejcic/Golub/actions/workflows/ci.yml"><img alt="CI" src="https://github.com/stefanpejcic/Golub/actions/workflows/ci.yml/badge.svg"></a>
+  <a href="https://github.com/stefanpejcic/Golub/pkgs/container/golub"><img alt="Image size" src="https://img.shields.io/badge/image-6.6%20MB-blue"></a>
+  <a href="https://github.com/GoogleContainerTools/distroless"><img alt="Base image" src="https://img.shields.io/badge/base-distroless%2C%20non--root-blue"></a>
+  <a href="https://github.com/stefanpejcic/Golub/actions/workflows/ci.yml"><img alt="Trivy" src="https://img.shields.io/badge/trivy-0%20vulnerabilities-brightgreen"></a>
+  <img alt="Go version" src="https://img.shields.io/github/go-mod/go-version/stefanpejcic/Golub">
+  <a href="LICENSE"><img alt="License" src="https://img.shields.io/github/license/stefanpejcic/Golub"></a>
+</p>
+
 ---
 
 Golub (Serbian for *pigeon*, as in carrier pigeon) is a webmail client for any IMAP and SMTP server. It is built and tested against Dovecot and Postfix, with [docker-mailserver](https://github.com/docker-mailserver/docker-mailserver) as the reference stack.
@@ -116,13 +126,6 @@ Then open `http://localhost:8080` and sign in with a mailbox address and passwor
 Put Golub behind your reverse proxy for HTTPS, and set `GOLUB_TRUST_PROXY` to the proxy's address so it sees the real client IP and protocol. Golub can also serve HTTPS itself with `GOLUB_TLS_CERT` and `GOLUB_TLS_KEY`.
 
 Images are published for `linux/amd64` and `linux/arm64`, signed with cosign and carry an SBOM and build provenance. `GET /healthz` reports the running version.
-
-| Image | |
-|---|---|
-| Current release | `0.1.0` |
-| Download size | 6.6 MB (amd64), 16.9 MB unpacked |
-| Base | distroless static Debian 13, runs as a non-root user |
-| Known vulnerabilities | none (Trivy 0.76.2, 27 November 2026) |
 
 Every CI build is scanned with [Trivy](https://trivy.dev) and fails on a high or critical vulnerability that has a fix.
 
