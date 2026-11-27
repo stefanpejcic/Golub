@@ -39,7 +39,7 @@
 - [x] Reply/forward quoting, attachments, Sent copy
 
 ### 8. Live refresh
-- [ ] IDLE with polling fallback
+- [x] IDLE with polling fallback
 
 ### 9. Hardening
 - [ ] Perf budgets in CI

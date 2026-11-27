@@ -92,6 +92,8 @@ function fail(e: unknown): string {
 }
 
 let messageSeq = 0;
+// Bumped by every local change so a refresh started earlier cannot undo it with stale data.
+let mutations = 0;
 
 function sortParams(): string {
   return `&sort=${settings.value.sortBy}&order=${settings.value.sortDesc ? 'desc' : 'asc'}`;
@@ -299,6 +301,7 @@ export const mail = {
 
   // Updates rows, the open message and unread counters before the server answers.
   async setFlag(uids: number[], flag: 'seen' | 'flagged', value: boolean) {
+    mutations++;
     const folder = state.folder;
     const f = state.folders.find((x) => x.name === folder);
     for (const row of state.messages) {
@@ -318,6 +321,7 @@ export const mail = {
 
   // Removes rows from the list and opens the next message, like a desktop client.
   async removeRows(uids: number[]) {
+    mutations++;
     const idx = state.messages.findIndex((r) => uids.includes(r.uid));
     state.messages = state.messages.filter((r) => !uids.includes(r.uid));
     state.selected = state.selected.filter((u) => !uids.includes(u));
@@ -370,11 +374,13 @@ export const mail = {
   // Quietly refreshes counters and the visible page without touching selection or the open message.
   async refresh() {
     if (state.loading) return;
+    const started = mutations;
     await this.loadFolders();
     const search = state.query ? `&q=${encodeURIComponent(state.query)}` : '';
     const q = `folder=${encodeURIComponent(state.folder)}&page=${state.page}&size=${settings.value.pageSize}${search}${sortParams()}`;
     try {
       const res = await api<MessagePage>('GET', `/api/messages?${q}`);
+      if (started !== mutations) return;
       state.total = res.total;
       state.messages = res.messages;
     } catch (e) {

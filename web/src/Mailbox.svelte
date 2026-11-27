@@ -10,6 +10,7 @@
   import Logo from './Logo.svelte';
   import { session } from './lib/session.svelte';
   import { settings } from './lib/settings.svelte';
+  import { live } from './lib/live.svelte';
   import { route } from './lib/route.svelte';
   import { folderPath } from './lib/format';
   import SettingsNav from './settings/SettingsNav.svelte';
@@ -47,6 +48,11 @@
     columns = null;
     saveColumns(null);
   }
+
+  $effect(() => {
+    if (settings.loaded) live.watch(mail.folder);
+  });
+  $effect(() => () => live.stop());
 
   $effect(() => {
     let stop: (() => void) | undefined;
@@ -186,7 +192,6 @@
     min-block-size: 0;
     min-inline-size: var(--sidebar-width);
     background: var(--color-surface);
-    border-inline-end: 1px solid var(--color-border);
   }
   .brand {
     display: flex;
@@ -197,18 +202,19 @@
     padding-inline: var(--space-3);
     font-size: 1.05rem;
     font-weight: 600;
-    border-block-end: 1px solid var(--color-border);
   }
   .account {
     display: flex;
     align-items: stretch;
+    margin-inline: var(--space-2);
     color: var(--color-text);
     font-weight: 600;
-    border-block-end: 1px solid var(--color-border);
+    background: var(--color-hover);
+    border-radius: var(--radius);
   }
   .email {
     flex: 1;
-    padding: var(--space-3);
+    padding: 0.6rem var(--space-3);
     white-space: nowrap;
   }
   .cog {
@@ -218,6 +224,8 @@
     inline-size: 2.75rem;
     color: var(--color-text-muted);
     border-inline-start: 1px solid var(--color-border);
+    border-start-end-radius: var(--radius);
+    border-end-end-radius: var(--radius);
   }
   .cog:hover,
   .cog[aria-current='page'] {
@@ -229,7 +237,7 @@
     block-size: 1.15rem;
   }
   .compose-btn {
-    padding: var(--space-2) var(--space-2) 0;
+    padding: var(--space-3) var(--space-2) 0;
   }
   .compose-btn .btn {
     inline-size: 100%;
@@ -246,6 +254,7 @@
     position: relative;
     min-block-size: 0;
     border-inline-end: 1px solid var(--color-border);
+    background: var(--color-bg);
   }
   .settings-pane {
     grid-column: 2 / -1;
