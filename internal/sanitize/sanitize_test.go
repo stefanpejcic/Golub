@@ -112,7 +112,7 @@ func TestDataURIOnlyForImages(t *testing.T) {
 }
 
 func TestDocumentWrapper(t *testing.T) {
-	doc := Document("<p>x</p>")
+	doc := Document("<p>x</p>", false)
 	if !strings.HasPrefix(doc, "<!doctype html>") || !strings.Contains(doc, `<meta charset="utf-8">`) || !strings.Contains(doc, "<p>x</p>") {
 		t.Fatal(doc)
 	}
@@ -138,5 +138,20 @@ func TestTrackingPixelsRemovedEvenWhenImagesAllowed(t *testing.T) {
 	blocked := HTML(in, Options{})
 	if blocked.BlockedImages != 1 || blocked.Trackers != 4 {
 		t.Errorf("without consent: blocked %d trackers %d", blocked.BlockedImages, blocked.Trackers)
+	}
+}
+
+func TestDocumentDark(t *testing.T) {
+	light, dark := Document("<p>hi</p>", false), Document("<p>hi</p>", true)
+	if strings.Contains(light, "invert") {
+		t.Error("light view must not invert")
+	}
+	for _, want := range []string{"filter:invert(1) hue-rotate(180deg)", "img,", "background-image"} {
+		if !strings.Contains(dark, want) {
+			t.Errorf("dark view missing %q", want)
+		}
+	}
+	if !strings.Contains(dark, "<p>hi</p>") {
+		t.Error("body lost")
 	}
 }

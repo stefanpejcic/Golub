@@ -120,3 +120,20 @@ test('Esc closes compose, asking first when there are changes', async ({ page })
   await page.getByTestId('leave-discard').click();
   await expect(page).toHaveURL(/\/mail\/INBOX$/);
 });
+
+test.describe('dark theme', () => {
+  test.use({ colorScheme: 'dark' });
+
+  test('HTML mail is shown dark and the toggle switches it per message', async ({ page, context, baseURL }) => {
+    await context.addCookies([{ name: 'golub_theme', value: 'dark', url: baseURL! }]);
+    await signIn(page);
+    await openBySubject(page, 'Simple HTML');
+    const frame = page.locator('iframe');
+    await expect(frame).toHaveAttribute('src', /dark=1/);
+    const filter = () => page.frameLocator('iframe').locator('html').evaluate((el) => getComputedStyle(el).filter);
+    await expect.poll(filter).toContain('invert');
+    await page.getByTestId('toggle-dark').click();
+    await expect(frame).not.toHaveAttribute('src', /dark=1/);
+    await expect.poll(filter).not.toContain('invert');
+  });
+});

@@ -7,6 +7,7 @@
   import { settings } from './lib/settings.svelte';
   import { route } from './lib/route.svelte';
   import { api, ApiError } from './lib/api';
+  import { theme } from './lib/theme.svelte';
   import { toast } from './lib/toast.svelte';
   import { dialog } from './lib/dialog.svelte';
   import { previewKind, type PreviewKind } from './lib/preview';
@@ -22,11 +23,15 @@
   const m = $derived(mail.message);
 
   let showImages = $state(false);
+  // null follows the setting and the theme, a click on the toggle picks for this message
+  let darkChoice = $state<boolean | null>(null);
+  const darkView = $derived(darkChoice ?? (theme.dark && settings.value.darkMessages));
   let plain = $state(false);
   $effect(() => {
     void mail.uid;
     showImages = settings.value.remoteImages === 'always';
     plain = settings.value.preferPlain;
+    darkChoice = null;
     showHeaders = false;
     headers = '';
   });
@@ -89,7 +94,7 @@
   const asHtml = $derived(!!m?.html && !(plain && m.text.trim() !== ''));
 
   const query = $derived(m ? `folder=${encodeURIComponent(m.folder)}&uid=${m.uid}` : '');
-  const bodyUrl = $derived(`/api/message/body?${query}${showImages ? '&images=1' : ''}`);
+  const bodyUrl = $derived(`/api/message/body?${query}${showImages ? '&images=1' : ''}${darkView ? '&dark=1' : ''}`);
 
   const targets = $derived(
     mail.folders.filter((f) => f.selectable && f.name !== mail.folder),
@@ -294,6 +299,21 @@
           >
             <svg class="icon" viewBox="0 0 16 16" aria-hidden="true">
               {#if asHtml}<path d="M3 4h10M3 8h10M3 12h6" />{:else}<path d="M5.5 4 2 8l3.5 4M10.5 4 14 8l-3.5 4" />{/if}
+            </svg>
+          </button>
+        {/if}
+        {#if asHtml}
+          <button
+            type="button"
+            class="btn btn-icon"
+            aria-pressed={darkView}
+            title={darkView ? t('message.view_light') : t('message.view_dark')}
+            aria-label={darkView ? t('message.view_light') : t('message.view_dark')}
+            onclick={() => (darkChoice = !darkView)}
+            data-testid="toggle-dark"
+          >
+            <svg class="icon" viewBox="0 0 16 16" aria-hidden="true">
+              {#if darkView}<circle cx="8" cy="8" r="3" /><path d="M8 1.5v1.5M8 13v1.5M1.5 8H3M13 8h1.5M3.4 3.4l1 1M11.6 11.6l1 1M3.4 12.6l1-1M11.6 4.4l1-1" />{:else}<path d="M13 9.5A5.5 5.5 0 1 1 6.5 3a4.5 4.5 0 0 0 6.5 6.5Z" />{/if}
             </svg>
           </button>
         {/if}

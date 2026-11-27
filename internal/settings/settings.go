@@ -53,6 +53,7 @@ type Settings struct {
 	MarkRead           string            `json:"markRead"`
 	MarkReadDelay      int               `json:"markReadDelay"`
 	PreferPlain        bool              `json:"preferPlain"`
+	DarkMessages       bool              `json:"darkMessages"`
 	RemoteImages       string            `json:"remoteImages"`
 	ShowAddresses      bool              `json:"showAddresses"`
 	ComposeHTML        bool              `json:"composeHtml"`
@@ -83,6 +84,7 @@ func Defaults(email string) Settings {
 		MarkRead:          "immediately",
 		MarkReadDelay:     3,
 		RemoteImages:      "ask",
+		DarkMessages:      true,
 		ShowAddresses:     true,
 		ComposeHTML:       true,
 		ReplyPosition:     "above",

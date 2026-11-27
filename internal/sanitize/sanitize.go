@@ -191,9 +191,16 @@ func DataURI(contentType string, data []byte) string {
 }
 
 // Document wraps sanitized HTML for the message iframe. HTML mail assumes a light page.
-func Document(body string) string {
+func Document(body string, dark bool) string {
+	style := `html{background:#fff;color:#1b1f24}body{margin:16px;font:15px/1.5 system-ui,sans-serif;overflow-wrap:anywhere}` +
+		`img{max-width:100%;height:auto}table{max-width:100%}blockquote{margin:0 0 0 .5em;padding-left:.75em;border-left:3px solid #d5d8de}`
+	if dark {
+		style += darkStyle
+	}
 	return `<!doctype html><html><head><meta charset="utf-8"><meta name="color-scheme" content="light">` +
-		`<style>html{background:#fff;color:#1b1f24}body{margin:16px;font:15px/1.5 system-ui,sans-serif;overflow-wrap:anywhere}` +
-		`img{max-width:100%;height:auto}table{max-width:100%}blockquote{margin:0 0 0 .5em;padding-left:.75em;border-left:3px solid #d5d8de}</style>` +
-		`</head><body>` + body + `</body></html>`
+		`<style>` + style + `</style></head><body>` + body + `</body></html>`
 }
+
+// darkStyle inverts mail written for white paper and turns pictures back; the light grey ends up as a dark surface.
+const darkStyle = `html{background:#e8e8e8;filter:invert(1) hue-rotate(180deg)}` +
+	`img,video,picture,canvas,svg image,[style*="background-image"],[background]{filter:invert(1) hue-rotate(180deg)}`

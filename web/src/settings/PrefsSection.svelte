@@ -36,6 +36,7 @@
     ],
     display: [
       { key: 'preferPlain', kind: 'toggle' },
+      { key: 'darkMessages', kind: 'toggle' },
       { key: 'remoteImages', kind: 'select', options: ['ask', 'always'], label: (v) => t(`settings.remoteImages.${v}`) },
       { key: 'showAddresses', kind: 'toggle' },
     ],

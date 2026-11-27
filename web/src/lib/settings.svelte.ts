@@ -30,6 +30,7 @@ export interface Settings {
   markRead: 'immediately' | 'delay' | 'never';
   markReadDelay: number;
   preferPlain: boolean;
+  darkMessages: boolean;
   remoteImages: 'ask' | 'always';
   showAddresses: boolean;
   composeHtml: boolean;
@@ -56,6 +57,7 @@ export const DEFAULTS: Settings = {
   markRead: 'immediately',
   markReadDelay: 3,
   preferPlain: false,
+  darkMessages: true,
   remoteImages: 'ask',
   showAddresses: true,
   composeHtml: true,

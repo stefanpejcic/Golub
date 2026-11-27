@@ -76,6 +76,7 @@ Webmail sees everything a person writes and reads, so Golub is built to keep as 
 
 **Reading**
 - Plain text and sanitized HTML, inline images, attachment download and preview (images, PDF, text)
+- HTML mail shown dark in the dark theme, with pictures kept as they are, switchable per message
 - Legacy charsets, broken MIME and Unicode addresses (`ime@pošta.rs`) handled
 - Unsubscribe button for mailing lists, read receipt prompts, priority markers
 - View the raw message and all headers

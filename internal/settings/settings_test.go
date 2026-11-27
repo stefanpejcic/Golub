@@ -98,3 +98,10 @@ func TestSpellCheckDefaultsOn(t *testing.T) {
 		t.Fatal("explicit false must stick")
 	}
 }
+
+func TestDarkMessagesDefaultsOn(t *testing.T) {
+	s, err := Decode([]byte(`{"pageSize":25}`), "alice@golub.test")
+	if err != nil || !s.DarkMessages {
+		t.Fatalf("%v %+v", err, s)
+	}
+}

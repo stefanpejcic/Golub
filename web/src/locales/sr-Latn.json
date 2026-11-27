@@ -408,5 +408,8 @@
   },
   "errors.import.too_large": "Fajl je prevelik za jedan uvoz (200 MB). Podelite ga na manje fajlove.",
   "errors.import.empty": "U tom fajlu nema poruka.",
-  "errors.import.partial": "Uvoz je zaustavljen na pola."
+  "errors.import.partial": "Uvoz je zaustavljen na pola.",
+  "settings.darkMessages": "Prikaži HTML poruke tamno u tamnoj temi",
+  "message.view_dark": "Tamni prikaz",
+  "message.view_light": "Svetli prikaz"
 }
