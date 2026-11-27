@@ -33,6 +33,7 @@ type Options struct {
 	Pool           MailPool
 	Proxy          ImageProxy
 	SMTP           MailSender
+	Watcher        Watcher
 	SSO            *auth.SSOVerifier
 	MasterUser     string
 	MasterPassword string
@@ -74,6 +75,9 @@ func New(o Options) http.Handler {
 			mux.HandleFunc("GET /api/quota", a.withSession(a.quota))
 			mux.HandleFunc("GET /api/compose/source", a.withSession(a.composeSourceFor))
 			mux.HandleFunc("POST /api/compose/draft", a.withSession(a.composeDraft))
+			if o.Watcher != nil {
+				mux.HandleFunc("GET /api/events", a.withSession(a.events))
+			}
 			if o.SMTP != nil {
 				mux.HandleFunc("POST /api/compose/send", a.withSession(a.composeSend))
 			}

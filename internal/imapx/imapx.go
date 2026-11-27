@@ -30,12 +30,12 @@ type Dialer struct {
 	Timeout  time.Duration
 }
 
-func (d *Dialer) dial() (*imapclient.Client, error) {
+func (d *Dialer) dial(handler *imapclient.UnilateralDataHandler) (*imapclient.Client, error) {
 	timeout := d.Timeout
 	if timeout == 0 {
 		timeout = 10 * time.Second
 	}
-	opts := &imapclient.Options{TLSConfig: d.TLS, Dialer: &net.Dialer{Timeout: timeout}, WordDecoder: wordDecoder()}
+	opts := &imapclient.Options{TLSConfig: d.TLS, Dialer: &net.Dialer{Timeout: timeout}, WordDecoder: wordDecoder(), UnilateralDataHandler: handler}
 	addr := d.Endpoint.Addr()
 	switch d.Endpoint.TLS {
 	case config.TLSImplicit:
@@ -49,7 +49,11 @@ func (d *Dialer) dial() (*imapclient.Client, error) {
 
 // Login connects and authenticates; the caller owns the returned client.
 func (d *Dialer) Login(ctx context.Context, user, pass string) (*imapclient.Client, error) {
-	c, err := d.dial()
+	return d.login(ctx, user, pass, nil)
+}
+
+func (d *Dialer) login(ctx context.Context, user, pass string, handler *imapclient.UnilateralDataHandler) (*imapclient.Client, error) {
+	c, err := d.dial(handler)
 	if err != nil {
 		return nil, fmt.Errorf("%w: %w", ErrUnavailable, err)
 	}

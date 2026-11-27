@@ -28,11 +28,12 @@ const prefCookieMaxAge = 365 * 24 * 3600
 type authAPI struct {
 	o       Options
 	limiter *failLimiter
+	streams *streamCounter
 	now     func() time.Time
 }
 
 func newAuthAPI(o Options) *authAPI {
-	return &authAPI{o: o, limiter: newFailLimiter(), now: time.Now}
+	return &authAPI{o: o, limiter: newFailLimiter(), streams: &streamCounter{n: map[string]int{}}, now: time.Now}
 }
 
 type sessionView struct {

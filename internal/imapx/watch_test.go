@@ -1,0 +1,66 @@
+// SPDX-License-Identifier: GPL-3.0-or-later
+
+package imapx
+
+import (
+	"context"
+	"errors"
+	"testing"
+	"time"
+
+	"github.com/emersion/go-imap/v2"
+	"github.com/emersion/go-imap/v2/imapserver/imapmemserver"
+)
+
+func TestWatchReportsNewMail(t *testing.T) {
+	mem := imapmemserver.New()
+	u := imapmemserver.NewUser("alice@golub.test", "secret")
+	if err := u.Create("INBOX", nil); err != nil {
+		t.Fatal(err)
+	}
+	mem.AddUser(u)
+	d := &Dialer{Endpoint: listen(t, mem)}
+
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+	changes := make(chan struct{}, 8)
+	ready := make(chan struct{})
+	done := make(chan error, 1)
+	go func() {
+		done <- d.Watch(ctx, "alice@golub.test", "secret", "INBOX", func() { changes <- struct{}{} }, func() { close(ready) })
+	}()
+	select {
+	case <-ready:
+	case <-time.After(5 * time.Second):
+		t.Fatal("watcher never became ready")
+	}
+	raw := "Subject: new\r\n\r\nhello\r\n"
+	if _, err := u.Append("INBOX", lit(raw), &imap.AppendOptions{}); err != nil {
+		t.Fatal(err)
+	}
+	select {
+	case <-changes:
+	case <-time.After(5 * time.Second):
+		t.Fatal("no change reported for new mail")
+	}
+
+	cancel()
+	select {
+	case err := <-done:
+		if err != nil && !errors.Is(err, context.Canceled) {
+			t.Fatalf("watch ended with %v", err)
+		}
+	case <-time.After(5 * time.Second):
+		t.Fatal("watch did not stop on cancel")
+	}
+}
+
+func TestWatchBadCredentials(t *testing.T) {
+	mem := imapmemserver.New()
+	mem.AddUser(imapmemserver.NewUser("alice@golub.test", "secret"))
+	d := &Dialer{Endpoint: listen(t, mem)}
+	err := d.Watch(context.Background(), "alice@golub.test", "nope", "INBOX", func() {}, nil)
+	if !errors.Is(err, ErrInvalidCredentials) {
+		t.Fatalf("err = %v", err)
+	}
+}

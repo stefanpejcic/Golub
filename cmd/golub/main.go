@@ -9,6 +9,7 @@ import (
 	"fmt"
 	"io"
 	"log/slog"
+	"net"
 	"net/http"
 	"os"
 	"os/signal"
@@ -65,7 +66,8 @@ func run(ctx context.Context, getenv func(string) string, logOut io.Writer) erro
 	if err != nil {
 		return err
 	}
-	pool := imapx.NewPool(&imapx.Dialer{Endpoint: cfg.IMAP, TLS: imapTLS}, 5*time.Minute)
+	dialer := &imapx.Dialer{Endpoint: cfg.IMAP, TLS: imapTLS}
+	pool := imapx.NewPool(dialer, 5*time.Minute)
 	defer pool.Close()
 
 	opts := httpapi.Options{
@@ -77,6 +79,7 @@ func run(ctx context.Context, getenv func(string) string, logOut io.Writer) erro
 		Pool:           pool,
 		Proxy:          proxy.New(cfg.SecretKey),
 		SMTP:           &smtpx.Sender{Endpoint: cfg.SMTP, TLS: smtpTLS},
+		Watcher:        dialer,
 		MasterUser:     cfg.MasterUser,
 		MasterPassword: cfg.MasterPassword,
 		SessionTTL:     cfg.SessionTTL,
@@ -97,6 +100,11 @@ func run(ctx context.Context, getenv func(string) string, logOut io.Writer) erro
 		IdleTimeout:       2 * time.Minute,
 		ErrorLog:          slog.NewLogLogger(slog.Default().Handler(), slog.LevelWarn),
 	}
+	// Event streams never finish on their own; cancelling their base context lets shutdown complete.
+	baseCtx, cancelStreams := context.WithCancel(context.Background())
+	defer cancelStreams()
+	srv.BaseContext = func(net.Listener) context.Context { return baseCtx }
+	srv.RegisterOnShutdown(cancelStreams)
 
 	if cfg.HTTPS() {
 		reloader, err := tlsx.NewReloader(cfg.TLSCert, cfg.TLSKey)
