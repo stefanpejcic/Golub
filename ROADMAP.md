@@ -36,7 +36,7 @@
 - [x] Flags, move, delete
 
 ### 7. Compose and send
-- [ ] Reply/forward quoting, attachments, Sent copy
+- [x] Reply/forward quoting, attachments, Sent copy
 
 ### 8. Live refresh
 - [ ] IDLE with polling fallback
@@ -57,9 +57,9 @@ Stored per user in an unsubscribed IMAP folder `golub-settings` (one JSON messag
 - [x] Quota usage bar under the message list (IMAP QUOTA)
 
 ## UI backlog (requested)
-- [ ] Message header: icons on the right for all headers and plain text / HTML view
-- [ ] Message toolbar: Reply, Reply all, Forward, Delete, More (print, download .eml, edit as new, show source, move to, copy to, open in new window)
-- [ ] Resizable folder / list / preview columns, widths remembered in the browser
+- [x] Message header: icons on the right for all headers and plain text / HTML view
+- [x] Message toolbar: Reply, Reply all, Forward, Delete, More (print, download .eml, edit as new, show source, move to, copy to, open in new window)
+- [x] Resizable folder / list / preview columns, widths remembered in the browser
 
 ## Notifications and avatars (requested)
 - [ ] Tab title with unread count ("(3) Inbox – Golub"), keep refreshing while the tab is in the background

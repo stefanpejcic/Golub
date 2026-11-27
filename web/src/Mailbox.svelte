@@ -15,8 +15,38 @@
   import SettingsNav from './settings/SettingsNav.svelte';
   import SettingsPage from './settings/SettingsPage.svelte';
   import Compose from './Compose.svelte';
+  import Resizer from './Resizer.svelte';
+  import { clamp, LIMITS, loadColumns, saveColumns, type Columns } from './lib/resize';
 
   const t = $derived(i18n.t);
+
+  let root: HTMLDivElement;
+  let aside = $state<HTMLElement>();
+  let listPane = $state<HTMLElement>();
+  let columns = $state<Columns | null>(loadColumns());
+
+  // Set through CSSOM, which the CSP allows, instead of a style attribute.
+  $effect(() => {
+    if (columns) root.style.setProperty('--columns', `${columns.sidebar}px ${columns.list}px minmax(0, 1fr)`);
+    else root.style.removeProperty('--columns');
+  });
+
+  function current(): Columns {
+    return {
+      sidebar: columns?.sidebar ?? aside?.getBoundingClientRect().width ?? 256,
+      list: columns?.list ?? listPane?.getBoundingClientRect().width ?? 384,
+    };
+  }
+
+  function resize(which: keyof Columns, width: number, done: boolean) {
+    columns = { ...current(), [which]: clamp(which, width) };
+    if (done) saveColumns(columns);
+  }
+
+  function reset() {
+    columns = null;
+    saveColumns(null);
+  }
 
   $effect(() => {
     let stop: (() => void) | undefined;
@@ -31,8 +61,17 @@
   });
 </script>
 
-<div class="mailbox" class:has-message={mail.uid !== null} class:in-settings={route.settingsSection !== null}>
-  <aside>
+<div bind:this={root} class="mailbox" class:has-message={mail.uid !== null} class:in-settings={route.settingsSection !== null}>
+  <aside bind:this={aside}>
+    <Resizer
+      label={t('layout.resize_sidebar')}
+      testid="resize-sidebar"
+      min={LIMITS.sidebar[0]}
+      max={LIMITS.sidebar[1]}
+      start={() => current().sidebar}
+      onresize={(w, done) => resize('sidebar', w, done)}
+      onreset={reset}
+    />
     <div class="brand">
       <Logo size={28} />
       <span>{t('app.name')}</span>
@@ -102,8 +141,17 @@
       {/key}
     </main>
   {:else}
-  <main class="list-pane">
+  <main class="list-pane" bind:this={listPane}>
     <MessageList />
+    <Resizer
+      label={t('layout.resize_list')}
+      testid="resize-list"
+      min={LIMITS.list[0]}
+      max={LIMITS.list[1]}
+      start={() => current().list}
+      onresize={(w, done) => resize('list', w, done)}
+      onreset={reset}
+    />
   </main>
   <section class="preview-pane">
     {#if mail.selected.length > 1}
@@ -128,10 +176,11 @@
 <style>
   .mailbox {
     display: grid;
-    grid-template-columns: fit-content(28rem) minmax(20rem, 26rem) minmax(0, 1fr);
+    grid-template-columns: var(--columns, fit-content(28rem) minmax(20rem, 26rem) minmax(0, 1fr));
     block-size: 100vh;
   }
   aside {
+    position: relative;
     display: flex;
     flex-direction: column;
     min-block-size: 0;
@@ -194,6 +243,7 @@
     padding: var(--space-2);
   }
   .list-pane {
+    position: relative;
     min-block-size: 0;
     border-inline-end: 1px solid var(--color-border);
   }

@@ -257,5 +257,8 @@
   "toast.copied": "Copied to {folder}.",
   "message.all_headers": "All headers",
   "message.view_plain": "Show as plain text",
-  "message.view_html": "Show as HTML"
+  "message.view_html": "Show as HTML",
+  "layout.resize_sidebar": "Resize folder column",
+  "layout.resize_list": "Resize message list",
+  "layout.resize_hint": "Drag to resize, double-click to reset"
 }

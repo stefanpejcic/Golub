@@ -264,5 +264,8 @@
   "toast.copied": "Kopirano u {folder}.",
   "message.all_headers": "Sva zaglavlja",
   "message.view_plain": "Prikaži kao običan tekst",
-  "message.view_html": "Prikaži kao HTML"
+  "message.view_html": "Prikaži kao HTML",
+  "layout.resize_sidebar": "Promeni širinu kolone sa fasciklama",
+  "layout.resize_list": "Promeni širinu liste poruka",
+  "layout.resize_hint": "Prevucite za promenu širine, dvoklik vraća podrazumevano"
 }
