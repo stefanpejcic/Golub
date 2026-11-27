@@ -94,6 +94,22 @@ jobs:
         run: ./e2e/seed.sh
       - name: healthz
         run: curl -fsS localhost:8080/healthz
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: e2e/package-lock.json
+      - name: playwright
+        working-directory: e2e
+        run: |
+          npm ci
+          npx playwright install --with-deps chromium
+          npx playwright test
+      - uses: actions/upload-artifact@v7
+        if: failure()
+        with:
+          name: playwright-report
+          path: e2e/playwright-report
       - name: logs on failure
         if: failure()
         run: docker compose -f e2e/docker-compose.yml logs

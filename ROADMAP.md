@@ -19,8 +19,8 @@
 - [x] Master user configured
 
 ### 3. Auth
-- [ ] Normal login, session cookie, logout
-- [ ] SSO token flow (`lang`, `theme`)
+- [x] Normal login, session cookie, logout
+- [x] SSO token flow (`lang`, `theme`)
 
 ### 4. Folders and message list
 - [ ] Folder list with unread counts
