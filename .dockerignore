@@ -1,0 +1,5 @@
+.git
+web/node_modules
+e2e/node_modules
+internal/ui/dist/assets
+internal/ui/dist/index.html
