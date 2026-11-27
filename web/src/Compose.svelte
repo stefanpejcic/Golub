@@ -8,6 +8,9 @@
   import { route } from './lib/route.svelte';
   import { dialog } from './lib/dialog.svelte';
   import { contacts } from './lib/contacts.svelte';
+  import { keys, unlockKey } from './lib/keys.svelte';
+  import * as pgp from './lib/pgp';
+  import { buildEntity } from './lib/pgpmime';
   import { toast } from './lib/toast.svelte';
   import { api, ApiError } from './lib/api';
   import { errorMessage } from './lib/errors';
@@ -21,6 +24,7 @@
     quotePlain,
     withSignature,
     signatureBlock,
+    recipientAddress,
     type Quote,
   } from './lib/compose';
   import RecipientInput from './RecipientInput.svelte';
@@ -75,6 +79,9 @@
   let references: string[] = [];
   let draftUid = $state(fromDraft ? srcUid : 0);
   let priority = $state<'normal' | 'high' | 'low'>('normal');
+  let encrypt = $state(false);
+  let sign = $state(false);
+  keys.load().catch(() => undefined);
   let receipt = $state(false);
   let dirty = $state(false);
   let busy = $state<'' | 'send' | 'draft'>('');
@@ -248,9 +255,14 @@
     dirty = true;
   }
 
-  function payload() {
-    const bodyHtml = html ? (editor?.innerHTML ?? '') : '';
-    const bodyText = html ? (editor?.innerText ?? '') : text;
+  function plainBody() {
+    return html ? (editor?.innerText ?? '') : text;
+  }
+
+  // payload with a PGP body carries no text or attachments of its own, they are inside what the browser encrypted or signed
+  function payload(pgpBody?: Record<string, string>) {
+    const bodyHtml = html && !pgpBody ? (editor?.innerHTML ?? '') : '';
+    const bodyText = pgpBody ? '' : plainBody();
     const meta = {
       identity: identityId,
       to,
@@ -261,7 +273,7 @@
       html: bodyHtml,
       inReplyTo,
       references,
-      attach: refs.map(({ folder, uid, part }) => ({ folder, uid, part })),
+      attach: pgpBody ? [] : refs.map(({ folder, uid, part }) => ({ folder, uid, part })),
       answered: srcUid && (mode === 'reply' || mode === 'replyAll' || mode === 'forward') ? { folder: srcFolder, uid: srcUid, forwarded: mode === 'forward' } : undefined,
       draftUid: draftUid || undefined,
       priority: priority === 'normal' ? undefined : priority,
@@ -269,12 +281,13 @@
     };
     const form = new FormData();
     form.append('message', JSON.stringify(meta));
-    for (const f of files) form.append('attachment', f, f.name);
+    if (pgpBody) form.append('pgp', JSON.stringify(pgpBody));
+    else for (const f of files) form.append('attachment', f, f.name);
     return form;
   }
 
-  async function post<T>(path: string): Promise<T> {
-    const res = await fetch(path, { method: 'POST', body: payload(), credentials: 'same-origin' });
+  async function post<T>(path: string, pgpBody?: Record<string, string>): Promise<T> {
+    const res = await fetch(path, { method: 'POST', body: payload(pgpBody), credentials: 'same-origin' });
     const data = await res.json().catch(() => undefined);
     if (!res.ok) {
       const err = new ApiError(data?.error ?? 'server.error', res.status);
@@ -288,6 +301,40 @@
     dirty = false;
     route.go(folderPath(mail.folder));
     mail.refresh();
+  }
+
+  // pgpBody encrypts or signs the message here in the browser; null means it was stopped and the user was told why
+  async function pgpBody(all: string[]): Promise<Record<string, string> | null> {
+    if (refs.length) {
+      toast.show(t('pgp.no_server_attachments'), true);
+      return null;
+    }
+    const fromEmail = identities.find((i) => i.id === identityId)?.email.toLowerCase() ?? '';
+    const own = keys.own.find((k) => k.emails.includes(fromEmail)) ?? keys.own[0];
+    if (!own) {
+      toast.show(t('pgp.need_own_key'), true);
+      return null;
+    }
+    let recipients: pgp.KeyInfo[] = [];
+    if (encrypt) {
+      const missing: string[] = [];
+      for (const r of all) {
+        const k = keys.forEmail(recipientAddress(r));
+        if (k) recipients.push(k);
+        else missing.push(recipientAddress(r));
+      }
+      if (missing.length) {
+        toast.show(t('pgp.missing_keys', { addresses: missing.join(', ') }), true);
+        return null;
+      }
+      recipients = [...recipients, own];
+    }
+    if (sign && !(await unlockKey(own))) return null;
+    const data = await Promise.all(files.map(async (f) => ({ name: f.name, type: f.type, data: new Uint8Array(await f.arrayBuffer()) })));
+    const entity = buildEntity(plainBody(), data);
+    if (encrypt) return { encrypted: await pgp.encrypt(entity, recipients, sign ? own : undefined) };
+    const { signature, micalg } = await pgp.signDetached(entity, own);
+    return { signedEntity: entity, signature, micalg };
   }
 
   async function send() {
@@ -304,7 +351,13 @@
     if (!subject.trim() && !(await dialog.confirm({ title: t('compose.no_subject_confirm'), confirm: t('compose.send_anyway') }))) return;
     busy = 'send';
     try {
-      const res = await post<{ savedToSent: boolean }>('/api/compose/send');
+      let body: Record<string, string> | undefined;
+      if (encrypt || sign) {
+        const made = await pgpBody(all);
+        if (!made) return;
+        body = made;
+      }
+      const res = await post<{ savedToSent: boolean }>('/api/compose/send', body);
       toast.show(res.savedToSent ? t('compose.sent') : t('compose.sent_not_saved'));
       if (contacts.loaded) contacts.load(true).catch(() => undefined);
       leave();
@@ -318,6 +371,11 @@
 
   async function saveDraft(silent = false) {
     if (busy) return;
+    // a draft is stored as it is, so an encrypted message would sit on the server in plaintext
+    if (encrypt) {
+      if (!silent) toast.show(t('pgp.no_drafts'), true);
+      return;
+    }
     busy = 'draft';
     try {
       const res = await post<{ uid: number }>('/api/compose/draft');
@@ -485,6 +543,16 @@
       <input type="checkbox" bind:checked={receipt} data-testid="compose-receipt" />
       <span>{t('compose.request_receipt')}</span>
     </label>
+    {#if keys.own.length}
+      <label class="receipt" title={t('pgp.encrypt_hint')}>
+        <input type="checkbox" bind:checked={encrypt} data-testid="compose-encrypt" />
+        <span>{t('pgp.encrypt')}</span>
+      </label>
+      <label class="receipt" title={t('pgp.sign_hint')}>
+        <input type="checkbox" bind:checked={sign} data-testid="compose-sign" />
+        <span>{t('pgp.sign')}</span>
+      </label>
+    {/if}
     <button type="button" class="tool text attach" onclick={() => fileInput.click()} data-testid="compose-attach">
       <svg class="icon" viewBox="0 0 16 16" aria-hidden="true"><path d="M11 5 6 10a1.5 1.5 0 0 0 2 2l5-5a3 3 0 0 0-4-4L4 8a4.5 4.5 0 0 0 6 6l4-4" /></svg>
       {t('compose.attach')}

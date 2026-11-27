@@ -31,7 +31,16 @@
       {#if ask.text}<p>{ask.text}</p>{/if}
       {#if ask.input !== undefined}
         <!-- svelte-ignore a11y_autofocus -->
-        <input class="input" bind:value aria-label={ask.inputLabel ?? ask.title} autofocus data-testid="dialog-input" />
+        <input
+          class="input"
+          type={ask.password ? 'password' : 'text'}
+          autocomplete={ask.password ? 'off' : undefined}
+          bind:value
+          aria-label={ask.inputLabel ?? ask.title}
+          autofocus
+          data-testid="dialog-input"
+        />
+        {#if ask.error}<p class="error" role="alert" data-testid="dialog-error">{ask.error}</p>{/if}
       {/if}
       <div class="modal-buttons">
         <button class="btn" type="button" onclick={() => dialog.answer(null)} data-testid="dialog-cancel">{t('dialog.cancel')}</button>
@@ -44,5 +53,10 @@
 <style>
   .input {
     margin-block-end: var(--space-4);
+  }
+  .error {
+    margin-block: calc(var(--space-2) * -1) var(--space-3);
+    color: var(--color-danger);
+    font-size: 0.9rem;
   }
 </style>

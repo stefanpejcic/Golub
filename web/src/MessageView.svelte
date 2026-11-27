@@ -12,6 +12,9 @@
   import { dialog } from './lib/dialog.svelte';
   import { previewKind, type PreviewKind } from './lib/preview';
   import AttachmentPreview from './AttachmentPreview.svelte';
+  import PgpMessage from './PgpMessage.svelte';
+  import { keys } from './lib/keys.svelte';
+  import * as pgpLib from './lib/pgp';
   import { archiveMessages, copyMessages, flagMessages, folderLabel, moveMessages, removeMessages } from './lib/actions';
   import Menu from './Menu.svelte';
 
@@ -63,6 +66,20 @@
     if (!kind || e.metaKey || e.ctrlKey || e.shiftKey || e.button !== 0) return;
     e.preventDefault();
     preview = { url, filename, kind };
+  }
+
+  async function importKey(url: string) {
+    try {
+      const res = await fetch(url, { credentials: 'same-origin' });
+      const { keys: found } = await pgpLib.inspect(await res.text());
+      const pub = found.filter((k) => !k.private);
+      if (!pub.length) throw new Error('none');
+      await keys.load();
+      await keys.add(pub);
+      toast.show(t('pgp.imported', { count: pub.length }));
+    } catch {
+      toast.show(t('pgp.not_a_key'), true);
+    }
   }
 
   let receiptBusy = $state(false);
@@ -396,6 +413,9 @@
                 <span class="name">{a.filename}</span>
                 <span class="size">{formatSize(i18n.locale, a.size)}</span>
               </a>
+              {#if /\.(asc|key)$/i.test(a.filename) || a.contentType === 'application/pgp-keys'}
+                <button type="button" class="btn import-key" onclick={() => importKey(url)} data-testid="pgp-import-attachment">{t('pgp.import_key')}</button>
+              {/if}
             </li>
           {/each}
         </ul>
@@ -406,7 +426,13 @@
       <AttachmentPreview {...preview} onclose={() => (preview = null)} />
     {/if}
 
-    {#if asHtml}
+    {#if m.pgp}
+      <PgpMessage folder={m.folder} uid={m.uid} kind={m.pgp} text={m.text} />
+    {/if}
+
+    {#if m.pgp === 'encrypted' || m.pgp === 'inline-encrypted'}
+      <!-- the decrypted text shows in the PGP panel above, the encrypted block itself is not worth showing -->
+    {:else if asHtml}
       <iframe
         onload={() => onloaded?.()}
         title={t('message.body')}
@@ -480,6 +506,10 @@
   }
   header h1 {
     padding-inline-end: 5rem;
+  }
+  .import-key {
+    padding-block: var(--space-1);
+    font-size: 0.85rem;
   }
   .prio-badge {
     display: inline-block;

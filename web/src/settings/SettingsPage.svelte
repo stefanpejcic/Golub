@@ -8,6 +8,7 @@
   import ListEditor from './ListEditor.svelte';
   import About from '../About.svelte';
   import ShortcutsSection from './ShortcutsSection.svelte';
+  import PgpSection from './PgpSection.svelte';
 
   const t = $derived(i18n.t);
   const section = $derived(route.settingsSection ?? 'general');
@@ -30,6 +31,8 @@
       <About />
     {:else if section === 'shortcuts'}
       <ShortcutsSection />
+    {:else if section === 'pgp'}
+      <PgpSection />
     {:else}
       <PrefsSection {section} />
     {/if}

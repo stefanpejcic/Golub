@@ -61,6 +61,7 @@ export interface MessageView {
   trackers: number;
   priority: number;
   unsubscribe: { mailto?: string; url?: string; oneClick?: boolean };
+  pgp?: 'encrypted' | 'signed' | 'inline-encrypted' | 'inline-signed';
   receiptTo?: string;
   attachments: Attachment[];
 }

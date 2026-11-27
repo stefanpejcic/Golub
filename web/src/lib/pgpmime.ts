@@ -1,7 +1,6 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 // MIME for PGP/MIME (RFC 3156): what the browser encrypts or signs, and reading what comes back out.
 
-import PostalMime from 'postal-mime';
 
 export interface EntityFile {
   name: string;
@@ -50,6 +49,8 @@ export function buildEntity(text: string, files: EntityFile[] = []): string {
 }
 
 export async function parseEntity(entity: string): Promise<Decoded> {
+  // only needed once something was decrypted, so it loads then
+  const { default: PostalMime } = await import('postal-mime');
   const mail = await PostalMime.parse(entity);
   const attachments = ((mail.attachments ?? []) as PostalAttachment[]).map((a, i) => ({
     filename: a.filename || `attachment-${i + 1}`,
@@ -98,4 +99,15 @@ export function splitSigned(raw: string): { entity: string; signature: string } 
 // encryptedPart pulls the armored message out of a raw multipart/encrypted message
 export function encryptedPart(raw: string): string | null {
   return /-----BEGIN PGP MESSAGE-----[\s\S]*?-----END PGP MESSAGE-----/.exec(raw)?.[0] ?? null;
+}
+
+// rawLatin1 and latin1Bytes keep every byte of a raw message as one character, so a signed part survives untouched
+export async function rawLatin1(res: Response): Promise<string> {
+  return new TextDecoder('latin1').decode(await res.arrayBuffer());
+}
+
+export function latin1Bytes(s: string): Uint8Array {
+  const out = new Uint8Array(s.length);
+  for (let i = 0; i < s.length; i++) out[i] = s.charCodeAt(i) & 0xff;
+  return out;
 }

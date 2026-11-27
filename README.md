@@ -58,6 +58,7 @@ Webmail sees everything a person writes and reads, so Golub is built to keep as 
 - **Tracking pixels are removed**, even when remote images are allowed, and the message view says how many were blocked.
 - **HTML mail is sanitized on the server** and shown in a sandboxed frame with no scripts and a strict Content Security Policy.
 - **Unsubscribe without exposing the reader.** One-click unsubscribe (RFC 8058) is sent from the server, not the browser.
+- **End-to-end encryption with OpenPGP.** Encrypting, signing and decrypting happen in the browser. The private key is stored only passphrase protected, in the user's own mailbox, so neither the server nor anyone reading the mailbox can use it.
 - **Read receipts are never sent silently.** The user is asked each time.
 - **Nothing identifying in outgoing mail.** No `User-Agent` or `X-Mailer` header is added.
 - **Not indexed.** Pages carry `noindex` and `robots.txt` disallows everything.
@@ -87,6 +88,12 @@ Webmail sees everything a person writes and reads, so Golub is built to keep as 
 - Address autocomplete from contacts, groups and people you have written to
 - Priority and read receipt requests, browser spell check
 - Unicode domains (IDNA) and mailboxes (SMTPUTF8)
+
+**Encryption**
+- OpenPGP encryption and signatures, compatible with Thunderbird, Mailvelope and other PGP/MIME clients
+- Create or import keys, export them, and import other people's keys from a file, a paste or an attachment
+- Decrypt in the browser after unlocking with the passphrase; keys lock again after 15 minutes
+- Signed mail shows who signed it and whether the signature checks out
 
 **Contacts**
 - Address book with groups, collected recipients, vCard import and export

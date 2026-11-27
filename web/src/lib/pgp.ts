@@ -160,9 +160,11 @@ export async function signDetached(entity: string, signer: KeyInfo): Promise<{ s
   return { signature, micalg: 'pgp-' + hash.toLowerCase() };
 }
 
-export async function verifyDetached(entity: string, armoredSignature: string, known: KeyInfo[]): Promise<SignatureStatus> {
+// verifyDetached takes the signed part as the exact bytes that were signed
+export async function verifyDetached(entity: string | Uint8Array, armoredSignature: string, known: KeyInfo[]): Promise<SignatureStatus> {
   const pgp = await openpgp();
-  const message = await pgp.createMessage({ binary: new TextEncoder().encode(entity) });
+  const binary = typeof entity === 'string' ? new TextEncoder().encode(entity) : entity;
+  const message = await pgp.createMessage({ binary });
   const signature = await pgp.readSignature({ armoredSignature });
   const { signatures } = await pgp.verify({ message, signature, verificationKeys: await readKeys(pgp, known) });
   return (await status(pgp, signatures, known)) ?? { state: 'invalid' };

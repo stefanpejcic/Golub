@@ -8,7 +8,7 @@
   const t = $derived(i18n.t);
   const groups = [
     { title: 'settings.group.preferences', items: ['general', 'mailbox', 'display', 'compose', 'special'] },
-    { title: 'settings.group.account', items: ['folders', 'identities', 'responses'] },
+    { title: 'settings.group.account', items: ['folders', 'identities', 'responses', 'pgp'] },
     { title: 'settings.group.golub', items: ['about', 'shortcuts'] },
   ];
 

@@ -8,6 +8,10 @@ export interface Ask {
   // set for a prompt: the input starts with this value
   input?: string;
   inputLabel?: string;
+  // a passphrase field, never autofilled or shown
+  password?: boolean;
+  // a line in the danger colour under the field, for a failed try
+  error?: string;
 }
 
 interface Pending extends Ask {
