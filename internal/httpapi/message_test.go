@@ -219,3 +219,28 @@ func TestMessageViewWithoutMarkingRead(t *testing.T) {
 		t.Fatal("seen=0 must not mark the message read")
 	}
 }
+
+func TestRawAndHeaders(t *testing.T) {
+	h := newMessageServer(t, "06-windows-1250.eml")
+	c := login(t, h)
+	get := func(q string) *httptest.ResponseRecorder {
+		r := httptest.NewRequest("GET", "/api/message/raw?folder=INBOX&uid=1"+q, nil)
+		r.AddCookie(c)
+		return serve(h, r)
+	}
+	rec := get("&download=1")
+	if rec.Code != 200 || rec.Header().Get("Content-Type") != "message/rfc822" ||
+		!strings.Contains(rec.Header().Get("Content-Disposition"), `filename*=UTF-8''Pozdrav%20%C5%A1ef%C4%8De.eml`) {
+		t.Fatalf("%d %v", rec.Code, rec.Header())
+	}
+	rec = get("")
+	if !strings.HasPrefix(rec.Header().Get("Content-Type"), "text/plain") || !strings.Contains(rec.Header().Get("Content-Security-Policy"), "sandbox") ||
+		!strings.Contains(rec.Body.String(), "Subject: =?windows-1250?Q?") {
+		t.Fatalf("source view: %v %q", rec.Header(), rec.Body.String()[:80])
+	}
+	rec = get("&headers=1")
+	body := rec.Body.String()
+	if !strings.Contains(body, "Message-ID:") || strings.Contains(body, "Šta ima") || strings.Contains(body, "\r\n\r\n") {
+		t.Fatalf("headers only: %q", body)
+	}
+}

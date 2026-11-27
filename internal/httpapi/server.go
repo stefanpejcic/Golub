@@ -66,6 +66,8 @@ func New(o Options) http.Handler {
 			mux.HandleFunc("GET /api/message/part", a.withSession(a.messagePart))
 			mux.HandleFunc("POST /api/messages/flag", a.withSession(a.setFlag))
 			mux.HandleFunc("POST /api/messages/move", a.withSession(a.move))
+			mux.HandleFunc("POST /api/messages/copy", a.withSession(a.copyTo))
+			mux.HandleFunc("GET /api/message/raw", a.withSession(a.messageRaw))
 			mux.HandleFunc("POST /api/messages/delete", a.withSession(a.remove))
 			mux.HandleFunc("POST /api/messages/archive", a.withSession(a.archive))
 			mux.HandleFunc("GET /api/settings", a.withSession(a.getSettings))

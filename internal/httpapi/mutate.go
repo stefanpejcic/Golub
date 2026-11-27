@@ -58,7 +58,15 @@ func (a *authAPI) setFlag(w http.ResponseWriter, r *http.Request, s auth.Session
 	w.WriteHeader(http.StatusNoContent)
 }
 
+func (a *authAPI) copyTo(w http.ResponseWriter, r *http.Request, s auth.Session) {
+	a.transfer(w, r, s, imapx.Copy)
+}
+
 func (a *authAPI) move(w http.ResponseWriter, r *http.Request, s auth.Session) {
+	a.transfer(w, r, s, imapx.Move)
+}
+
+func (a *authAPI) transfer(w http.ResponseWriter, r *http.Request, s auth.Session, op func(*imapclient.Client, string, []uint32, string) error) {
 	var req struct {
 		batch
 		To string `json:"to"`
@@ -71,7 +79,7 @@ func (a *authAPI) move(w http.ResponseWriter, r *http.Request, s auth.Session) {
 		return
 	}
 	err := a.do(r, s, func(c *imapclient.Client) error {
-		return imapx.Move(c, req.Folder, req.UIDs, req.To)
+		return op(c, req.Folder, req.UIDs, req.To)
 	})
 	if err != nil {
 		a.mailError(w, r, err)

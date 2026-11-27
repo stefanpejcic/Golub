@@ -3,6 +3,7 @@
 package httpapi
 
 import (
+	"bytes"
 	"errors"
 	"fmt"
 	stdmime "mime"
@@ -232,4 +233,58 @@ func contentDisposition(name string) string {
 
 func htmlEscape(s string) string {
 	return strings.NewReplacer("&", "&amp;", "<", "&lt;", ">", "&gt;", `"`, "&quot;").Replace(s)
+}
+
+// messageRaw serves the original message as a download, as source text, or just its header block.
+func (a *authAPI) messageRaw(w http.ResponseWriter, r *http.Request, s auth.Session) {
+	ref, ok := parseRef(r)
+	if !ok {
+		writeError(w, http.StatusBadRequest, "request.invalid")
+		return
+	}
+	var raw imapx.Raw
+	err := a.do(r, s, func(c *imapclient.Client) error {
+		var err error
+		raw, err = imapx.FetchRaw(c, ref.folder, ref.uid, MaxMessageSize)
+		return err
+	})
+	switch {
+	case errors.Is(err, imapx.ErrNotFound):
+		writeError(w, http.StatusNotFound, "message.not_found")
+		return
+	case errors.Is(err, imapx.ErrTooLarge):
+		writeError(w, http.StatusRequestEntityTooLarge, "message.too_large")
+		return
+	case err != nil:
+		a.mailError(w, r, err)
+		return
+	}
+	data := raw.Data
+	q := r.URL.Query()
+	h := w.Header()
+	h.Set("Content-Security-Policy", "default-src 'none'; sandbox")
+	if q.Get("headers") == "1" {
+		if end := bytes.Index(data, []byte("\r\n\r\n")); end >= 0 {
+			data = data[:end]
+		} else if end := bytes.Index(data, []byte("\n\n")); end >= 0 {
+			data = data[:end]
+		}
+	}
+	if q.Get("download") == "1" {
+		name := "message"
+		if m, err := mime.Parse(raw.Data); err == nil && strings.TrimSpace(m.Subject) != "" {
+			name = strings.Map(func(r rune) rune {
+				if strings.ContainsRune(`/\:*?"<>|`, r) {
+					return '_'
+				}
+				return r
+			}, strings.TrimSpace(m.Subject))
+		}
+		h.Set("Content-Type", "message/rfc822")
+		h.Set("Content-Disposition", contentDisposition(name+".eml"))
+	} else {
+		h.Set("Content-Type", "text/plain; charset=utf-8")
+		h.Set("Content-Disposition", "inline")
+	}
+	_, _ = w.Write(data) //nolint:gosec // sandboxed, nosniff and never served as HTML
 }

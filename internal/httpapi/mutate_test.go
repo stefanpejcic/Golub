@@ -141,3 +141,13 @@ func TestArchiveEndpoint(t *testing.T) {
 		t.Fatalf("archiving inside Archive: %d", rec.Code)
 	}
 }
+
+func TestCopyEndpoint(t *testing.T) {
+	h, c := newMutateServer(t)
+	if rec := post(t, h, c, "/api/messages/copy", `{"folder":"INBOX","uids":[1,2],"to":"Work"}`); rec.Code != 204 {
+		t.Fatalf("%d %s", rec.Code, rec.Body)
+	}
+	if len(list(t, h, c, "Work")) != 2 || len(list(t, h, c, "INBOX")) != 4 {
+		t.Fatal("copy did not keep originals")
+	}
+}

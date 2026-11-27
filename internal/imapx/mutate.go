@@ -127,3 +127,12 @@ func AppendMessage(c *imapclient.Client, folder string, raw []byte, flags ...ima
 	}
 	return uint32(data.UID), nil
 }
+
+// Copy copies messages to dest, leaving the originals in place.
+func Copy(c *imapclient.Client, folder string, uids []uint32, dest string) error {
+	if _, err := c.Select(folder, nil).Wait(); err != nil {
+		return err
+	}
+	_, err := c.Copy(uidSetOf(uids), dest).Wait()
+	return err
+}

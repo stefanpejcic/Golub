@@ -94,3 +94,16 @@ func TestAppendMessage(t *testing.T) {
 		t.Fatalf("%+v", p)
 	}
 }
+
+func TestCopy(t *testing.T) {
+	c := seededClient(t, 2)
+	p, _ := ListMessages(c, "INBOX", 0, 5, "")
+	if err := Copy(c, "INBOX", []uint32{p.Messages[0].UID}, "Work"); err != nil {
+		t.Fatal(err)
+	}
+	inbox, _ := ListMessages(c, "INBOX", 0, 5, "")
+	work, _ := ListMessages(c, "Work", 0, 5, "")
+	if inbox.Total != 2 || work.Total != 1 {
+		t.Fatalf("inbox %d work %d", inbox.Total, work.Total)
+	}
+}
