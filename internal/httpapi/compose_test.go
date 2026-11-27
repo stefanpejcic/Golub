@@ -187,6 +187,10 @@ func TestComposeSource(t *testing.T) {
 	if v["subject"] != "Fwd: Plain text" || v["to"] != nil && len(v["to"].([]any)) != 0 {
 		t.Errorf("forward %+v", v)
 	}
+	_, v = get("edit")
+	if a, ok := v["attachments"].([]any); !ok || len(a) != 0 {
+		t.Errorf("attachments must be an empty list, got %#v", v["attachments"])
+	}
 	if code, _ := get("bogus"); code != 400 {
 		t.Errorf("bogus mode: %d", code)
 	}

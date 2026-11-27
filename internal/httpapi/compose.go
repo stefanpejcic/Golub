@@ -500,6 +500,9 @@ func (a *authAPI) composeSourceFor(w http.ResponseWriter, r *http.Request, s aut
 	if out.InReplyTo == "" {
 		out.References = nil
 	}
+	if out.Attachments == nil {
+		out.Attachments = []mime.Attachment{}
+	}
 	writeJSON(w, http.StatusOK, out)
 }
 
