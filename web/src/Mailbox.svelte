@@ -81,10 +81,14 @@
     display: flex;
     align-items: center;
     gap: var(--space-2);
-    padding-block: var(--space-3) var(--space-1);
+    padding-block: var(--space-3);
     padding-inline: var(--space-3);
+    color: var(--color-text);
+    font-weight: 600;
+    border-block-end: 1px solid var(--color-border);
+  }
+  .account .icon {
     color: var(--color-text-muted);
-    font-weight: 500;
   }
   .account span {
     white-space: nowrap;
