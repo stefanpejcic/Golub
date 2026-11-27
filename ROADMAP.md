@@ -74,14 +74,14 @@ Stored per user in an unsubscribed IMAP folder `golub-settings` (one JSON messag
 ## Proposed for 1.0 (awaiting review)
 - [ ] Address book with groups, autocomplete, addresses collected from Sent, vCard import/export (stored in a hidden IMAP folder)
 - [ ] Threaded view (IMAP THREAD)
-- [ ] Drag and drop messages onto folders
+- [x] Drag and drop messages onto folders
 - [ ] Advanced search: body text, all folders, date range, has attachments, unread, flagged
 - [ ] Attachment previews (images, PDF, text)
 - [ ] Spell checking via the browser
 - [ ] Import/export: .eml/.mbox upload into a folder, folder export
-- [ ] IDNA and SMTPUTF8 addresses
-- [ ] Mobile layout with a slide-out folder panel
-- [ ] Branding through env vars: name, logo, accent colour
+- [x] IDNA and SMTPUTF8 addresses
+- [x] Mobile layout with a folder select and full-screen message
+- [x] Branding through env vars: name, logo, accent colour
 
 ## AI assistant (optional, privacy first)
 Off unless the admin configures an endpoint (`GOLUB_AI_URL`, `GOLUB_AI_MODEL`, `GOLUB_AI_KEY`; OpenAI-compatible API, so a local Ollama or vLLM works). Nothing leaves the server unless the user clicks an AI action; no background analysis, no storage, users can turn it off in settings.
@@ -95,7 +95,7 @@ Off unless the admin configures an endpoint (`GOLUB_AI_URL`, `GOLUB_AI_MODEL`, `
 - [ ] Admin limits: per-user rate limit, max input size, strip attachments and quoted history before sending
 
 ## Later
-Search, threading, contacts, multiple identities, drag and drop, PGP, dark message view for HTML mail, RTL locales.
+PGP, dark message view for HTML mail, RTL locales.
 
 ## Project
 
