@@ -48,6 +48,12 @@ for i in $(seq 1 "$PAGING_COUNT"); do
   imap -u "$ALICE:$E2E_PASSWORD" "$IMAP/Paging" -T "$tmp"
 done
 
+# curl APPENDs with \Seen; reset so the mailbox looks like freshly delivered mail.
+imap -u "$ALICE:$E2E_PASSWORD" "$IMAP/INBOX" -X 'STORE 1:* -FLAGS (\Seen)' >/dev/null
+imap -u "$ALICE:$E2E_PASSWORD" "$IMAP/Paging" -X 'STORE 1:* -FLAGS (\Seen)' >/dev/null
+imap -u "$ALICE:$E2E_PASSWORD" "$IMAP/INBOX" -X 'STORE 1 +FLAGS (\Seen)' >/dev/null
+imap -u "$ALICE:$E2E_PASSWORD" "$IMAP/INBOX" -X 'STORE 2 +FLAGS (\Flagged)' >/dev/null
+
 count() { imap -u "$ALICE:$E2E_PASSWORD" "$IMAP/" -X "STATUS $1 (MESSAGES)" | grep -o 'MESSAGES [0-9]*' | cut -d' ' -f2; }
 inbox=$(count INBOX)
 paging=$(count Paging)

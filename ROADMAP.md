@@ -23,8 +23,8 @@
 - [x] SSO token flow (`lang`, `theme`)
 
 ### 4. Folders and message list
-- [ ] Folder list with unread counts
-- [ ] Message list with server-side SORT and paging
+- [x] Folder list with unread counts
+- [x] Message list with server-side SORT and paging
 
 ### 5. Message view
 - [ ] MIME parsing, part selection
