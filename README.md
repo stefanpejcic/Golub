@@ -94,9 +94,32 @@ Webmail sees everything a person writes and reads, so Golub is built to keep as 
 - Import `.eml` and `.mbox` files, export any folder as `.mbox`
 
 **For hosting**
+- One IMAP connection per user, kept open and reused, instead of a new login on every click
 - Single sign-on from a control panel with a signed, single-use token
 - Branding with your own name, logo and accent colour
 - English and Serbian (Latin), with more languages easy to add
+
+## Golub and Roundcube
+
+Both clients read the same mailbox on the same server: an INBOX of 21 messages and a folder of 50,000.
+
+| | Golub 0.1.0 | Roundcube 1.7.7 |
+|---|---|---|
+| Image download (amd64) | **6.6 MB** | 281 MB |
+| Image unpacked | **16.9 MB** | 795 MB |
+| RAM at idle | **4.6 MB** | 35.5 MB |
+| Peak RAM, 10 users | **15.8 MB** | 149.7 MB |
+| Message list, INBOX, 10 users | **484 req/s**, 20 ms | 51 req/s, 195 ms |
+| Message list, 50,000 messages, 10 users | **64 req/s**, 148 ms | 23 req/s, 432 ms |
+| IMAP connections for 2,000 requests | **10** | 2,000 |
+| Login page download | **39 KB**, 6 requests | 331 KB, 12 requests |
+| Sign in to inbox shown | **0.94 s** | 1.37 s |
+| Open a message | **0.33 s** | 0.94 s |
+| Whole session download | **245 KB**, 29 requests | 382 KB, 51 requests |
+
+Golub keeps one IMAP connection per user open and reuses it, where Roundcube connects and logs in to IMAP again on every request. That is less work and fewer connections for the mail server, and no "maximum number of connections" errors when one user has several tabs open.
+
+How it was measured, on 27 November 2026: a 4-core VPS that also runs OpenPanel, docker-mailserver 17, and the official Roundcube image with its defaults (Apache and SQLite). The load rows come from ten different accounts, each sending 200 requests one after another with ApacheBench; peak RAM is the container's cgroup peak. The page rows are medians of five runs in Chromium over a link with about 120 ms latency, so they include the network. The setup is in [`e2e/bench`](e2e/bench).
 
 ## Quick start
 

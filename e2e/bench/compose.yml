@@ -1,0 +1,36 @@
+# SPDX-License-Identifier: GPL-3.0-or-later
+# Golub and Roundcube for the README benchmark, both reading the same e2e mailserver over plain IMAP on its private network.
+# Start the e2e stack first, then: BENCH_GOLUB_SECRET=$(openssl rand -base64 32) podman-compose -f bench/compose.yml up -d
+# Versions are pinned so the README numbers can be reproduced.
+
+networks:
+  e2e:
+    external: true
+    name: golub-e2e_default
+
+services:
+  golub:
+    image: ghcr.io/stefanpejcic/golub:0.1.0
+    container_name: bench-golub
+    environment:
+      GOLUB_IMAP_HOST: mailserver
+      GOLUB_IMAP_TLS: none
+      GOLUB_SMTP_HOST: mailserver
+      GOLUB_SMTP_TLS: none
+      GOLUB_SECRET_KEY: ${BENCH_GOLUB_SECRET:?set BENCH_GOLUB_SECRET}
+    ports:
+      - "127.0.0.1:18083:8080"
+    networks: [e2e]
+
+  roundcube:
+    # the default apache image with SQLite, like a plain Roundcube install
+    image: docker.io/roundcube/roundcubemail:1.7.7-apache
+    container_name: bench-roundcube
+    environment:
+      ROUNDCUBEMAIL_DEFAULT_HOST: mailserver
+      ROUNDCUBEMAIL_DEFAULT_PORT: "143"
+      ROUNDCUBEMAIL_SMTP_SERVER: mailserver
+      ROUNDCUBEMAIL_SMTP_PORT: "587"
+    ports:
+      - "127.0.0.1:18082:80"
+    networks: [e2e]
