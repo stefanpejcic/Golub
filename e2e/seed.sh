@@ -40,6 +40,7 @@ done
 
 echo "appending $PAGING_COUNT paging messages"
 imap -u "$ALICE:$E2E_PASSWORD" "$IMAP/" -X 'CREATE Paging' >/dev/null
+imap -u "$ALICE:$E2E_PASSWORD" "$IMAP/" -X 'SUBSCRIBE Paging' >/dev/null
 tmp=$(mktemp)
 trap 'rm -f "$tmp"' EXIT
 for i in $(seq 1 "$PAGING_COUNT"); do
@@ -50,6 +51,7 @@ done
 
 echo "appending action test messages"
 imap -u "$ALICE:$E2E_PASSWORD" "$IMAP/" -X 'CREATE Actions' >/dev/null
+imap -u "$ALICE:$E2E_PASSWORD" "$IMAP/" -X 'SUBSCRIBE Actions' >/dev/null
 for i in 1 2 3 4 5; do
   printf 'From: Carol <carol@%s>\r\nTo: Alice <%s>\r\nSubject: Action %d\r\nDate: %s\r\nContent-Type: text/plain; charset=utf-8\r\n\r\nAction body %d.\r\n' \
     "$E2E_DOMAIN" "$ALICE" "$i" "$(date -u -R -d "2026-02-01 +$i hours")" "$i" >"$tmp"
@@ -59,6 +61,7 @@ imap -u "$ALICE:$E2E_PASSWORD" "$IMAP/Actions" -X 'STORE 1:* -FLAGS (\Seen)' >/d
 
 echo "appending bulk test messages"
 imap -u "$ALICE:$E2E_PASSWORD" "$IMAP/" -X 'CREATE Bulk' >/dev/null
+imap -u "$ALICE:$E2E_PASSWORD" "$IMAP/" -X 'SUBSCRIBE Bulk' >/dev/null
 for i in 1 2 3 4 5 6 7 8; do
   printf 'From: Dave <dave@%s>\r\nTo: Alice <%s>\r\nSubject: Bulk %d\r\nDate: %s\r\nContent-Type: text/plain; charset=utf-8\r\n\r\nBulk body %d.\r\n' \
     "$E2E_DOMAIN" "$ALICE" "$i" "$(date -u -R -d "2026-03-01 +$i hours")" "$i" >"$tmp"
