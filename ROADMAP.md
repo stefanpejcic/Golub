@@ -27,10 +27,10 @@
 - [x] Message list with server-side SORT and paging
 
 ### 5. Message view
-- [ ] MIME parsing, part selection
-- [ ] Sanitizer and iframe endpoint
-- [ ] cid images, attachments
-- [ ] Remote image proxy with SSRF guard
+- [x] MIME parsing, part selection
+- [x] Sanitizer and iframe endpoint
+- [x] cid images, attachments
+- [x] Remote image proxy with SSRF guard
 
 ### 6. Mutations
 - [ ] Flags, move, delete
