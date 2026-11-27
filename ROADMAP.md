@@ -11,7 +11,7 @@
 - [x] Theme tokens (light/dark) and toggle
 - [x] i18n with `en` + `sr-Latn`, locale-key CI check
 - [x] LICENSE, SPDX check
-- [ ] CI green
+- [x] CI green
 
 ### 2. Test env
 - [ ] `e2e/docker-compose.yml` with docker-mailserver + Golub

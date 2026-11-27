@@ -4,7 +4,7 @@ Fast, lightweight, stateless webmail client written in Go. Single binary, no dat
 
 Golub talks IMAP and SMTP to any Dovecot + Postfix stack. The reference stack is [docker-mailserver](https://github.com/docker-mailserver/docker-mailserver).
 
-OpenPanel uses Golub as its default webmail client.
+[OpenPanel](https://openpanel.com) uses Golub as its default webmail client.
 
 ## Status
 
