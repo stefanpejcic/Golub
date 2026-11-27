@@ -89,15 +89,15 @@ func (a *authAPI) folderOp(op string) func(http.ResponseWriter, *http.Request, a
 		if !decodeJSON(w, r, &req) {
 			return
 		}
-		protected := strings.EqualFold(req.Name, "INBOX") || req.Name == imapx.SettingsFolder
+		protected := strings.EqualFold(req.Name, "INBOX") || imapx.IsHidden(req.Name)
 		switch {
-		case !validFolder(req.Name), req.Name == imapx.SettingsFolder:
+		case !validFolder(req.Name), imapx.IsHidden(req.Name):
 			writeError(w, http.StatusBadRequest, "request.invalid")
 			return
 		case (op == "rename" || op == "delete") && protected:
 			writeError(w, http.StatusBadRequest, "request.invalid")
 			return
-		case op == "rename" && (!validFolder(req.To) || req.To == imapx.SettingsFolder):
+		case op == "rename" && (!validFolder(req.To) || imapx.IsHidden(req.To)):
 			writeError(w, http.StatusBadRequest, "request.invalid")
 			return
 		}

@@ -168,3 +168,11 @@ func TestSpamAndUndo(t *testing.T) {
 		t.Fatalf("undo: %d %s", undo.Code, undo.Body)
 	}
 }
+
+func TestHiddenFoldersAreOffLimits(t *testing.T) {
+	for _, f := range []string{"golub-settings", "golub-contacts"} {
+		if validFolder(f) {
+			t.Errorf("%s must be refused", f)
+		}
+	}
+}

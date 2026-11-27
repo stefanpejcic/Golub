@@ -132,7 +132,7 @@ func validQuery(q string) bool {
 }
 
 func validFolder(name string) bool {
-	if name == "" || len(name) > 512 || !utf8.ValidString(name) {
+	if name == "" || len(name) > 512 || !utf8.ValidString(name) || imapx.IsHidden(name) {
 		return false
 	}
 	for _, r := range name {

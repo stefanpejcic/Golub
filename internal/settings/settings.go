@@ -60,6 +60,7 @@ type Settings struct {
 	SignatureOnReply   bool              `json:"signatureOnReply"`
 	DraftAutosave      int               `json:"draftAutosave"`
 	SpellCheck         bool              `json:"spellCheck"`
+	CollectRecipients  bool              `json:"collectRecipients"`
 	DeleteMode         string            `json:"deleteMode"`
 	EmptyTrashOnLogout bool              `json:"emptyTrashOnLogout"`
 	SpecialFolders     map[string]string `json:"specialFolders,omitempty"`
@@ -73,24 +74,25 @@ var Specials = []string{"drafts", "sent", "junk", "trash", "archive"}
 // Defaults returns sensible settings for a new user.
 func Defaults(email string) Settings {
 	return Settings{
-		PageSize:         50,
-		SortBy:           "date",
-		SortDesc:         true,
-		PrettyDates:      true,
-		RefreshInterval:  60,
-		MarkRead:         "immediately",
-		MarkReadDelay:    3,
-		RemoteImages:     "ask",
-		ShowAddresses:    true,
-		ComposeHTML:      true,
-		ReplyPosition:    "above",
-		ForwardMode:      "inline",
-		SpellCheck:       true,
-		SignatureOnReply: true,
-		DraftAutosave:    60,
-		DeleteMode:       "trash",
-		Identities:       []Identity{{ID: "default", Name: "", Email: email, Default: true}},
-		Responses:        []Response{},
+		PageSize:          50,
+		SortBy:            "date",
+		SortDesc:          true,
+		PrettyDates:       true,
+		RefreshInterval:   60,
+		MarkRead:          "immediately",
+		MarkReadDelay:     3,
+		RemoteImages:      "ask",
+		ShowAddresses:     true,
+		ComposeHTML:       true,
+		ReplyPosition:     "above",
+		ForwardMode:       "inline",
+		SpellCheck:        true,
+		CollectRecipients: true,
+		SignatureOnReply:  true,
+		DraftAutosave:     60,
+		DeleteMode:        "trash",
+		Identities:        []Identity{{ID: "default", Name: "", Email: email, Default: true}},
+		Responses:         []Response{},
 	}
 }
 

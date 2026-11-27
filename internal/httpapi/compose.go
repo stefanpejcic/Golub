@@ -326,6 +326,11 @@ func (a *authAPI) composeSend(w http.ResponseWriter, r *http.Request, s auth.Ses
 				_ = imapx.Expunge(c, drafts, []uint32{req.DraftUID})
 			}
 		}
+		if st.CollectRecipients {
+			if err := collectRecipients(c, d.To, d.Cc, d.Bcc); err != nil {
+				slog.Warn("collecting recipients failed", "err", err)
+			}
+		}
 		return nil
 	})
 	if err != nil {

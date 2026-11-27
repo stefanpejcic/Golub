@@ -98,7 +98,7 @@ func ListFolders(c *imapclient.Client) ([]Folder, error) {
 
 	folders := make([]Folder, 0, len(list))
 	for _, l := range list {
-		if l.Mailbox == SettingsFolder {
+		if IsHidden(l.Mailbox) {
 			continue
 		}
 		f := classify(l)
