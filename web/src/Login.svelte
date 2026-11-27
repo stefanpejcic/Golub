@@ -4,7 +4,8 @@
   import { session } from './lib/session.svelte';
   import { ApiError } from './lib/api';
   import { errorMessage } from './lib/errors';
-  import Logo from './Logo.svelte';
+  import LoginBird from './LoginBird.svelte';
+  import { isBareAddress } from './lib/compose';
   import Prefs from './Prefs.svelte';
 
   const t = $derived(i18n.t);
@@ -12,6 +13,7 @@
   let email = $state('');
   let password = $state('');
   let busy = $state(false);
+  let hideEyes = $state(false);
   let error = $state(takeUrlError());
 
   // SSO failures arrive as ?error=code; show once, then clean the URL.
@@ -27,6 +29,11 @@
 
   async function submit(e: SubmitEvent) {
     e.preventDefault();
+    // The browser's own check accepts addresses without a dot in the domain, such as name@host.
+    if (!isBareAddress(email)) {
+      error = 'auth.invalid_email';
+      return;
+    }
     busy = true;
     error = '';
     try {
@@ -43,7 +50,7 @@
 <div class="screen">
   <main>
     <div class="brand" role="img" aria-label={t('app.name')}>
-      <Logo size={96} variant="mascot" />
+      <LoginBird covering={hideEyes} />
     </div>
     <form class="card" onsubmit={submit} data-testid="login-form">
       <h1>{t('login.title')}</h1>
@@ -63,6 +70,8 @@
           autocomplete="current-password"
           required
           bind:value={password}
+          onfocus={() => (hideEyes = true)}
+          onblur={() => (hideEyes = false)}
         />
       </label>
       <button class="btn btn-primary" type="submit" disabled={busy}>

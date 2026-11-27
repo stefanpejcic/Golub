@@ -177,12 +177,19 @@
     dirty = true;
   }
 
+  // Switching to plain text keeps the formatted version so switching back restores it unchanged.
+  let keptHtml = '';
+  let keptPlain = '';
+
   function toggleFormat() {
     if (html) {
+      keptHtml = editor?.innerHTML ?? '';
       text = editor?.innerText ?? '';
+      keptPlain = text;
       html = false;
     } else {
-      const body = escapeHtml(text).replace(/\n/g, '<br>');
+      const body = keptHtml && text === keptPlain ? keptHtml : escapeHtml(text).replace(/\n/g, '<br>');
+      keptHtml = '';
       html = true;
       tick().then(() => {
         // eslint-disable-next-line svelte/no-dom-manipulating
@@ -307,9 +314,37 @@
     }
   }
 
-  function discard() {
-    if (dirty && !confirm(t('compose.discard_confirm'))) return;
-    leave();
+  // Asked when leaving with unsaved changes: save and close, discard, or stay.
+  let leaveDialog = $state<HTMLDialogElement>();
+  let answer: ((v: 'save' | 'discard' | 'cancel') => void) | null = null;
+
+  function askLeave(): Promise<'save' | 'discard' | 'cancel'> {
+    leaveDialog?.showModal();
+    return new Promise((resolve) => (answer = resolve));
+  }
+
+  function choose(v: 'save' | 'discard' | 'cancel') {
+    leaveDialog?.close();
+    answer?.(v);
+    answer = null;
+  }
+
+  async function guard(): Promise<boolean> {
+    if (!dirty || busy === 'send') return true;
+    const v = await askLeave();
+    if (v === 'cancel') return false;
+    if (v === 'save') {
+      await saveDraft(true);
+      if (dirty) return false;
+    }
+    dirty = false;
+    return true;
+  }
+
+  route.setGuard(guard);
+
+  async function discard() {
+    if (await guard()) leave();
   }
 
   const autosave = settings.value.draftAutosave;
@@ -321,6 +356,7 @@
   onDestroy(() => {
     clearInterval(timer);
     removeEventListener('beforeunload', beforeUnload);
+    route.setGuard(null);
   });
 
   function onKey(e: KeyboardEvent) {
@@ -476,6 +512,16 @@
       ></textarea>
     {/if}
   </div>
+  <dialog bind:this={leaveDialog} class="leave" aria-labelledby="leave-title" oncancel={(e) => (e.preventDefault(), choose('cancel'))} data-testid="leave-dialog">
+    <h2 id="leave-title">{t('compose.leave_title')}</h2>
+    <p>{t('compose.leave_text')}</p>
+    <div class="leave-buttons">
+      <button class="btn" type="button" onclick={() => choose('cancel')} data-testid="leave-cancel">{t('compose.leave_cancel')}</button>
+      <button class="btn danger" type="button" onclick={() => choose('discard')} data-testid="leave-discard">{t('compose.discard')}</button>
+      <button class="btn btn-primary" type="button" onclick={() => choose('save')} data-testid="leave-save">{t('compose.leave_save')}</button>
+    </div>
+  </dialog>
+
   {#if session.info && identity && identity.email.toLowerCase() !== session.info.email.toLowerCase()}
     <p class="hint">{t('compose.identity_hint')}</p>
   {/if}
@@ -650,6 +696,34 @@
     font: inherit;
     border: none;
     resize: none;
+  }
+  .leave {
+    inline-size: min(100% - 2rem, 26rem);
+    padding: var(--space-4);
+    color: var(--color-text);
+    background: var(--color-surface-raised);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow);
+  }
+  .leave::backdrop {
+    background: rgb(0 0 0 / 0.4);
+  }
+  .leave h2 {
+    margin: 0 0 var(--space-2);
+    font-size: 1.1rem;
+  }
+  .leave p {
+    margin: 0 0 var(--space-4);
+    color: var(--color-text-muted);
+  }
+  .leave-buttons {
+    display: flex;
+    justify-content: flex-end;
+    gap: var(--space-2);
+  }
+  .danger {
+    color: var(--color-danger);
   }
   .hint {
     margin: 0;
