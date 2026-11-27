@@ -190,7 +190,34 @@ go run ./cmd/golub
 
 The frontend is Svelte and builds into `internal/ui/dist`, which the Go binary embeds. End-to-end tests run Playwright against docker-mailserver; see [`e2e/`](e2e). The README screenshots are made by `e2e/screenshots/shots.mjs` from invented demo mail.
 
-Golub follows [semantic versioning](https://semver.org). `VERSION` holds the next release; builds in between report `X.Y.Z-dev.N`. Plans live in [ROADMAP.md](ROADMAP.md).
+Golub follows [semantic versioning](https://semver.org). `VERSION` holds the next release; builds in between report `X.Y.Z-dev.N`.
+
+## Roadmap
+
+**Notifications and avatars**
+- Unread count in the tab title, kept up to date while the tab is in the background
+- Favicon dot for new mail and optional desktop notifications
+- Avatars: initials in a stable colour by default, no network requests
+- BIMI logos for senders whose mail passed DMARC, loaded through the image proxy
+- Optional Gravatar, off by default and loaded through the proxy
+
+**AI assistant (optional, privacy first)**
+
+Off unless the admin points Golub at an OpenAI-compatible endpoint, so a local Ollama or vLLM works. Nothing leaves the server unless the user clicks an AI action: no background analysis, nothing stored, and users can turn it off.
+- Summarize a message or a long thread
+- Reply suggestions: two or three short drafts to edit in compose
+- Compose helpers: rewrite, shorten, fix grammar, change tone, translate
+- Translate an incoming message in place
+- Natural-language search turned into IMAP SEARCH ("invoices from Marko last month")
+- Pull out action items, dates and deadlines from a message
+- Explain why a message looks like phishing or spam
+- Admin limits: per-user rate limit, maximum input size, attachments and quoted history left out
+
+**Later**
+- PGP
+- Dark view for HTML mail
+- Right-to-left languages
+- Documentation site, project website and a public live demo
 
 ## License
 
