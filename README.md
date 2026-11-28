@@ -1,12 +1,12 @@
 <p align="center">
-  <img src="assets/golub-mascot.svg" alt="Golub" width="140">
+  <img src="assets/golub-mascot.svg" alt="Golub webmail logo, a carrier pigeon" width="140">
 </p>
 
-<h1 align="center">Golub</h1>
+<h1 align="center">Golub: self-hosted webmail in Go</h1>
 
 <p align="center">
-  Privacy-first webmail in a single Go binary.<br>
-  No database, no tracking, nothing stored on the server.
+  Free, open-source webmail client for any IMAP and SMTP server.<br>
+  A lightweight Roundcube alternative in one 7 MB container: no PHP, no database, no tracking.
 </p>
 
 <p align="center">
@@ -20,26 +20,28 @@
 
 ---
 
-Golub (Serbian for *pigeon*, as in carrier pigeon) is a webmail client for any IMAP and SMTP server. It is built and tested against Dovecot and Postfix, with [docker-mailserver](https://github.com/docker-mailserver/docker-mailserver) as the reference stack.
+**Golub is a free, open-source, self-hosted webmail client written in Go.** It gives users a modern browser interface for reading and sending mail on any IMAP and SMTP server, and it is a lightweight alternative to Roundcube, SnappyMail and Afterlogic WebMail Lite. It is built and tested against Dovecot and Postfix, with [docker-mailserver](https://github.com/docker-mailserver/docker-mailserver) as the reference stack.
 
-It runs as one small container: no PHP, no database, no cron jobs, no plugins to keep in sync. Restart it whenever you like; there is nothing to migrate.
+It runs as one small container: no PHP, no database, no cron jobs, no plugins to keep in sync. Restart it whenever you like; there is nothing to migrate. Single sign-on, OpenPGP encryption, contacts, dark mode and a mobile layout are built in.
 
-![Golub inbox with a message open](assets/screenshots/inbox-light.png)
+The name is Serbian for *pigeon*, as in carrier pigeon.
+
+![Golub webmail inbox in the light theme, with the folder list, message list and an open message](assets/screenshots/inbox-light.png)
 
 <table>
   <tr>
-    <td><img src="assets/screenshots/inbox-dark.png" alt="Dark theme"></td>
-    <td><img src="assets/screenshots/compose.png" alt="Compose with address suggestions"></td>
+    <td><img src="assets/screenshots/inbox-dark.png" alt="Golub webmail in the dark theme"></td>
+    <td><img src="assets/screenshots/compose.png" alt="Writing an email in Golub with contact and group suggestions"></td>
   </tr>
   <tr>
     <td align="center">Dark theme</td>
     <td align="center">Compose with contact and group suggestions</td>
   </tr>
   <tr>
-    <td><img src="assets/screenshots/contacts.png" alt="Contacts"></td>
+    <td><img src="assets/screenshots/contacts.png" alt="Golub address book with contact groups"></td>
     <td align="center">
-      <img src="assets/screenshots/mobile-list.png" alt="Mobile list" width="180">
-      <img src="assets/screenshots/mobile-message.png" alt="Mobile message" width="180">
+      <img src="assets/screenshots/mobile-list.png" alt="Golub webmail message list on a phone" width="180">
+      <img src="assets/screenshots/mobile-message.png" alt="Reading an email in Golub on a phone" width="180">
     </td>
   </tr>
   <tr>
@@ -261,6 +263,38 @@ cd web && npm ci && node scripts/check-locales.mjs
 **To add a language**, copy `en.json` to the new language code (for example `de.json`), translate it, add it to `loaders` in [`web/src/lib/locale.svelte.ts`](web/src/lib/locale.svelte.ts) and to `Locales` in [`internal/config/config.go`](internal/config/config.go), and add a `language.<code>` entry with the language's own name to every file. Right-to-left languages are listed in `RTL` in [`web/src/lib/i18n.ts`](web/src/lib/i18n.ts); Hebrew, Persian and Urdu are already there.
 
 Send the change as a pull request. The Arabic translation was made without a native speaker, so corrections there are especially welcome.
+
+## FAQ
+
+**What is Golub?**
+A self-hosted webmail client: a web app that lets people use their email account in the browser. It connects to an existing IMAP and SMTP mail server; it is not a mail server itself.
+
+**Is Golub a Roundcube alternative?**
+Yes. Golub covers the everyday Roundcube features (folders, search, threads, compose, contacts, identities, signatures, PGP) in a single Go binary instead of a PHP application with a database. It uses far less memory and one IMAP connection per user (see [Benchmarks](#benchmarks)). Roundcube has a large plugin ecosystem and features Golub does not have yet, such as server-side filters (Sieve).
+
+**Which mail servers does Golub work with?**
+Any server that speaks IMAP and SMTP submission. It is built and tested against Dovecot and Postfix, including docker-mailserver. Single sign-on needs a Dovecot master user.
+
+**Does Golub need a database?**
+No. Sessions live in an encrypted cookie, and settings, contacts and signatures are stored in the user's own mailbox in hidden IMAP folders.
+
+**How do I install Golub?**
+Run the `ghcr.io/stefanpejcic/golub` Docker image with your IMAP host and a secret key, as in [Quick start](#quick-start). Images are published for amd64 and arm64. Step-by-step guides are in the [wiki](https://github.com/stefanpejcic/Golub/wiki/Installation).
+
+**Does Golub support PGP encryption?**
+Yes. OpenPGP encryption, decryption and signatures run in the browser and work with Thunderbird, Mailvelope and other PGP/MIME clients.
+
+**Can a control panel or app log users in automatically?**
+Yes, with [single sign-on](#single-sign-on): the host app signs a short-lived token and redirects to `/sso`.
+
+**Does Golub work on phones?**
+Yes. The interface adapts to small screens and supports swipe gestures. There is no separate app to install.
+
+**Which languages does Golub support?**
+English, Serbian (Latin) and Arabic with right-to-left layout. New languages are one JSON file each; see [Translations](#translations).
+
+**Is Golub free?**
+Yes. It is open source under GPL-3.0-or-later, with no paid edition and no telemetry.
 
 ## Roadmap
 
