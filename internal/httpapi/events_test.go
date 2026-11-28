@@ -54,9 +54,8 @@ func TestEventsStreamReportsNewMail(t *testing.T) {
 		}
 		close(lines)
 	}()
-	waitFor := func(want string) string {
-		t.Helper()
-		deadline := time.After(5 * time.Second)
+	next := func(want string, within time.Duration) (string, bool) {
+		deadline := time.After(within)
 		for {
 			select {
 			case l, ok := <-lines:
@@ -64,22 +63,38 @@ func TestEventsStreamReportsNewMail(t *testing.T) {
 					t.Fatalf("stream closed before %q", want)
 				}
 				if strings.HasPrefix(l, want) {
-					return l
+					return l, true
 				}
 			case <-deadline:
-				t.Fatalf("timed out waiting for %q", want)
+				return "", false
 			}
 		}
+	}
+	waitFor := func(want string) string {
+		t.Helper()
+		l, ok := next(want, 5*time.Second)
+		if !ok {
+			t.Fatalf("timed out waiting for %q", want)
+		}
+		return l
 	}
 	waitFor("event: ready")
 	// the browser skips its catch-up reload when these match what it already has
 	if data := waitFor("data:"); !strings.Contains(data, `"total":`) || !strings.Contains(data, `"uidNext":`) {
 		t.Fatalf("ready carries no folder state: %s", data)
 	}
-	if _, err := u.Append("INBOX", literal("Subject: hi\r\n\r\nx\r\n"), &imap.AppendOptions{}); err != nil {
-		t.Fatal(err)
+	// the in-memory server confirms IDLE before it listens, so mail appended in that gap goes unreported; try again
+	for try := 0; ; try++ {
+		if _, err := u.Append("INBOX", literal("Subject: hi\r\n\r\nx\r\n"), &imap.AppendOptions{}); err != nil {
+			t.Fatal(err)
+		}
+		if _, ok := next("event: change", time.Second); ok {
+			break
+		}
+		if try == 4 {
+			t.Fatal("no change event for new mail")
+		}
 	}
-	waitFor("event: change")
 }
 
 func TestEventsLimits(t *testing.T) {

@@ -38,13 +38,20 @@ func TestWatchReportsNewMail(t *testing.T) {
 		t.Fatal("watcher never became ready")
 	}
 	raw := "Subject: new\r\n\r\nhello\r\n"
-	if _, err := u.Append("INBOX", lit(raw), &imap.AppendOptions{}); err != nil {
-		t.Fatal(err)
-	}
-	select {
-	case <-changes:
-	case <-time.After(5 * time.Second):
-		t.Fatal("no change reported for new mail")
+	// the in-memory server confirms IDLE before it listens, so mail appended in that gap goes unreported; try again
+	for try := 0; ; try++ {
+		if _, err := u.Append("INBOX", lit(raw), &imap.AppendOptions{}); err != nil {
+			t.Fatal(err)
+		}
+		select {
+		case <-changes:
+		case <-time.After(time.Second):
+			if try == 4 {
+				t.Fatal("no change reported for new mail")
+			}
+			continue
+		}
+		break
 	}
 
 	cancel()
