@@ -63,17 +63,21 @@
     align-items: center;
     gap: var(--space-2);
   }
+  /* one date per row, since a date field needs more than half the panel in many locales */
   .dates {
     display: grid;
-    grid-template-columns: 1fr 1fr;
+    grid-template-columns: auto minmax(0, 1fr);
+    align-items: center;
     gap: var(--space-2);
   }
   .dates label {
-    display: flex;
-    flex-direction: column;
-    gap: var(--space-1);
+    display: contents;
     font-size: 0.85rem;
     color: var(--color-text-muted);
+  }
+  .dates input {
+    inline-size: 100%;
+    min-inline-size: 0;
   }
   .buttons {
     display: flex;

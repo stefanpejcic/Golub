@@ -119,6 +119,10 @@ func Parse(raw []byte) (*Message, error) {
 			if referenced[p.PartID] || (p.ContentID != "" && strings.Contains(m.HTML, "cid:"+p.ContentID)) {
 				continue
 			}
+			// PGP/MIME wrapping is not something to download; encrypted attachments appear once the browser decrypts
+			if m.PGP == "encrypted" || (m.PGP == "signed" && strings.EqualFold(p.ContentType, "application/pgp-signature")) {
+				continue
+			}
 			m.Attachments = append(m.Attachments, Attachment{
 				ID:          p.PartID,
 				Filename:    filename(p),

@@ -48,3 +48,14 @@ test('unread only and date range narrow the list', async ({ page }) => {
   await page.getByTestId('filter-clear').click();
   await expect(rows).toHaveCount(6);
 });
+
+test('the date fields stay inside the filter panel', async ({ page }) => {
+  await signIn(page);
+  await page.getByTestId('search-filters').click();
+  const panel = await page.locator('.filters').boundingBox();
+  for (const id of ['filter-since', 'filter-before']) {
+    const box = await page.getByTestId(id).boundingBox();
+    expect(box!.x).toBeGreaterThanOrEqual(panel!.x);
+    expect(box!.x + box!.width).toBeLessThanOrEqual(panel!.x + panel!.width);
+  }
+});

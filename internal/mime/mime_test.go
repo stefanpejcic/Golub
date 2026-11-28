@@ -191,3 +191,32 @@ func TestPGPDetection(t *testing.T) {
 		t.Error("a signed message still reads normally while the browser checks the signature")
 	}
 }
+
+func TestPGPStructureIsNotListedAsAttachments(t *testing.T) {
+	head := "From: a@golub.test\r\nTo: b@golub.test\r\nSubject: s\r\nMIME-Version: 1.0\r\n"
+	encrypted := head + "Content-Type: multipart/encrypted; protocol=\"application/pgp-encrypted\"; boundary=\"b\"\r\n\r\n" +
+		"--b\r\nContent-Type: application/pgp-encrypted\r\n\r\nVersion: 1\r\n" +
+		"--b\r\nContent-Type: application/octet-stream; name=\"encrypted.asc\"\r\nContent-Disposition: inline; filename=\"encrypted.asc\"\r\n\r\n-----BEGIN PGP MESSAGE-----\r\n\r\nwV4D\r\n-----END PGP MESSAGE-----\r\n--b--\r\n"
+	signed := head + "Content-Type: multipart/signed; micalg=pgp-sha256; protocol=\"application/pgp-signature\"; boundary=\"s\"\r\n\r\n" +
+		"--s\r\nContent-Type: multipart/mixed; boundary=\"m\"\r\n\r\n" +
+		"--m\r\nContent-Type: text/plain\r\n\r\nhello\r\n" +
+		"--m\r\nContent-Type: application/pdf; name=\"report.pdf\"\r\nContent-Disposition: attachment; filename=\"report.pdf\"\r\n\r\n%PDF-1.4\r\n--m--\r\n" +
+		"--s\r\nContent-Type: application/pgp-signature; name=\"signature.asc\"\r\n\r\n-----BEGIN PGP SIGNATURE-----\r\n\r\nwnUE\r\n-----END PGP SIGNATURE-----\r\n--s--\r\n"
+
+	m, err := Parse([]byte(encrypted))
+	if err != nil {
+		t.Fatal(err)
+	}
+	// the real attachments are inside the ciphertext and show up once the browser decrypts it
+	if len(m.Attachments) != 0 {
+		t.Errorf("encrypted message lists %+v", m.Attachments)
+	}
+
+	m, err = Parse([]byte(signed))
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(m.Attachments) != 1 || m.Attachments[0].Filename != "report.pdf" {
+		t.Errorf("signed message should list only report.pdf, got %+v", m.Attachments)
+	}
+}
