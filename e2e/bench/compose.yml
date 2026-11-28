@@ -10,7 +10,7 @@ networks:
 
 services:
   golub:
-    image: ghcr.io/stefanpejcic/golub:0.2.0
+    image: ghcr.io/stefanpejcic/golub:0.3.0
     container_name: bench-golub
     environment:
       GOLUB_IMAP_HOST: mailserver
