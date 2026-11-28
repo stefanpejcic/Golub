@@ -139,6 +139,10 @@ Golub **keeps one IMAP connection per user open and reuses it**, where the other
 
 How it was measured, on 27 November 2026, with Golub 0.3.0 measured again the same way on 28 November: a 4-core VPS that also runs OpenPanel, docker-mailserver 17, and each client's official image. Roundcube runs with its defaults (Apache and SQLite), SnappyMail with a domain file pointing at the mail server, and Afterlogic with MySQL as in its own compose file. The load rows come from ten different accounts, each sending 200 requests one after another with ApacheBench; every client asks for the same page of 50 messages without threads, and peak RAM is the cgroup peak of every container the client needs. The page rows are medians of five runs in Chromium over a link with about 120 ms latency, so they include the network. Cypht 2.15.0 was tried too, but its Docker image could not open any folder on the test server, so it is left out. The setup and scripts are in [`e2e/bench`](e2e/bench).
 
+## Documentation
+
+The [wiki](https://github.com/stefanpejcic/Golub/wiki) covers installation, every configuration option, single sign-on, branding, and every page and setting of the interface, with screenshots.
+
 ## Quick start
 
 Golub needs an IMAP and SMTP server. Point it at your mail server by the name on its TLS certificate:
@@ -154,7 +158,7 @@ services:
       GOLUB_IMAP_HOST: mail.example.com
       GOLUB_IMAP_TLS: implicit          # port 993
       GOLUB_SMTP_TLS: implicit          # port 465
-      GOLUB_SECRET_KEY: "change-me"     # openssl rand -base64 32
+      GOLUB_SECRET_KEY: "..."           # required, create with: openssl rand -base64 32
 ```
 
 If Golub and the mail server share a private network and the server has no certificate, use `GOLUB_IMAP_TLS: none` and `GOLUB_SMTP_TLS: none` with the server's container name; Golub only allows unencrypted connections to private addresses.
@@ -246,7 +250,7 @@ Each language is one JSON file in [`web/src/locales`](web/src/locales), keyed by
 
 - Words in braces such as `{count}` or `{folder}` are filled in by Golub: keep them, but move them wherever the sentence needs them.
 - Messages that depend on a number list every plural form your language has, the ones `Intl.PluralRules` reports: English has `one` and `other`, Serbian adds `few`, Arabic uses `zero`, `one`, `two`, `few`, `many` and `other`.
-- A missing key falls back to English, so a partial translation still works.
+- Only the chosen language is downloaded, so every file has to have every key; the check below makes sure of that.
 
 **To fix or finish a translation**, edit its file and run the check, which reports missing or unknown keys and missing plural forms:
 
@@ -254,7 +258,7 @@ Each language is one JSON file in [`web/src/locales`](web/src/locales), keyed by
 cd web && npm ci && node scripts/check-locales.mjs
 ```
 
-**To add a language**, copy `en.json` to the new language code (for example `de.json`), translate it, add it to `catalogs` in [`web/src/lib/locale.svelte.ts`](web/src/lib/locale.svelte.ts) and to `Locales` in [`internal/config/config.go`](internal/config/config.go), and add a `language.<code>` entry with the language's own name to every file. Right-to-left languages are recognised by code in `textDirection` in [`web/src/lib/i18n.ts`](web/src/lib/i18n.ts).
+**To add a language**, copy `en.json` to the new language code (for example `de.json`), translate it, add it to `loaders` in [`web/src/lib/locale.svelte.ts`](web/src/lib/locale.svelte.ts) and to `Locales` in [`internal/config/config.go`](internal/config/config.go), and add a `language.<code>` entry with the language's own name to every file. Right-to-left languages are listed in `RTL` in [`web/src/lib/i18n.ts`](web/src/lib/i18n.ts); Hebrew, Persian and Urdu are already there.
 
 Send the change as a pull request. The Arabic translation was made without a native speaker, so corrections there are especially welcome.
 
